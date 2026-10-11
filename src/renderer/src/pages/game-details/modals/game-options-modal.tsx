@@ -69,6 +69,7 @@ import {
   getCloudSaveVisibility,
   isLegacyCloudSaveSettingsAvailable,
 } from "../cloud-save-visibility";
+import { OptiscalerSection } from "./game-options-modal/optiscaler-section";
 import { LegacySavesSection } from "./game-options-modal/legacy-saves-section";
 import {
   getAvailableGameSettingsCategory,
@@ -1256,6 +1257,11 @@ export function GameOptionsModal({
                 showLaunchOptionsSection={!isLaunchbox}
               />
             )}
+            {selectedCategory === "general" &&
+              game.executablePath &&
+              window.electron.platform === "win32" && (
+                <OptiscalerSection game={game} />
+              )}
             {selectedCategory === "locations" && (
               <GeneralSettingsSection
                 {...baseGeneralSettingsProps}
