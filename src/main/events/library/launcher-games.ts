@@ -1,6 +1,7 @@
 import { registerEvent } from "../register-event";
 import { gamesSublevel, levelKeys } from "@main/level";
 import { createCustomGame } from "@main/helpers/create-custom-game";
+import { fetchGameArtwork } from "@main/services/launcher-import/artwork";
 import { detectLauncherGames } from "@main/services/launcher-import/detect";
 import type { DetectedGame } from "@main/services/launcher-import/parsers";
 import type { LauncherId } from "@types";
@@ -40,10 +41,12 @@ const importGames = async (
   let imported = 0;
   for (const game of games) {
     if (await isInLibrary(game)) continue;
+    const artwork = await fetchGameArtwork(game.title, game.exePath);
     await createCustomGame({
       objectId: launcherObjectId(game),
       title: game.title,
       executablePath: game.exePath,
+      ...artwork,
       extra: {
         launcher: game.launcher,
         launcherGameId: game.id,

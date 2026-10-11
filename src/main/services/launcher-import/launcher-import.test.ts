@@ -11,6 +11,7 @@ import {
   parseUbisoft,
   parseXbox,
 } from "./parsers.js";
+import { pickSteamMatch, steamArtwork } from "./artwork-core.js";
 import {
   parseRegQuery,
   toUninstallPrograms,
@@ -264,4 +265,20 @@ test("Xbox treats a package as a game only with MicrosoftGame.config", () => {
     path: "explorer.exe",
     args: [String.raw`shell:AppsFolder\Contoso.Game_abc!Game`],
   });
+});
+
+test("pickSteamMatch needs an exact normalized title, app type only", () => {
+  const items = [
+    { type: "bundle", id: 1, name: "Portal" },
+    { type: "app", id: 2, name: "Portal 2" },
+    { type: "app", id: 3, name: "The Witcher® 3: Wild Hunt" },
+  ];
+  assert.equal(pickSteamMatch(items, "Portal"), null);
+  assert.equal(pickSteamMatch(items, "portal 2")?.id, 2);
+  assert.equal(pickSteamMatch(items, "The Witcher 3 - Wild Hunt")?.id, 3);
+  assert.equal(pickSteamMatch(items, "   "), null);
+  assert.match(
+    steamArtwork(2).iconUrl ?? "",
+    /\/apps\/2\/library_600x900_2x\.jpg$/
+  );
 });
