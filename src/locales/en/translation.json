@@ -2142,7 +2142,22 @@
     "context_menu_options": "Options",
     "context_menu_uninstall": "Uninstall",
     "context_menu_remove_from_library": "Remove from Library",
-    "context_menu_add_to_library": "Add to Library"
+    "context_menu_add_to_library": "Add to Library",
+    "import_launcher_games": "Import from launchers",
+    "import_launcher_games_title": "Import installed games",
+    "import_launcher_games_scanning": "Scanning installed launchers...",
+    "import_launcher_games_none": "No installed games found in supported launchers.",
+    "import_launcher_games_already": "In library",
+    "import_launcher_games_confirm": "Import {{count}} selected",
+    "import_launcher_games_failed": "Could not import games",
+    "launcher_epic": "Epic Games",
+    "launcher_gog": "GOG",
+    "launcher_ubisoft": "Ubisoft Connect",
+    "launcher_amazon": "Amazon Games",
+    "launcher_humble": "Humble App",
+    "launcher_battlenet": "Battle.net",
+    "launcher_rockstar": "Rockstar Games",
+    "launcher_xbox": "Xbox / Microsoft Store"
   },
   "achievement": {
     "achievement_unlocked": "Achievement unlocked",

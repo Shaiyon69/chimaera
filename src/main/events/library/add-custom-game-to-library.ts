@@ -1,7 +1,7 @@
 import { registerEvent } from "../register-event";
-import { gamesSublevel, gamesShopAssetsSublevel, levelKeys } from "@main/level";
+import { gamesSublevel } from "@main/level";
+import { createCustomGame } from "@main/helpers/create-custom-game";
 import { randomUUID } from "node:crypto";
-import type { GameShop } from "@types";
 
 const addCustomGameToLibrary = async (
   _event: Electron.IpcMainInvokeEvent,
@@ -11,10 +11,6 @@ const addCustomGameToLibrary = async (
   logoImageUrl?: string,
   libraryHeroImageUrl?: string
 ) => {
-  const objectId = randomUUID();
-  const shop: GameShop = "custom";
-  const gameKey = levelKeys.game(shop, objectId);
-
   const existingGames = await gamesSublevel.iterator().all();
   const existingGame = existingGames.find(
     ([_key, game]) => game.executablePath === executablePath && !game.isDeleted
@@ -26,44 +22,14 @@ const addCustomGameToLibrary = async (
     );
   }
 
-  const assets = {
-    updatedAt: Date.now(),
-    objectId,
-    shop,
+  return createCustomGame({
+    objectId: randomUUID(),
     title,
-    iconUrl: iconUrl || null,
-    libraryHeroImageUrl: libraryHeroImageUrl || "",
-    libraryImageUrl: iconUrl || "",
-    logoImageUrl: logoImageUrl || "",
-    logoPosition: null,
-    coverImageUrl: iconUrl || "",
-    downloadSources: [],
-  };
-  await gamesShopAssetsSublevel.put(gameKey, assets);
-
-  const game = {
-    title,
-    iconUrl: iconUrl || null,
-    logoImageUrl: logoImageUrl || null,
-    libraryHeroImageUrl: libraryHeroImageUrl || null,
-    objectId,
-    shop,
-    remoteId: null,
-    isDeleted: false,
-    playTimeInMilliseconds: 0,
-    lastTimePlayed: null,
-    addedToLibraryAt: new Date(),
     executablePath,
-    executablePathUpdatedAt: new Date(),
-    launchOptions: null,
-    favorite: false,
-    automaticCloudSync: false,
-    hasManuallyUpdatedPlaytime: false,
-  };
-
-  await gamesSublevel.put(gameKey, game);
-
-  return game;
+    iconUrl,
+    logoImageUrl,
+    libraryHeroImageUrl,
+  });
 };
 
 registerEvent("addCustomGameToLibrary", addCustomGameToLibrary);

@@ -3,6 +3,8 @@ import type {
   SystemPowerAction,
   AppUpdaterEvent,
   GameShop,
+  LauncherId,
+  DetectedLauncherGame,
   Steam250Game,
   DownloadProgress,
   SeedingStatus,
@@ -367,6 +369,10 @@ declare global {
       logoImageUrl?: string,
       libraryHeroImageUrl?: string
     ) => Promise<Game>;
+    detectLauncherGames: () => Promise<DetectedLauncherGame[]>;
+    importLauncherGames: (
+      selection: { launcher: LauncherId; id: string }[]
+    ) => Promise<{ imported: number }>;
     updateCustomGame: (params: {
       shop: GameShop;
       objectId: string;

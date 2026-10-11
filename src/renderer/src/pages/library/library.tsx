@@ -26,7 +26,11 @@ import {
 import { useTranslation } from "react-i18next";
 import { AuthPage, removeDiacritics } from "@shared";
 import { GameCollection, LibraryGame } from "@types";
-import { CreateCollectionModal, GameContextMenu } from "@renderer/components";
+import {
+  Button,
+  CreateCollectionModal,
+  GameContextMenu,
+} from "@renderer/components";
 import { useCollectionContextMenu } from "@renderer/context";
 import {
   getGameCollectionIds,
@@ -34,6 +38,7 @@ import {
   sortLibraryGames,
 } from "@renderer/helpers";
 import { useSearchParams } from "react-router-dom";
+import { ImportLauncherGamesModal } from "./import-launcher-games-modal";
 import { LibraryGameCard } from "./library-game-card";
 import { LibraryGameCardLarge } from "./library-game-card-large";
 import { ViewOptions, ViewMode } from "./view-options";
@@ -185,6 +190,7 @@ export default function Library() {
     visible: boolean;
     position: { x: number; y: number };
   }>({ game: null, visible: false, position: { x: 0, y: 0 } });
+  const [showImportLauncherGames, setShowImportLauncherGames] = useState(false);
   const [showCreateCollectionModal, setShowCreateCollectionModal] =
     useState(false);
 
@@ -756,6 +762,14 @@ export default function Library() {
             </div>
 
             <div className="library__controls-right">
+              {window.electron.platform === "win32" && (
+                <Button
+                  theme="outline"
+                  onClick={() => setShowImportLauncherGames(true)}
+                >
+                  {t("import_launcher_games")}
+                </Button>
+              )}
               <FilterOptions sortBy={sortBy} onSortChange={handleSortChange} />
               <ViewOptions
                 viewMode={viewMode}
@@ -921,6 +935,12 @@ export default function Library() {
           onCollectionContextMenu={openCollectionContextMenu}
         />
       )}
+
+      <ImportLauncherGamesModal
+        visible={showImportLauncherGames}
+        onClose={() => setShowImportLauncherGames(false)}
+        onImported={() => void updateLibrary()}
+      />
 
       <CreateCollectionModal
         visible={showCreateCollectionModal}

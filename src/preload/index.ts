@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 import type {
   SystemPowerAction,
   GameShop,
+  LauncherId,
   DownloadProgress,
   UserPreferences,
   AppUpdaterEvent,
@@ -986,6 +987,9 @@ contextBridge.exposeInMainWorld("electron", {
       logoImageUrl,
       libraryHeroImageUrl
     ),
+  detectLauncherGames: () => ipcRenderer.invoke("detectLauncherGames"),
+  importLauncherGames: (selection: { launcher: LauncherId; id: string }[]) =>
+    ipcRenderer.invoke("importLauncherGames", selection),
   copyCustomGameAsset: (
     sourcePath: string,
     assetType: "icon" | "logo" | "hero" | "grid"

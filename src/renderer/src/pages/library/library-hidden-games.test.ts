@@ -165,6 +165,7 @@ async function renderLibrary(
       removeDiacritics: (value: string) => value,
     },
     "@renderer/components": {
+      Button: () => null,
       CreateCollectionModal: () => null,
       GameContextMenu: () => null,
     },
@@ -179,6 +180,7 @@ async function renderLibrary(
     "react-router-dom": {
       useSearchParams: () => [searchParams, noop],
     },
+    "./import-launcher-games-modal": { ImportLauncherGamesModal: () => null },
     "./library-game-card": { LibraryGameCard: gameCard },
     "./library-game-card-large": { LibraryGameCardLarge: gameCard },
     "./view-options": { ViewOptions: () => null },

@@ -1,4 +1,5 @@
 import "./add-custom-game-to-library";
+import "./launcher-games";
 import "./add-game-to-favorites";
 import "./add-game-to-library";
 import "./assign-game-to-collection";

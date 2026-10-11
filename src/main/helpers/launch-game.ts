@@ -2,7 +2,12 @@ import { shell } from "electron";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { GameShop, type Game, type UserPreferences } from "@types";
+import {
+  GameShop,
+  type ExternalLaunch,
+  type Game,
+  type UserPreferences,
+} from "@types";
 import { db, gamesSublevel, levelKeys } from "@main/level";
 import { updateGameExecutablePath } from "./update-executable-path";
 import {
@@ -911,7 +916,39 @@ const hasLaunchableExecutable = (executablePath: string) => {
   }
 };
 
+/** Starts a game through its own launcher (URI or client exe); playtime is tracked by the process watcher. */
+const launchExternal = async (launch: ExternalLaunch) => {
+  if (launch.kind === "uri") {
+    await shell.openExternal(launch.uri);
+    return;
+  }
+  const child = spawn(launch.path, launch.args, {
+    cwd: path.dirname(launch.path),
+    detached: true,
+    stdio: "ignore",
+  });
+  child.on("error", (error) =>
+    logger.error("External launch process failed", { path: launch.path, error })
+  );
+  child.unref();
+};
+
 export const launchGame = async (options: LaunchGameOptions) => {
+  const record = await gamesSublevel
+    .get(levelKeys.game(options.shop, options.objectId))
+    .catch(() => null);
+  if (record?.externalLaunch) {
+    try {
+      await launchExternal(record.externalLaunch);
+      return null;
+    } catch (error) {
+      logger.error("External launch failed, falling back to the executable", {
+        objectId: options.objectId,
+        error,
+      });
+    }
+  }
+
   if (!hasLaunchableExecutable(options.executablePath)) {
     logger.warn("Game executable not found", {
       shop: options.shop,

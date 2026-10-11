@@ -28,6 +28,31 @@ export interface User {
   subscription: Subscription | null;
 }
 
+export type LauncherId =
+  | "epic"
+  | "gog"
+  | "ubisoft"
+  | "amazon"
+  | "humble"
+  | "battlenet"
+  | "rockstar"
+  | "xbox";
+
+export type ExternalLaunch =
+  | { kind: "uri"; uri: string }
+  | { kind: "exe"; path: string; args: string[] };
+
+export interface DetectedLauncherGame {
+  launcher: LauncherId;
+  id: string;
+  objectId: string;
+  title: string;
+  installDir: string;
+  exePath: string | null;
+  externalLaunch: ExternalLaunch | null;
+  imported: boolean;
+}
+
 export interface Game {
   title: string;
   iconUrl: string | null;
@@ -85,6 +110,9 @@ export interface Game {
   selectedDiscPath?: string | null;
   dontAskDiscSelection?: boolean;
   romSizeBytes?: number | null;
+  launcher?: LauncherId;
+  launcherGameId?: string;
+  externalLaunch?: ExternalLaunch | null;
 }
 
 export interface Download {
