@@ -1023,7 +1023,21 @@
     "create_steam_shortcut_modal_cancel_button": "Cancel",
     "delete_shortcut_success": "Steam shortcut deleted successfully",
     "delete_shortcut_error": "Failed to delete Steam shortcut",
-    "delete_steam_shortcut": "Delete Steam shortcut"
+    "delete_steam_shortcut": "Delete Steam shortcut",
+    "optiscaler_title": "OptiScaler + FSR4",
+    "optiscaler_not_installed": "Not installed",
+    "optiscaler_installed": "Installed {{version}} ({{proxy}})",
+    "optiscaler_fsr4_live": "FSR4 live",
+    "optiscaler_loaded": "OptiScaler loaded",
+    "optiscaler_api": "API: {{api}}",
+    "optiscaler_install": "Install",
+    "optiscaler_update": "Update to {{version}}",
+    "optiscaler_reinstall": "Reinstall",
+    "optiscaler_uninstall": "Uninstall",
+    "optiscaler_anticheat_warning": "Anti-cheat detected ({{name}}). Injecting a DLL can get you banned or crash the game. Click again to continue.",
+    "optiscaler_proxy_conflict_warning": "{{proxy}} already exists in the game folder. It will be backed up and restored on uninstall. Click again to continue.",
+    "optiscaler_no_fsr4": "No FSR4 DLL is set (Settings > OptiScaler). OptiScaler will be installed without it.",
+    "optiscaler_uninstall_confirm": "Remove OptiScaler and restore the original files? Click again to confirm."
   },
   "activation": {
     "title": "Activate Hydra",
@@ -1778,7 +1792,18 @@
     "wayland_souvenirs_warning_title": "Souvenirs on Wayland",
     "wayland_souvenirs_warning_description": "Due to the nature of Wayland, Hydra needs to ask which window it should capture every time you open a game. Select the game window so Hydra can capture souvenirs when you unlock achievements. Without selecting a window, capturing souvenirs is impossible.",
     "wayland_souvenirs_warning_cancel": "Cancel",
-    "wayland_souvenirs_warning_confirm": "OK"
+    "wayland_souvenirs_warning_confirm": "OK",
+    "optiscaler": "OptiScaler",
+    "optiscaler_nightly": "Use nightly OptiScaler builds",
+    "optiscaler_fsr4_variant": "FSR4 DLL variant",
+    "optiscaler_fsr4_exact": "Exact",
+    "optiscaler_fsr4_lossy": "Lossy",
+    "optiscaler_fsr4_exact_path": "FSR4 DLL (exact)",
+    "optiscaler_fsr4_lossy_path": "FSR4 DLL (lossy)",
+    "optiscaler_fsr4_choose": "Choose DLL",
+    "optiscaler_fsr4_clear": "Clear",
+    "optiscaler_fsr4_hint": "Select your own amd_fidelityfx_upscaler_dx12.dll. It is not bundled.",
+    "optiscaler_fsr4_lossy_warning": "The lossy DLL runs the network on every other frame and changes the picture. Do not use it on RX 9000 cards."
   },
   "notifications": {
     "download_complete": "Download complete",

@@ -1154,8 +1154,8 @@ contextBridge.exposeInMainWorld("electron", {
     objectId: string,
     saveFolderPath: string
   ) => ipcRenderer.invoke("openGameSaveFolder", shop, objectId, saveFolderPath),
-  getOptiscalerStatus: (shop: GameShop, objectId: string) =>
-    ipcRenderer.invoke("getOptiscalerStatus", shop, objectId),
+  getOptiscalerStatus: (shop: GameShop, objectId: string, proxy?: string) =>
+    ipcRenderer.invoke("getOptiscalerStatus", shop, objectId, proxy),
   installOptiscaler: (shop: GameShop, objectId: string, proxy: string) =>
     ipcRenderer.invoke("installOptiscaler", shop, objectId, proxy),
   uninstallOptiscaler: (shop: GameShop, objectId: string) =>

@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { configureIni, iniGetSet } from "./ini.js";
 import { install, readMarker, uninstall } from "./install.js";
-import { detectAnticheat, detectApi } from "./detect.js";
+import { detectAnticheat, detectApi, gameRootFromExeDir } from "./detect.js";
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), "chimaera-os-"));
 
@@ -112,4 +112,14 @@ test("detectApi and detectAnticheat", () => {
   assert.equal(detectAnticheat(dir), null);
   fs.mkdirSync(path.join(dir, "EasyAntiCheat"));
   assert.equal(detectAnticheat(dir), "EasyAntiCheat");
+});
+
+test("gameRootFromExeDir climbs out of Unreal Binaries/Win64", () => {
+  const sep = path.sep;
+  const root = ["C:", "Games", "Foo"].join(sep);
+  assert.equal(
+    gameRootFromExeDir([root, "Foo", "Binaries", "Win64"].join(sep)),
+    root
+  );
+  assert.equal(gameRootFromExeDir(root), root);
 });

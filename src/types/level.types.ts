@@ -174,7 +174,11 @@ export interface UserPreferences {
   showDownloadSpeedInMegabytes?: boolean;
   extractFilesByDefault?: boolean;
   optiscalerNightly?: boolean;
+  /** Legacy single path; read as the exact path when `optiscalerFsr4ExactPath` is unset. */
   optiscalerFsr4DllPath?: string | null;
+  optiscalerFsr4ExactPath?: string | null;
+  optiscalerFsr4LossyPath?: string | null;
+  optiscalerFsr4Variant?: "exact" | "lossy";
   deleteArchiveFilesAfterExtractionByDefault?: boolean;
   enableSteamAchievements?: boolean;
   enableAchievementSouvenirs?: boolean;

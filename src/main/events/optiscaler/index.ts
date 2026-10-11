@@ -3,14 +3,18 @@ import fs from "node:fs";
 import { registerEvent } from "../register-event";
 import { db, gamesSublevel, levelKeys } from "@main/level";
 import type { GameShop, UserPreferences } from "@types";
-import { fetchLatest } from "@main/services/optiscaler/release";
+import { fetchLatest, fetchLatestTag } from "@main/services/optiscaler/release";
 import {
   install,
   uninstall,
   readMarker,
   PROXIES,
 } from "@main/services/optiscaler/install";
-import { detectAnticheat, detectApi } from "@main/services/optiscaler/detect";
+import {
+  detectAnticheat,
+  detectApi,
+  gameRootFromExeDir,
+} from "@main/services/optiscaler/detect";
 import { loadedState } from "@main/services/optiscaler/status";
 
 const getContext = async (shop: GameShop, objectId: string) => {
@@ -20,21 +24,46 @@ const getContext = async (shop: GameShop, objectId: string) => {
   return { exePath: game.executablePath, exeDir };
 };
 
+const getPrefs = () =>
+  db.get<string, UserPreferences | null>(levelKeys.userPreferences, {
+    valueEncoding: "json",
+  });
+
+/** Chosen FSR4 DLL if it still exists on disk. */
+const resolveFsr4Dll = (prefs: UserPreferences | null): string | null => {
+  const dll =
+    prefs?.optiscalerFsr4Variant === "lossy"
+      ? prefs.optiscalerFsr4LossyPath
+      : (prefs?.optiscalerFsr4ExactPath ?? prefs?.optiscalerFsr4DllPath);
+  return dll && fs.existsSync(dll) ? dll : null;
+};
+
 const getStatus = async (
   _event: Electron.IpcMainInvokeEvent,
   shop: GameShop,
-  objectId: string
+  objectId: string,
+  proxy?: string
 ) => {
   const { exePath, exeDir } = await getContext(shop, objectId);
+  const prefs = await getPrefs();
   const marker = readMarker(exeDir);
+  const latestTag = await fetchLatestTag(!!prefs?.optiscalerNightly);
   return {
     installed: !!marker,
     version: marker?.version ?? null,
     proxy: marker?.proxy ?? null,
     loaded: marker ? loadedState(exeDir) : null,
     api: detectApi(exePath),
-    anticheat: detectAnticheat(exeDir),
+    anticheat: detectAnticheat(gameRootFromExeDir(exeDir)),
     proxies: PROXIES,
+    latestTag,
+    updateAvailable: !!marker && !!latestTag && marker.version !== latestTag,
+    fsr4Available: !!resolveFsr4Dll(prefs),
+    // A foreign DLL under the chosen proxy name would be moved to backup.
+    proxyConflict:
+      !marker && proxy && fs.existsSync(path.join(exeDir, proxy))
+        ? proxy
+        : null,
   };
 };
 
@@ -46,18 +75,14 @@ const installOptiscaler = async (
 ) => {
   if (!PROXIES.includes(proxy)) throw new Error(`Invalid proxy: ${proxy}`);
   const { exePath, exeDir } = await getContext(shop, objectId);
-  const prefs = await db.get<string, UserPreferences | null>(
-    levelKeys.userPreferences,
-    { valueEncoding: "json" }
-  );
-  const fsr4 = prefs?.optiscalerFsr4DllPath;
+  const prefs = await getPrefs();
   const { tag, payload } = await fetchLatest(!!prefs?.optiscalerNightly);
   install({
     payload,
     exeDir,
     proxy,
     tag,
-    fsr4Dll: fsr4 && fs.existsSync(fsr4) ? fsr4 : null,
+    fsr4Dll: resolveFsr4Dll(prefs),
     api: detectApi(exePath),
   });
   return { version: tag };

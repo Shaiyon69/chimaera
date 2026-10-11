@@ -1,32 +1,37 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@renderer/components";
 import type { LibraryGame } from "@types";
 
 type Status = Awaited<ReturnType<typeof window.electron.getOptiscalerStatus>>;
-
-const FSR4_LABEL = { live: "FSR4 live", loaded: "OptiScaler loaded" } as const;
+type Confirm = "install" | "uninstall" | null;
 
 export function OptiscalerSection({ game }: Readonly<{ game: LibraryGame }>) {
+  const { t } = useTranslation("game_details");
   const [status, setStatus] = useState<Status | null>(null);
-  const [proxy, setProxy] = useState("dxgi.dll");
+  const [proxy, setProxy] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [confirmAnticheat, setConfirmAnticheat] = useState(false);
+  const [confirm, setConfirm] = useState<Confirm>(null);
 
   const refresh = useCallback(async () => {
     try {
       const s = await window.electron.getOptiscalerStatus(
         game.shop,
-        game.objectId
+        game.objectId,
+        proxy ?? undefined
       );
       setStatus(s);
-      setProxy(s.proxy ?? (s.api === "vulkan" ? "winmm.dll" : "dxgi.dll"));
+      setProxy(
+        (current) =>
+          current ?? s.proxy ?? (s.api === "vulkan" ? "winmm.dll" : "dxgi.dll")
+      );
     } catch (err) {
       setStatus(null);
       setError(err instanceof Error ? err.message : String(err));
     }
-  }, [game.shop, game.objectId]);
+  }, [game.shop, game.objectId, proxy]);
 
   useEffect(() => {
     void refresh();
@@ -35,7 +40,7 @@ export function OptiscalerSection({ game }: Readonly<{ game: LibraryGame }>) {
   const run = async (action: () => Promise<unknown>) => {
     setBusy(true);
     setError(null);
-    setConfirmAnticheat(false);
+    setConfirm(null);
     try {
       await action();
     } catch (err) {
@@ -47,34 +52,62 @@ export function OptiscalerSection({ game }: Readonly<{ game: LibraryGame }>) {
   };
 
   const install = () => {
-    // Injecting into anti-cheat games can get the account banned: ask first.
-    if (status?.anticheat && !confirmAnticheat) {
-      setConfirmAnticheat(true);
+    // Anti-cheat injection can get the account banned; a foreign proxy DLL gets moved to backup: ask first.
+    if ((status?.anticheat || status?.proxyConflict) && confirm !== "install") {
+      setConfirm("install");
       return;
     }
     void run(() =>
-      window.electron.installOptiscaler(game.shop, game.objectId, proxy)
+      window.electron.installOptiscaler(
+        game.shop,
+        game.objectId,
+        proxy ?? "dxgi.dll"
+      )
+    );
+  };
+
+  const uninstall = () => {
+    if (confirm !== "uninstall") {
+      setConfirm("uninstall");
+      return;
+    }
+    void run(() =>
+      window.electron.uninstallOptiscaler(game.shop, game.objectId)
     );
   };
 
   if (!status && !error) return null;
 
+  let installLabel = t("optiscaler_install");
+  if (status?.installed)
+    installLabel = status.updateAvailable
+      ? t("optiscaler_update", { version: status.latestTag })
+      : t("optiscaler_reinstall");
+
   return (
     <div className="game-options-modal__optiscaler">
-      <h3>OptiScaler + FSR4</h3>
+      <h3>{t("optiscaler_title")}</h3>
       {status && (
         <>
           <p>
             {status.installed
-              ? `Installed ${status.version} (${status.proxy})`
-              : "Not installed"}
-            {status.loaded ? ` · ${FSR4_LABEL[status.loaded]}` : ""}
-            {` · API: ${status.api}`}
+              ? t("optiscaler_installed", {
+                  version: status.version,
+                  proxy: status.proxy,
+                })
+              : t("optiscaler_not_installed")}
+            {status.loaded
+              ? ` · ${t(status.loaded === "live" ? "optiscaler_fsr4_live" : "optiscaler_loaded")}`
+              : ""}
+            {` · ${t("optiscaler_api", { api: status.api })}`}
           </p>
           <select
-            value={proxy}
+            value={proxy ?? ""}
             disabled={busy}
-            onChange={(e) => setProxy(e.target.value)}
+            onChange={(e) => {
+              setProxy(e.target.value);
+              setConfirm(null);
+            }}
           >
             {status.proxies.map((p) => (
               <option key={p} value={p}>
@@ -82,26 +115,28 @@ export function OptiscalerSection({ game }: Readonly<{ game: LibraryGame }>) {
               </option>
             ))}
           </select>
-          {confirmAnticheat && (
+          {!status.fsr4Available && <p>{t("optiscaler_no_fsr4")}</p>}
+          {confirm === "install" && status.anticheat && (
             <p>
-              Anti-cheat detected ({status.anticheat}). Injecting a DLL can get
-              you banned or crash the game. Click again to continue.
+              {t("optiscaler_anticheat_warning", { name: status.anticheat })}
             </p>
           )}
+          {confirm === "install" && status.proxyConflict && (
+            <p>
+              {t("optiscaler_proxy_conflict_warning", {
+                proxy: status.proxyConflict,
+              })}
+            </p>
+          )}
+          {confirm === "uninstall" && (
+            <p>{t("optiscaler_uninstall_confirm")}</p>
+          )}
           <Button theme="primary" disabled={busy} onClick={install}>
-            {status.installed ? "Update" : "Install"}
+            {installLabel}
           </Button>
           {status.installed && (
-            <Button
-              theme="danger"
-              disabled={busy}
-              onClick={() =>
-                void run(() =>
-                  window.electron.uninstallOptiscaler(game.shop, game.objectId)
-                )
-              }
-            >
-              Uninstall
+            <Button theme="danger" disabled={busy} onClick={uninstall}>
+              {t("optiscaler_uninstall")}
             </Button>
           )}
         </>

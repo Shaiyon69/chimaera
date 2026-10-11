@@ -16,6 +16,7 @@ export type SettingsCategoryId =
   | "content_gameplay"
   | "integrations"
   | "compatibility"
+  | "optiscaler"
   | "account_privacy"
   | "big_picture"
   | "emulation";

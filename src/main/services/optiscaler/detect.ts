@@ -118,3 +118,10 @@ export const detectAnticheat = (gameDir: string): string | null => {
   });
   return hit;
 };
+
+/** Unreal puts the exe in `<root>/<Game>/Binaries/Win64`; anti-cheat lives at the root, so scan from there. */
+export const gameRootFromExeDir = (exeDir: string): string => {
+  const parts = exeDir.split(path.sep);
+  const i = parts.findIndex((p) => p.toLowerCase() === "binaries");
+  return i > 1 ? parts.slice(0, i - 1).join(path.sep) : exeDir;
+};

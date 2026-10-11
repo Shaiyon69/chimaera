@@ -480,7 +480,8 @@ declare global {
     verifyExecutablePathInUse: (executablePath: string) => Promise<Game>;
     getOptiscalerStatus: (
       shop: GameShop,
-      objectId: string
+      objectId: string,
+      proxy?: string
     ) => Promise<{
       installed: boolean;
       version: string | null;
@@ -489,6 +490,10 @@ declare global {
       api: string;
       anticheat: string | null;
       proxies: string[];
+      latestTag: string | null;
+      updateAvailable: boolean;
+      fsr4Available: boolean;
+      proxyConflict: string | null;
     }>;
     installOptiscaler: (
       shop: GameShop,
