@@ -3,15 +3,18 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { configureIni, iniGetSet } from "./ini";
-import { install, readMarker, uninstall } from "./install";
-import { detectAnticheat, detectApi } from "./detect";
+import { configureIni, iniGetSet } from "./ini.js";
+import { install, readMarker, uninstall } from "./install.js";
+import { detectAnticheat, detectApi } from "./detect.js";
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), "chimaera-os-"));
 
 const snapshot = (root: string): Record<string, string> => {
   const out: Record<string, string> = {};
-  for (const e of fs.readdirSync(root, { recursive: true, withFileTypes: true })) {
+  for (const e of fs.readdirSync(root, {
+    recursive: true,
+    withFileTypes: true,
+  })) {
     if (!e.isFile()) continue;
     const p = path.join(e.parentPath, e.name);
     out[path.relative(root, p)] = fs.readFileSync(p, "latin1");
@@ -22,7 +25,10 @@ const snapshot = (root: string): Record<string, string> => {
 const makePayload = (dir: string) => {
   fs.mkdirSync(path.join(dir, "D3D12_Optiscaler"), { recursive: true });
   fs.writeFileSync(path.join(dir, "OptiScaler.dll"), "dll");
-  fs.writeFileSync(path.join(dir, "OptiScaler.ini"), "Fsr4Update=auto\nLogLevel=auto\n");
+  fs.writeFileSync(
+    path.join(dir, "OptiScaler.ini"),
+    "Fsr4Update=auto\nLogLevel=auto\n"
+  );
   fs.writeFileSync(path.join(dir, "setup_windows.bat"), "skip");
   fs.writeFileSync(path.join(dir, "D3D12_Optiscaler", "x.dll"), "x");
 };
@@ -38,7 +44,10 @@ test("iniGetSet reads, sets and appends", () => {
 
 test("configureIni only changes keys still set to auto", () => {
   const ini = path.join(tmp(), "a.ini");
-  fs.writeFileSync(ini, "Fsr4Update=false\nFsr4ForceEnableInt8=auto\nDx12Upscaler=auto\nLogToFile=auto\nLogLevel=1\n");
+  fs.writeFileSync(
+    ini,
+    "Fsr4Update=false\nFsr4ForceEnableInt8=auto\nDx12Upscaler=auto\nLogToFile=auto\nLogLevel=1\n"
+  );
   const done = configureIni(ini, "dx12", true);
   assert.deepEqual(
     done.map(([k]) => k),
@@ -62,7 +71,10 @@ test("install then uninstall restores the game folder exactly", () => {
   assert.deepEqual(readMarker(game)?.backed_up, ["dxgi.dll"]);
 
   install({ payload, exeDir: game, proxy: "winmm.dll", tag: "v2" }); // update
-  assert.equal(fs.readFileSync(path.join(game, "dxgi.dll"), "utf-8"), "original");
+  assert.equal(
+    fs.readFileSync(path.join(game, "dxgi.dll"), "utf-8"),
+    "original"
+  );
 
   uninstall(game);
   assert.deepEqual(snapshot(game), before);
@@ -77,7 +89,13 @@ test("failed install rolls back to the original files", () => {
   const before = snapshot(game);
 
   assert.throws(() =>
-    install({ payload, exeDir: game, proxy: "dxgi.dll", tag: "v1", fsr4Dll: path.join(game, "missing.dll") })
+    install({
+      payload,
+      exeDir: game,
+      proxy: "dxgi.dll",
+      tag: "v1",
+      fsr4Dll: path.join(game, "missing.dll"),
+    })
   );
   assert.deepEqual(snapshot(game), before);
 });
@@ -85,7 +103,10 @@ test("failed install rolls back to the original files", () => {
 test("detectApi and detectAnticheat", () => {
   const dir = tmp();
   const exe = path.join(dir, "g.exe");
-  fs.writeFileSync(exe, Buffer.concat([Buffer.from("MZ..."), Buffer.from("D3D11.dll", "utf16le")]));
+  fs.writeFileSync(
+    exe,
+    Buffer.concat([Buffer.from("MZ..."), Buffer.from("D3D11.dll", "utf16le")])
+  );
   assert.equal(detectApi(exe), "dx11");
   assert.equal(detectApi(null), "unknown");
   assert.equal(detectAnticheat(dir), null);

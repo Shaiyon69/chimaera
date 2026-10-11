@@ -91,7 +91,10 @@ export const detectApi = (exePath: string | null): string => {
       let n: number;
       while ((n = fs.readSync(fd, buf, 0, buf.length, null)) > 0) {
         const chunk = Buffer.concat([tail, buf.subarray(0, n)]);
-        const lower = Buffer.from(chunk.toString("latin1").toLowerCase(), "latin1");
+        const lower = Buffer.from(
+          chunk.toString("latin1").toLowerCase(),
+          "latin1"
+        );
         for (const [needle, name] of API_MARKS)
           if (lower.includes(needle)) found.add(name);
         tail = chunk.subarray(Math.max(0, chunk.length - 24));

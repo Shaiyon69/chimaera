@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { configureIni } from "./ini";
+import { configureIni } from "./ini.js";
 
 export const MARKER = "optiscaler_manager.json";
 export const BACKUP = ".optiscaler_backup";

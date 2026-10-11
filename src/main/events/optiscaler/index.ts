@@ -10,10 +10,7 @@ import {
   readMarker,
   PROXIES,
 } from "@main/services/optiscaler/install";
-import {
-  detectAnticheat,
-  detectApi,
-} from "@main/services/optiscaler/detect";
+import { detectAnticheat, detectApi } from "@main/services/optiscaler/detect";
 import { loadedState } from "@main/services/optiscaler/status";
 
 const getContext = async (shop: GameShop, objectId: string) => {

@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { MARKER } from "./install";
+import { MARKER } from "./install.js";
 
 /** "live" if OptiScaler.log (written after install) shows the FSR4 4.1.x DLL, "loaded" if only OptiScaler ran, else null. */
 export const loadedState = (exeDir: string): "live" | "loaded" | null => {
