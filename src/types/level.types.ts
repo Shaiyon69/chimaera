@@ -173,6 +173,8 @@ export interface UserPreferences {
   friendStartGameNotificationsEnabled?: boolean;
   showDownloadSpeedInMegabytes?: boolean;
   extractFilesByDefault?: boolean;
+  optiscalerNightly?: boolean;
+  optiscalerFsr4DllPath?: string | null;
   deleteArchiveFilesAfterExtractionByDefault?: boolean;
   enableSteamAchievements?: boolean;
   enableAchievementSouvenirs?: boolean;

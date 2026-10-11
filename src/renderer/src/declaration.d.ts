@@ -478,6 +478,24 @@ declare global {
       objectId: string
     ) => Promise<string | null>;
     verifyExecutablePathInUse: (executablePath: string) => Promise<Game>;
+    getOptiscalerStatus: (
+      shop: GameShop,
+      objectId: string
+    ) => Promise<{
+      installed: boolean;
+      version: string | null;
+      proxy: string | null;
+      loaded: "live" | "loaded" | null;
+      api: string;
+      anticheat: string | null;
+      proxies: string[];
+    }>;
+    installOptiscaler: (
+      shop: GameShop,
+      objectId: string,
+      proxy: string
+    ) => Promise<{ version: string }>;
+    uninstallOptiscaler: (shop: GameShop, objectId: string) => Promise<void>;
     getLibrary: (includeConcealed?: boolean) => Promise<LibraryGame[]>;
     getHiddenLibrary: () => Promise<LibraryGame[]>;
     setGameVisibility: (

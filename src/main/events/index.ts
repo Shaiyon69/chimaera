@@ -22,6 +22,7 @@ import "./leveldb";
 import "./main-window-controls";
 import "./misc";
 import "./notifications";
+import "./optiscaler";
 import "./profile";
 import "./themes";
 import "./torrenting";
