@@ -30,6 +30,7 @@ import {
   groupedSouvenirWorker,
 } from "@main/services";
 import { migrateDownloadSources } from "./helpers/migrate-download-sources";
+import { seedDefaultDownloadSource } from "./helpers/seed-default-download-source";
 import { getDirSize } from "./services/download/helpers";
 import { GofileApi } from "./services/hosters";
 import { clearLegacyAchievementPersistence } from "./level/clear-legacy-achievements";
@@ -118,7 +119,7 @@ export const loadState = async () => {
 
   await HydraApi.setupApi().then(async () => {
     uploadGamesBatch();
-    void migrateDownloadSources();
+    void migrateDownloadSources().then(seedDefaultDownloadSource);
 
     const { syncDownloadSourcesFromApi } = await import("./services/user");
     void syncDownloadSourcesFromApi();
