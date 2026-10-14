@@ -169,8 +169,8 @@
   }
 
   &__row {
-    background: #0d0d0d;
-    border: 1px solid #1c1c1c;
+    background: #000000;
+    border: 1px solid #0c0c0c;
     border-radius: 12px;
     padding: 16px 24px;
     display: flex;
@@ -437,7 +437,7 @@
   }
 
   &__stat {
-    background: #0d0d0d;
+    background: #000000;
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 10px;
     padding: 24px;
@@ -579,7 +579,7 @@
     height: 4px;
     width: 100%;
     border-radius: 999px;
-    background: #1c1c1c;
+    background: #0c0c0c;
     overflow: hidden;
   }
 
@@ -597,8 +597,8 @@
   }
 
   &__memcard-card {
-    background: #0d0d0d;
-    border: 1px solid #1c1c1c;
+    background: #000000;
+    border: 1px solid #0c0c0c;
     border-radius: 10px;
     padding: 10px 12px;
     display: flex;
@@ -693,7 +693,7 @@
     align-items: center;
     gap: 6px;
     background: transparent;
-    border: 1px solid #1c1c1c;
+    border: 1px solid #0c0c0c;
     border-radius: 8px;
     color: #c0c1c7;
     cursor: pointer;
@@ -703,7 +703,7 @@
 
     &:hover {
       color: #fafafa;
-      border-color: #2a2a2a;
+      border-color: #161616;
     }
 
     &:disabled {
@@ -726,7 +726,7 @@
     justify-content: center;
     width: 32px;
     height: 32px;
-    border: 1px solid #1c1c1c;
+    border: 1px solid #0c0c0c;
     border-radius: 8px;
     background: transparent;
     color: #c0c1c7;
@@ -734,7 +734,7 @@
 
     &:hover:not(:disabled) {
       color: #fafafa;
-      border-color: #2a2a2a;
+      border-color: #161616;
     }
 
     &:disabled {
@@ -801,7 +801,7 @@
     box-sizing: border-box;
     min-width: 0;
     height: 153px;
-    background: #0d0d0d;
+    background: #000000;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
     padding: 16px;
@@ -976,8 +976,8 @@
     gap: 2px;
     width: 100%;
     text-align: left;
-    background: #0d0d0d;
-    border: 1px solid #1c1c1c;
+    background: #000000;
+    border: 1px solid #0c0c0c;
     border-radius: 8px;
     padding: 10px 12px;
     cursor: pointer;
@@ -1079,8 +1079,8 @@
     min-width: 240px;
     display: flex;
     align-items: center;
-    background: #0d0d0d;
-    border: 1px solid #1c1c1c;
+    background: #000000;
+    border: 1px solid #0c0c0c;
     border-radius: 8px;
     padding: 12px 16px;
     cursor: pointer;
@@ -1090,7 +1090,7 @@
 
     &:hover:not(:disabled),
     &:focus-visible {
-      border-color: #2a2a2a;
+      border-color: #161616;
     }
 
     &:focus-visible {

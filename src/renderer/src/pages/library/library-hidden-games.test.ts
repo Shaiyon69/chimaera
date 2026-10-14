@@ -179,6 +179,7 @@ async function renderLibrary(
     },
     "react-router-dom": {
       useSearchParams: () => [searchParams, noop],
+      useLocation: () => ({ pathname: "/" }),
     },
     "./import-launcher-games-modal": { ImportLauncherGamesModal: () => null },
     "./library-game-card": { LibraryGameCard: gameCard },

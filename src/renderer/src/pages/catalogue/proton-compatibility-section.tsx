@@ -31,7 +31,7 @@ export function ProtonCompatibilitySection({
   onProtonChange,
   onDeckChange,
 }: ProtonCompatibilitySectionProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(protonValue !== "" || deckChecked);
   const [height, setHeight] = useState(0);
   const content = useRef<HTMLDivElement>(null);
 

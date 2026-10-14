@@ -110,10 +110,10 @@ export class WindowManager {
             frame: false,
             ...(isLinuxWayland
               ? { transparent: true, backgroundColor: "#00000000" }
-              : { backgroundColor: "#1c1c1c" }),
+              : { backgroundColor: "#000000" }),
           }
         : {
-            backgroundColor: "#1c1c1c",
+            backgroundColor: "#000000",
             titleBarStyle: "hidden",
             titleBarOverlay: {
               symbolColor: "#DADBE1",
@@ -477,7 +477,7 @@ export class WindowManager {
       y: targetBounds.y,
       width: targetBounds.width,
       height: targetBounds.height,
-      backgroundColor: "#0a0a0a",
+      backgroundColor: "#000000",
       icon,
       frame: false,
       show: false,
@@ -543,7 +543,7 @@ export class WindowManager {
       maxWidth: 420,
       minHeight: 560,
       maximizable: false,
-      backgroundColor: "#1c1c1c",
+      backgroundColor: "#0c0c0c",
       // No native frame/controls — the renderer draws its own minimize and
       // close buttons in the title bar (see friends-window.tsx).
       frame: false,
@@ -668,7 +668,7 @@ export class WindowManager {
     const authWindow = new BrowserWindow({
       width: AUTH_WINDOW_CONTENT_WIDTH,
       height: AUTH_WINDOW_CONTENT_HEIGHT,
-      backgroundColor: "#1c1c1c",
+      backgroundColor: "#0c0c0c",
       parent: parentWindow,
       modal: true,
       show: false,
@@ -717,7 +717,7 @@ export class WindowManager {
       resizable: false,
       frame: false,
       icon,
-      backgroundColor: "#1c1c1c",
+      backgroundColor: "#0c0c0c",
       webPreferences: {
         preload: path.join(__dirname, "../preload/index.mjs"),
         sandbox: false,
@@ -791,8 +791,8 @@ export class WindowManager {
     const connectionWindow = new BrowserWindow({
       width: layout.width,
       height: layout.height,
-      title: "Hydra",
-      backgroundColor: "#1c1c1c",
+      title: "Chimaera",
+      backgroundColor: "#0c0c0c",
       parent: parentWindow,
       modal: true,
       show: false,
@@ -879,7 +879,7 @@ export class WindowManager {
         height: 720,
         minWidth: 600,
         minHeight: 540,
-        backgroundColor: "#1c1c1c",
+        backgroundColor: "#0c0c0c",
         titleBarStyle: process.platform === "linux" ? "default" : "hidden",
         icon,
         trafficLightPosition: { x: 16, y: 16 },
@@ -962,7 +962,7 @@ export class WindowManager {
       minimizable: false,
       fullscreenable: false,
       frame: false,
-      backgroundColor: "#1c1c1c",
+      backgroundColor: "#0c0c0c",
       icon,
       skipTaskbar: false,
       webPreferences: {
@@ -1149,7 +1149,7 @@ export class WindowManager {
       tray.popUpContextMenu(contextMenu);
     };
 
-    tray.setToolTip("Hydra Launcher");
+    tray.setToolTip("Chimaera");
 
     if (process.platform === "win32") {
       await updateSystemTray();

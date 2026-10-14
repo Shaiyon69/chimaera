@@ -159,7 +159,7 @@
     border: 1px solid transparent;
     border-radius: 6px;
     background:
-      linear-gradient(#1c1c1c, #1c1c1c) padding-box,
+      linear-gradient(#0c0c0c, #0c0c0c) padding-box,
       globals.$classics-rainbow border-box;
     padding: 0 8px;
     height: 24px;
@@ -202,7 +202,7 @@
     border: 1px solid transparent;
     border-radius: 6px;
     background:
-      linear-gradient(#1c1c1c, #1c1c1c) padding-box,
+      linear-gradient(#0c0c0c, #0c0c0c) padding-box,
       globals.$classics-rainbow border-box;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -357,7 +357,7 @@
 
   &__game-image--contain {
     object-fit: contain;
-    background: #0a0a0a;
+    background: #000000;
   }
 
   &__classics-cover {
@@ -367,7 +367,7 @@
     height: 100%;
     overflow: hidden;
     border-radius: 4px;
-    background: #0a0a0a;
+    background: #000000;
     z-index: 0;
   }
 

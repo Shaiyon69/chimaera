@@ -38,7 +38,7 @@ export function SettingsIntegrationCard({
           <span className="settings-integration-card__logo">{logo}</span>
           <h3 className="settings-integration-card__title">{title}</h3>
           {loading ? (
-            <SkeletonTheme baseColor="#1c1c1c" highlightColor="#444">
+            <SkeletonTheme baseColor="#0c0c0c" highlightColor="#444">
               <Skeleton width={96} height={14} />
             </SkeletonTheme>
           ) : (
@@ -62,7 +62,7 @@ export function SettingsIntegrationCard({
 
         {loading ? (
           <div className="settings-integration-card__actions">
-            <SkeletonTheme baseColor="#1c1c1c" highlightColor="#444">
+            <SkeletonTheme baseColor="#0c0c0c" highlightColor="#444">
               <Skeleton width={104} height={40} borderRadius={8} />
             </SkeletonTheme>
           </div>
@@ -73,7 +73,7 @@ export function SettingsIntegrationCard({
 
       <div className="settings-integration-card__content">
         {loading ? (
-          <SkeletonTheme baseColor="#1c1c1c" highlightColor="#444">
+          <SkeletonTheme baseColor="#0c0c0c" highlightColor="#444">
             <div className="settings-integration-card__loading-content">
               <Skeleton width={40} height={40} borderRadius={6} />
               <div className="settings-integration-card__loading-copy">

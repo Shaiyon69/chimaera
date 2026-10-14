@@ -230,7 +230,7 @@ export function SettingsContextEmulation() {
   const handleSetupComplete = useCallback(() => {
     setSetupSystem(null);
     localStorage.setItem("library-category", "classics");
-    navigate("/library");
+    navigate("/");
   }, [navigate]);
 
   const handleSetupClose = useCallback(async () => {
@@ -241,7 +241,7 @@ export function SettingsContextEmulation() {
   const handleRetroArchSetupComplete = useCallback(() => {
     setRetroArchSetupOpen(false);
     localStorage.setItem("library-category", "classics");
-    navigate("/library");
+    navigate("/");
   }, [navigate]);
 
   const handleRetroArchSetupClose = useCallback(async () => {

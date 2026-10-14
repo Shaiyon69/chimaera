@@ -236,9 +236,7 @@ export function SettingsContextContentGameplay() {
               readOnly
             />
 
-            <span className="settings-behavior__hydra-cloud-badge">
-              Hydra Cloud
-            </span>
+            <span className="settings-behavior__hydra-cloud-badge">Cloud</span>
           </button>
         )}
 

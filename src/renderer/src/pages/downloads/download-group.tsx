@@ -78,7 +78,7 @@ function isTooCloseRGB(a: string, b: string, threshold: number): boolean {
   return distance < threshold;
 }
 
-const CHART_BACKGROUND_COLOR = "#1a1a1a";
+const CHART_BACKGROUND_COLOR = "#0c0c0c";
 const COLOR_DISTANCE_THRESHOLD = 28;
 const FALLBACK_CHART_COLOR = "#fff";
 

@@ -79,18 +79,19 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-    padding-top: 8px;
+    padding-top: 12px;
   }
 
   &__sidebar-divider {
     height: 1px;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.1);
     margin-bottom: 4px;
   }
 
   &__sidebar-group-label {
     font-size: 10px;
     font-weight: 600;
+    text-transform: uppercase;
     color: #71717a;
     letter-spacing: 0.8px;
     padding: 0 calc(globals.$spacing-unit * 1.5);

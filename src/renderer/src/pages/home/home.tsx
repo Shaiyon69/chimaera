@@ -120,7 +120,7 @@ export default function Home() {
   };
 
   return (
-    <SkeletonTheme baseColor="#1c1c1c" highlightColor="#444">
+    <SkeletonTheme baseColor="#0c0c0c" highlightColor="#444">
       <section className="home__content">
         <Hero />
 

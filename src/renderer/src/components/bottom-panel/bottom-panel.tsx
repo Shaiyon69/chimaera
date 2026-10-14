@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CommentDiscussionIcon } from "@primer/octicons-react";
+import { CommentDiscussionIcon, DownloadIcon } from "@primer/octicons-react";
 
 import {
   useAppSelector,
@@ -153,7 +153,7 @@ export function BottomPanel() {
       });
     }
 
-    return t("no_downloads_in_progress");
+    return null;
   }, [
     t,
     library,
@@ -220,7 +220,14 @@ export function BottomPanel() {
           className="bottom-panel__downloads-button"
           onClick={() => navigate("/downloads")}
         >
-          <small>{status}</small>
+          {status ? (
+            <small>{status}</small>
+          ) : (
+            <DownloadIcon
+              size={14}
+              aria-label={t("downloads", { ns: "sidebar" })}
+            />
+          )}
         </button>
       </div>
 

@@ -21,7 +21,7 @@ export function ReleaseYearSection({
 }: Readonly<ReleaseYearSectionProps>) {
   const { t } = useTranslation("catalogue");
   const contentRef = useRef<HTMLDivElement>(null);
-  const [isOpen, toggleOpen] = useReducer((s) => !s, true);
+  const [isOpen, toggleOpen] = useReducer((s) => !s, value !== undefined);
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
 
   const gte = value?.gte ?? MIN_YEAR;
@@ -89,7 +89,7 @@ export function ReleaseYearSection({
         style={{ maxHeight: `${height}px` }}
       >
         <div className="filter-section__content-inner">
-          {isActive ? (
+          {isActive && (
             <button
               type="button"
               className="filter-section__clear-button"
@@ -97,10 +97,6 @@ export function ReleaseYearSection({
             >
               {t("clear_filters", { filterCount: 1 })}
             </button>
-          ) : (
-            <span className="filter-section__count">
-              {t("filter_by_release_year")}
-            </span>
           )}
 
           <div className="release-year-section__labels">

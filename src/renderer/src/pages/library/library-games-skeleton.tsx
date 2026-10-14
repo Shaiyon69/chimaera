@@ -17,7 +17,7 @@ export function LibraryGamesSkeleton({
   gap,
 }: Readonly<LibraryGamesSkeletonProps>) {
   return (
-    <SkeletonTheme baseColor="#1c1c1c" highlightColor="#444">
+    <SkeletonTheme baseColor="#0c0c0c" highlightColor="#444">
       <div
         className="library-games-skeleton"
         aria-hidden="true"

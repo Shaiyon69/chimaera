@@ -362,8 +362,8 @@ $disc-menu-transition-duration: 0.15s;
     flex-direction: column;
     gap: 0;
     padding: 0;
-    background: #0d0d0d;
-    border: 1px solid #1c1c1c;
+    background: #000000;
+    border: 1px solid #0c0c0c;
     border-radius: 8px;
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
     max-height: $disc-menu-max-height;
@@ -696,7 +696,7 @@ $disc-menu-transition-duration: 0.15s;
 }
 
 .cancel-confirm-modal {
-  background: #1e1e1e;
+  background: #0c0c0c;
   border-radius: 16px;
   padding: 24px 32px;
   min-width: 420px;

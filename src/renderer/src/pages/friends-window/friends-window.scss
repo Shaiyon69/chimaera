@@ -15,6 +15,10 @@
   font-size: globals.$body-font-size;
   overflow: hidden;
 
+  &--embedded {
+    height: 100%;
+  }
+
   &__header {
     position: relative;
     display: flex;
