@@ -15,6 +15,7 @@ import {
   detectApi,
   gameRootFromExeDir,
 } from "@main/services/optiscaler/detect";
+import { readConfig, writeConfigValue } from "@main/services/optiscaler/ini";
 import { loadedState } from "@main/services/optiscaler/status";
 
 const getContext = async (shop: GameShop, objectId: string) => {
@@ -100,3 +101,30 @@ const uninstallOptiscaler = async (
 registerEvent("getOptiscalerStatus", getStatus);
 registerEvent("installOptiscaler", installOptiscaler);
 registerEvent("uninstallOptiscaler", uninstallOptiscaler);
+
+const iniPathFor = async (shop: GameShop, objectId: string) => {
+  const { exeDir } = await getContext(shop, objectId);
+  if (!readMarker(exeDir)) throw new Error("OptiScaler is not installed");
+  return path.join(exeDir, "OptiScaler.ini");
+};
+
+registerEvent(
+  "getOptiscalerConfig",
+  async (_event, shop: GameShop, objectId: string) => {
+    const iniPath = await iniPathFor(shop, objectId);
+    return fs.existsSync(iniPath) ? readConfig(iniPath) : [];
+  }
+);
+
+registerEvent(
+  "setOptiscalerConfig",
+  async (
+    _event,
+    shop: GameShop,
+    objectId: string,
+    key: string,
+    value: string
+  ) => {
+    writeConfigValue(await iniPathFor(shop, objectId), key, value);
+  }
+);

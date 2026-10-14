@@ -66,3 +66,57 @@ export const configureIni = (
   }
   return done;
 };
+
+const UPSCALERS = [
+  "auto",
+  "fsr31",
+  "fsr31_12",
+  "fsr21",
+  "fsr21_12",
+  "xess",
+  "dlss",
+];
+
+export type ConfigField =
+  | { key: string; type: "toggle" }
+  | { key: string; type: "select"; options: string[] }
+  | { key: string; type: "number"; min: number; max: number };
+
+/** Allowlist of user-editable keys; the renderer can only touch these. */
+export const CONFIG_FIELDS: ConfigField[] = [
+  { key: "Dx12Upscaler", type: "select", options: UPSCALERS },
+  { key: "Dx11Upscaler", type: "select", options: UPSCALERS },
+  { key: "VulkanUpscaler", type: "select", options: UPSCALERS },
+  { key: "FGType", type: "select", options: ["auto", "nofg", "optifg"] },
+  { key: "Sharpness", type: "number", min: 0, max: 1 },
+  { key: "Fsr4Update", type: "toggle" },
+  { key: "Fsr4ForceEnableInt8", type: "toggle" },
+  { key: "LogToFile", type: "toggle" },
+  { key: "LogLevel", type: "select", options: ["0", "1", "2", "3", "4"] },
+];
+
+/** Fields whose key is present in the ini, with their current value. */
+export const readConfig = (iniPath: string) =>
+  CONFIG_FIELDS.flatMap((field) => {
+    const value = iniGetSet(iniPath, field.key);
+    return value === null ? [] : [{ ...field, value }];
+  });
+
+export const writeConfigValue = (
+  iniPath: string,
+  key: string,
+  value: string
+) => {
+  const field = CONFIG_FIELDS.find((f) => f.key === key);
+  if (!field || iniGetSet(iniPath, key) === null)
+    throw new Error(`Unsupported setting: ${key}`);
+  const num = Number(value);
+  const valid =
+    field.type === "toggle"
+      ? value === "true" || value === "false"
+      : field.type === "select"
+        ? field.options.includes(value)
+        : value.trim() !== "" && num >= field.min && num <= field.max;
+  if (!valid) throw new Error(`Invalid value for ${key}: ${value}`);
+  iniGetSet(iniPath, key, value);
+};

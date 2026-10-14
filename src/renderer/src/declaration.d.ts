@@ -507,6 +507,22 @@ declare global {
       proxy: string
     ) => Promise<{ version: string }>;
     uninstallOptiscaler: (shop: GameShop, objectId: string) => Promise<void>;
+    getOptiscalerConfig: (
+      shop: GameShop,
+      objectId: string
+    ) => Promise<
+      ({ key: string; value: string } & (
+        | { type: "toggle" }
+        | { type: "select"; options: string[] }
+        | { type: "number"; min: number; max: number }
+      ))[]
+    >;
+    setOptiscalerConfig: (
+      shop: GameShop,
+      objectId: string,
+      key: string,
+      value: string
+    ) => Promise<void>;
     getLibrary: (includeConcealed?: boolean) => Promise<LibraryGame[]>;
     getHiddenLibrary: () => Promise<LibraryGame[]>;
     setGameVisibility: (

@@ -5,8 +5,7 @@ import { Button, CheckboxField, TextField } from "@renderer/components";
 import { settingsContext } from "@renderer/context";
 import { useAppSelector } from "@renderer/hooks";
 
-import "./settings-behavior.scss";
-import "./settings-general.scss";
+import "./settings-optiscaler.scss";
 
 type DllKey = "optiscalerFsr4ExactPath" | "optiscalerFsr4LossyPath";
 
@@ -60,8 +59,8 @@ export function SettingsContextOptiscaler() {
   );
 
   return (
-    <div className="settings-context-panel">
-      <div className="settings-context-panel__group">
+    <div className="settings-optiscaler">
+      <section className="settings-optiscaler__card">
         <CheckboxField
           label={t("optiscaler_nightly")}
           checked={prefs?.optiscalerNightly ?? false}
@@ -71,8 +70,17 @@ export function SettingsContextOptiscaler() {
             })
           }
         />
+      </section>
 
-        <p>{t("optiscaler_fsr4_hint")}</p>
+      <section className="settings-optiscaler__card">
+        <div className="settings-optiscaler__card-header">
+          <h3 className="settings-optiscaler__card-title">
+            {t("optiscaler_fsr4_dlls")}
+          </h3>
+          <p className="settings-optiscaler__hint">
+            {t("optiscaler_fsr4_hint")}
+          </p>
+        </div>
         {dllField(
           "optiscalerFsr4ExactPath",
           t("optiscaler_fsr4_exact_path"),
@@ -83,23 +91,38 @@ export function SettingsContextOptiscaler() {
           t("optiscaler_fsr4_lossy_path"),
           lossyPath
         )}
+      </section>
 
-        <label>
+      <section className="settings-optiscaler__card">
+        <h3 className="settings-optiscaler__card-title">
           {t("optiscaler_fsr4_variant")}
-          <select
-            value={variant}
-            onChange={(e) =>
-              void updateUserPreferences({
-                optiscalerFsr4Variant: e.target.value as "exact" | "lossy",
-              })
-            }
-          >
-            <option value="exact">{t("optiscaler_fsr4_exact")}</option>
-            <option value="lossy">{t("optiscaler_fsr4_lossy")}</option>
-          </select>
-        </label>
-        {variant === "lossy" && <p>{t("optiscaler_fsr4_lossy_warning")}</p>}
-      </div>
+        </h3>
+        <div className="settings-optiscaler__variant" role="radiogroup">
+          {(["exact", "lossy"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              role="radio"
+              aria-checked={variant === v}
+              className={`settings-optiscaler__variant-option${
+                variant === v
+                  ? " settings-optiscaler__variant-option--active"
+                  : ""
+              }`}
+              onClick={() =>
+                void updateUserPreferences({ optiscalerFsr4Variant: v })
+              }
+            >
+              {t(`optiscaler_fsr4_${v}`)}
+            </button>
+          ))}
+        </div>
+        {variant === "lossy" && (
+          <p className="settings-optiscaler__warning">
+            {t("optiscaler_fsr4_lossy_warning")}
+          </p>
+        )}
+      </section>
     </div>
   );
 }

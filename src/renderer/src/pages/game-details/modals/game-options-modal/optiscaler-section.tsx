@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@renderer/components";
 import type { LibraryGame } from "@types";
 
+import { OptiscalerConfig } from "./optiscaler-config";
+
 type Status = Awaited<ReturnType<typeof window.electron.getOptiscalerStatus>>;
 type Confirm = "install" | "uninstall" | null;
 
@@ -141,6 +143,7 @@ export function OptiscalerSection({ game }: Readonly<{ game: LibraryGame }>) {
           )}
         </>
       )}
+      {status?.installed && !busy && <OptiscalerConfig game={game} />}
       {error && <p>{error}</p>}
     </div>
   );

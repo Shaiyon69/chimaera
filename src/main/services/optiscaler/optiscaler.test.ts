@@ -3,7 +3,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { configureIni, iniGetSet } from "./ini.js";
+import {
+  configureIni,
+  iniGetSet,
+  readConfig,
+  writeConfigValue,
+} from "./ini.js";
 import { install, readMarker, uninstall } from "./install.js";
 import { detectAnticheat, detectApi, gameRootFromExeDir } from "./detect.js";
 
@@ -122,4 +127,31 @@ test("gameRootFromExeDir climbs out of Unreal Binaries/Win64", () => {
     root
   );
   assert.equal(gameRootFromExeDir(root), root);
+});
+
+test("readConfig lists only fields whose key exists in the ini", () => {
+  const ini = path.join(tmp(), "c.ini");
+  fs.writeFileSync(ini, "[A]\nDx12Upscaler=auto\nSharpness=0.8\nOther=1\n");
+  const fields = readConfig(ini);
+  assert.deepEqual(
+    fields.map((f) => [f.key, f.value]),
+    [
+      ["Dx12Upscaler", "auto"],
+      ["Sharpness", "0.8"],
+    ]
+  );
+});
+
+test("writeConfigValue validates key and value", () => {
+  const ini = path.join(tmp(), "w.ini");
+  fs.writeFileSync(ini, "Dx12Upscaler=auto\nSharpness=0.8\nOther=1\n");
+  writeConfigValue(ini, "Dx12Upscaler", "xess");
+  writeConfigValue(ini, "Sharpness", "0.5");
+  assert.equal(iniGetSet(ini, "Dx12Upscaler"), "xess");
+  assert.equal(iniGetSet(ini, "Sharpness"), "0.5");
+  assert.throws(() => writeConfigValue(ini, "Other", "2"));
+  assert.throws(() => writeConfigValue(ini, "Dx12Upscaler", "bogus"));
+  assert.throws(() => writeConfigValue(ini, "Sharpness", "5"));
+  assert.throws(() => writeConfigValue(ini, "Sharpness", "1\nEvil=1"));
+  assert.equal(iniGetSet(ini, "Other"), "1");
 });

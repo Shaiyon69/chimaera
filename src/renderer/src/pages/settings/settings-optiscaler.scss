@@ -1,0 +1,83 @@
+@use "../../scss/globals.scss";
+
+.settings-optiscaler {
+  display: flex;
+  flex-direction: column;
+  gap: calc(globals.$spacing-unit * 2);
+  padding-top: calc(globals.$spacing-unit * 1.5);
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: calc(globals.$spacing-unit * 1.5);
+    padding: calc(globals.$spacing-unit * 2);
+    border: 1px solid globals.$border-color;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  &__card-header {
+    display: flex;
+    flex-direction: column;
+    gap: calc(globals.$spacing-unit / 2);
+  }
+
+  &__card-title {
+    margin: 0;
+    font-size: globals.$body-font-size;
+    font-weight: 600;
+    color: globals.$muted-color;
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: globals.$hint-font-size;
+    line-height: 1.5;
+    color: globals.$body-color;
+    opacity: 0.8;
+  }
+
+  &__variant {
+    display: flex;
+    gap: globals.$spacing-unit;
+    padding: 4px;
+    border: 1px solid globals.$border-color;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    align-self: flex-start;
+  }
+
+  &__variant-option {
+    padding: calc(globals.$spacing-unit * 0.75) calc(globals.$spacing-unit * 2);
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: globals.$body-color;
+    font-size: globals.$body-font-size;
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    &--active,
+    &--active:hover {
+      background: globals.$brand-teal;
+      color: #fff;
+    }
+  }
+
+  &__warning {
+    margin: 0;
+    padding: globals.$spacing-unit calc(globals.$spacing-unit * 1.5);
+    border-left: 3px solid globals.$warning-color;
+    border-radius: 4px;
+    background: rgba(255, 193, 7, 0.08);
+    font-size: globals.$hint-font-size;
+    line-height: 1.5;
+    color: globals.$muted-color;
+  }
+}

@@ -1164,6 +1164,14 @@ contextBridge.exposeInMainWorld("electron", {
     ipcRenderer.invoke("installOptiscaler", shop, objectId, proxy),
   uninstallOptiscaler: (shop: GameShop, objectId: string) =>
     ipcRenderer.invoke("uninstallOptiscaler", shop, objectId),
+  getOptiscalerConfig: (shop: GameShop, objectId: string) =>
+    ipcRenderer.invoke("getOptiscalerConfig", shop, objectId),
+  setOptiscalerConfig: (
+    shop: GameShop,
+    objectId: string,
+    key: string,
+    value: string
+  ) => ipcRenderer.invoke("setOptiscalerConfig", shop, objectId, key, value),
   openGame: (
     shop: GameShop,
     objectId: string,
