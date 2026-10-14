@@ -12,6 +12,18 @@
   &__filters-container {
     width: 100%;
     align-self: flex-start;
+    position: sticky;
+    top: 0;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    background-color: globals.$background-color;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+  }
+
+  &__mode-toggle {
+    padding: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   }
 
   &__header {
@@ -105,17 +117,28 @@
 
   &__content {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(300px, 22vw, 380px);
+    grid-template-columns: minmax(0, 1fr) clamp(240px, 18vw, 300px);
     gap: calc(globals.$spacing-unit * 2);
     align-items: start;
   }
 
   &__games-container {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    align-content: start;
     width: 100%;
     min-width: 0;
     gap: 8px;
+    transition: opacity 0.15s ease;
+
+    &--fetching {
+      opacity: 0.5;
+    }
+
+    .catalogue__pagination-container,
+    .catalogue__result-count {
+      grid-column: 1 / -1;
+    }
 
     &--classics {
       display: grid;
@@ -154,7 +177,6 @@
   &__filters-sections {
     display: flex;
     flex-direction: column;
-    gap: 12px;
   }
 
   &__skeleton {
@@ -171,6 +193,11 @@
   @media (max-width: 1024px) {
     &__content {
       grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__filters-container {
+      position: static;
+      max-height: none;
     }
   }
 

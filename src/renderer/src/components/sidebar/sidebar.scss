@@ -118,14 +118,27 @@
     text-wrap: nowrap;
     display: flex;
     color: globals.$muted-color;
-    border-radius: 4px;
+    border-radius: 8px;
+    position: relative;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.15);
+      background-color: rgba(255, 255, 255, 0.07);
     }
 
     &--active {
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: rgba(22, 177, 149, 0.12);
+      color: #ffffff;
+
+      &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 22%;
+        bottom: 22%;
+        width: 3px;
+        border-radius: 0 3px 3px 0;
+        background-color: globals.$brand-teal;
+      }
     }
 
     &--muted {
@@ -302,6 +315,8 @@
     display: flex;
     align-items: center;
     gap: calc(globals.$spacing-unit);
+    // Lines the field up with the dock avatar, whose visible top sits ~2px lower.
+    margin-top: 2px;
 
     .text-field-container {
       flex: 1;

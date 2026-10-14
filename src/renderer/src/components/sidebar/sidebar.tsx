@@ -14,7 +14,6 @@ import {
   useToast,
 } from "@renderer/hooks";
 import { selectIsLibraryLoading } from "@renderer/features";
-import { routes } from "./routes";
 
 import "./sidebar.scss";
 
@@ -46,7 +45,6 @@ import {
 } from "@renderer/session-state";
 import { SidebarGameItem } from "./sidebar-game-item";
 import { SidebarGameListSkeleton } from "./sidebar-game-list-skeleton";
-import { SidebarProfile } from "./sidebar-profile";
 
 const SIDEBAR_MIN_WIDTH = 200;
 const SIDEBAR_INITIAL_WIDTH = 250;
@@ -456,12 +454,6 @@ export function Sidebar() {
     return game.title;
   };
 
-  const handleSidebarItemClick = (path: string) => {
-    if (path !== location.pathname) {
-      navigate(path);
-    }
-  };
-
   const handleSidebarGameClick = (game: LibraryGame) => {
     const path = buildGameDetailsPath({
       ...game,
@@ -497,30 +489,10 @@ export function Sidebar() {
       )}
 
       <div className="sidebar__container">
-        <SidebarProfile />
-
         <div className="sidebar__content">
-          <section className="sidebar__section">
-            <ul className="sidebar__menu">
-              {routes.map(({ nameKey, path, render }) => (
-                <li
-                  key={nameKey}
-                  className={cn("sidebar__menu-item", {
-                    "sidebar__menu-item--active": location.pathname === path,
-                  })}
-                >
-                  <button
-                    type="button"
-                    className="sidebar__menu-item-button"
-                    onClick={() => handleSidebarItemClick(path)}
-                  >
-                    {render()}
-                    <span>{t(nameKey)}</span>
-                  </button>
-                </li>
-              ))}
-
-              {window.electron.platform === "linux" && homebrewFolderExists && (
+          {window.electron.platform === "linux" && homebrewFolderExists && (
+            <section className="sidebar__section">
+              <ul className="sidebar__menu">
                 <li className="sidebar__menu-item sidebar__menu-item--decky">
                   <button
                     type="button"
@@ -543,9 +515,9 @@ export function Sidebar() {
                     </span>
                   </button>
                 </li>
-              )}
-            </ul>
-          </section>
+              </ul>
+            </section>
+          )}
 
           <section className="sidebar__section sidebar__section--games">
             <div className="sidebar__search-row">

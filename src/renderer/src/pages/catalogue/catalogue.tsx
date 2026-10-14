@@ -20,6 +20,7 @@ import "./catalogue.scss";
 import { Button } from "@renderer/components/button/button";
 import { SelectField } from "@renderer/components/select-field/select-field";
 import { setFilters, setPage } from "@renderer/features";
+import { logger } from "@renderer/logger";
 import { useCatalogue } from "@renderer/hooks/use-catalogue";
 import { useLaunchboxFilters } from "@renderer/hooks/use-launchbox-filters";
 import { debounce } from "lodash-es";
@@ -75,7 +76,7 @@ const classicsPlatformGroups = [
   { label: "Other", value: "other" },
 ] as const;
 
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 48;
 
 const clearAllCategoryFilters = {
   genres: [],
@@ -149,6 +150,7 @@ export default function Catalogue() {
   }, [filters, deferredTitleFilter]);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
 
   const [results, setResults] = useState<CatalogueSearchResult[]>([]);
   const [resultsMode, setResultsMode] = useState(mode);
@@ -205,20 +207,32 @@ export default function Catalogue() {
               }
             : baseRequest;
 
-        const response = await window.electron.hydraApi.post<{
-          edges: CatalogueSearchResult[];
-          count: number;
-        }>("/catalogue/search", {
-          data: requestData,
-          needsAuth: false,
-        });
+        try {
+          const response = await window.electron.hydraApi.post<{
+            edges: CatalogueSearchResult[];
+            count: number;
+          }>("/catalogue/search", {
+            data: requestData,
+            needsAuth: false,
+          });
 
-        if (requestId !== requestSequenceRef.current) return;
+          if (requestId !== requestSequenceRef.current) return;
 
-        setResults(response.edges);
-        setResultsMode(mode);
-        setItemsCount(response.count);
-        setIsLoading(false);
+          setResults(response.edges);
+          setResultsMode(mode);
+          setItemsCount(response.count);
+        } catch (error) {
+          if (requestId !== requestSequenceRef.current) return;
+
+          logger.error("Catalogue search failed", error);
+          // Keep the previous results; otherwise the skeleton would never clear.
+          setResultsMode(mode);
+        } finally {
+          if (requestId === requestSequenceRef.current) {
+            setIsLoading(false);
+            setIsFetching(false);
+          }
+        }
       },
       500
     )
@@ -240,6 +254,7 @@ export default function Catalogue() {
     if (!hasResultsRef.current) {
       setIsLoading(true);
     }
+    setIsFetching(true);
 
     debouncedSearch(
       effectiveFilters,
@@ -390,9 +405,9 @@ export default function Catalogue() {
         value: publisher,
       })),
       ...filters.downloadSourceFingerprints.map((fingerprint) => ({
-        label: downloadSources.find(
-          (source) => source.fingerprint === fingerprint
-        )?.name as string,
+        label:
+          downloadSources.find((source) => source.fingerprint === fingerprint)
+            ?.name ?? fingerprint,
         filterType: t("download_sources"),
         orbColor: filterCategoryColors.downloadSourceFingerprints,
         key: "downloadSourceFingerprints",
@@ -421,9 +436,10 @@ export default function Catalogue() {
 
     return [
       ...filters.genres.map((genre) => ({
-        label: Object.keys(steamGenresMapping).find(
-          (key) => steamGenresMapping[key] === genre
-        ) as string,
+        label:
+          Object.keys(steamGenresMapping).find(
+            (key) => steamGenresMapping[key] === genre
+          ) ?? genre,
         filterType: t("genres"),
         orbColor: filterCategoryColors.genres,
         key: "genres",
@@ -433,9 +449,10 @@ export default function Catalogue() {
       ...filters.tags.map((tag) => {
         const tagsForLanguage = steamUserTags[language] ?? {};
         return {
-          label: Object.keys(tagsForLanguage).find(
-            (key) => tagsForLanguage[key] === tag
-          ),
+          label:
+            Object.keys(tagsForLanguage).find(
+              (key) => tagsForLanguage[key] === tag
+            ) ?? String(tag),
           filterType: t("tags"),
           orbColor: filterCategoryColors.tags,
           key: "tags",
@@ -444,9 +461,9 @@ export default function Catalogue() {
       }),
 
       ...filters.downloadSourceFingerprints.map((fingerprint) => ({
-        label: downloadSources.find(
-          (source) => source.fingerprint === fingerprint
-        )?.name as string,
+        label:
+          downloadSources.find((source) => source.fingerprint === fingerprint)
+            ?.name ?? fingerprint,
         filterType: t("download_sources"),
         orbColor: filterCategoryColors.downloadSourceFingerprints,
         key: "downloadSourceFingerprints",
@@ -735,10 +752,11 @@ export default function Catalogue() {
         <div
           className={cn("catalogue__games-container", {
             "catalogue__games-container--classics": mode === "classics",
+            "catalogue__games-container--fetching": isFetching && !showSkeleton,
           })}
         >
           {showSkeleton ? (
-            <SkeletonTheme baseColor="#1c1c1c" highlightColor="#444">
+            <SkeletonTheme baseColor="#0c0c0c" highlightColor="#444">
               {Array.from({ length: PAGE_SIZE }).map((_, i) => (
                 <Skeleton
                   key={i}
@@ -772,7 +790,9 @@ export default function Catalogue() {
 
         <div className="catalogue__filters-container">
           <div className="catalogue__filters-sections">
-            <CatalogueModeToggle />
+            <div className="catalogue__mode-toggle">
+              <CatalogueModeToggle />
+            </div>
 
             {mode === "modern" && shouldShowProtonFeatures && (
               <Suspense fallback={null}>

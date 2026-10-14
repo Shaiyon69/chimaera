@@ -1,0 +1,81 @@
+@use "../../scss/globals.scss";
+
+.nav-dock {
+  align-self: stretch;
+  flex-shrink: 0;
+  width: 64px;
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background-color: globals.$dark-background-color;
+  border-left: 1px solid globals.$border-color;
+  position: relative;
+
+  // The dock is too narrow for the full profile row: show the avatar only
+  // and open the menu toward the content area.
+  .sidebar-profile {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    right: 0;
+    padding: 0;
+    justify-content: center;
+
+    &__button {
+      width: 40px;
+      // Match the 40px library filter field so both tops line up.
+      height: 40px;
+      padding: 2px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    &__button-content {
+      justify-content: center;
+    }
+
+    &__button-information,
+    &__chevron,
+    &__game-running-icon,
+    &__classic-disc {
+      display: none;
+    }
+
+    &__dropdown {
+      top: 0;
+      left: auto;
+      right: 100%;
+      width: 220px;
+      margin-right: 8px;
+    }
+  }
+
+  &__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    color: globals.$muted-color;
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.07);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 1px;
+    }
+
+    &--active {
+      color: #fff;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+}

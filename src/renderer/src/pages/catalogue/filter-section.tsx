@@ -35,7 +35,7 @@ export function FilterSection({
   const content = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(() => items.some((i) => i.checked));
   const [height, setHeight] = useState(0);
   const { t } = useTranslation("catalogue");
 
@@ -118,9 +118,11 @@ export function FilterSection({
             style={{ backgroundColor: color }}
           />
           <h3 className="filter-section__title">{title}</h3>
-          <span className="filter-section__header-count">
-            {formatNumber(selectedItemsCount || items.length)}
-          </span>
+          {selectedItemsCount > 0 && (
+            <span className="filter-section__header-count">
+              {formatNumber(selectedItemsCount)}
+            </span>
+          )}
         </div>
       </button>
 
@@ -130,7 +132,7 @@ export function FilterSection({
         style={{ maxHeight: `${height}px` }}
       >
         <div className="filter-section__content-inner">
-          {selectedItemsCount > 0 ? (
+          {selectedItemsCount > 0 && (
             <button
               type="button"
               className="filter-section__clear-button"
@@ -140,12 +142,6 @@ export function FilterSection({
                 filterCount: formatNumber(selectedItemsCount),
               })}
             </button>
-          ) : (
-            <span className="filter-section__count">
-              {t("filter_count", {
-                filterCount: formatNumber(items.length),
-              })}
-            </span>
           )}
 
           {availableGroups.length > 1 && (
@@ -197,9 +193,7 @@ export function FilterSection({
 
           <List
             data={filteredItems}
-            height={
-              28 * (filteredItems.length > 10 ? 10 : filteredItems.length)
-            }
+            height={28 * (filteredItems.length > 8 ? 8 : filteredItems.length)}
             itemHeight={28}
             itemKey="value"
             styles={{

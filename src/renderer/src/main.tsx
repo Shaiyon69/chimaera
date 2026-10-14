@@ -4,7 +4,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { Provider } from "react-redux";
 import LanguageDetector from "i18next-browser-languagedetector";
-import { HashRouter, Route, Routes } from "react-router-dom";
+import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import "@fontsource/noto-sans/400.css";
 import "@fontsource/noto-sans/500.css";
@@ -28,15 +28,11 @@ import { clearStateFromPreviousSession } from "./session-state";
 import * as Sentry from "@sentry/react";
 import { ErrorBoundary } from "./components/error-boundary/error-boundary";
 import { levelDBService } from "./services/leveldb.service";
-import Catalogue from "./pages/catalogue/catalogue";
-import Home from "./pages/home/home";
-import Downloads from "./pages/downloads/downloads";
 import GameDetails from "./pages/game-details/game-details";
 import Settings from "./pages/settings/settings";
 import Profile from "./pages/profile/profile";
 import Achievements from "./pages/achievements/achievements";
 import ThemeEditor from "./pages/theme-editor/theme-editor";
-import Library from "./pages/library/library";
 import Notifications from "./pages/notifications/notifications";
 import { AchievementNotification } from "./pages/achievements/notification/achievement-notification";
 import { AchievementNotificationOverlay } from "./components/achievements/notification/achievement-notification-overlay";
@@ -66,7 +62,7 @@ Sentry.init({
   tracesSampleRate: 0.5,
   replaysSessionSampleRate: 0,
   replaysOnErrorSampleRate: 0,
-  release: "hydra-launcher@" + (await globalThis.electron.getVersion()),
+  release: "chimaera@" + (await globalThis.electron.getVersion()),
 });
 
 globalThis.addEventListener("unhandledrejection", (event) => {
@@ -135,10 +131,19 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <AchievementNotificationOverlay />
               <Routes>
                 <Route element={<App />}>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/catalogue" element={<Catalogue />} />
-                  <Route path="/library" element={<Library />} />
-                  <Route path="/downloads" element={<Downloads />} />
+                  {/* "/", "/catalogue", "/downloads" and "/friends" are
+                      rendered keep-alive by <App />, not through the Outlet. */}
+                  <Route path="/" element={null} />
+                  <Route path="/catalogue" element={null} />
+                  <Route
+                    path="/library"
+                    element={<Navigate to="/" replace />}
+                  />
+                  <Route path="/downloads" element={null} />
+                  <Route
+                    path="/friends"
+                    element={<Navigate to="/" replace />}
+                  />
                   <Route
                     path="/game/:shop/:objectId"
                     element={<GameDetails />}

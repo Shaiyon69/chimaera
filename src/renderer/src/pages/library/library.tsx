@@ -37,7 +37,7 @@ import {
   isGameInstalled,
   sortLibraryGames,
 } from "@renderer/helpers";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { ImportLauncherGamesModal } from "./import-launcher-games-modal";
 import { LibraryGameCard } from "./library-game-card";
 import { LibraryGameCardLarge } from "./library-game-card-large";
@@ -337,12 +337,12 @@ export default function Library() {
     [searchParams, setSearchParams]
   );
 
-  const hasRestoredCollection = useRef(false);
+  const location = useLocation();
 
+  // Library stays mounted while hidden, so re-apply the saved collection each
+  // time the dock navigates back to "/" (which drops the query string).
   useLayoutEffect(() => {
-    if (hasRestoredCollection.current) return;
-    hasRestoredCollection.current = true;
-
+    if (location.pathname !== "/") return;
     if (searchParams.get("collection")) return;
 
     const savedCollectionId = localStorage.getItem("library-collection");

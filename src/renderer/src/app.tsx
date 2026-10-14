@@ -1,4 +1,10 @@
-import { BottomPanel, Header, Sidebar, Toast } from "@renderer/components";
+import {
+  BottomPanel,
+  Header,
+  NavDock,
+  Sidebar,
+  Toast,
+} from "@renderer/components";
 import { VideoIcon } from "@primer/octicons-react";
 import {
   DashIcon,
@@ -47,6 +53,10 @@ import { AddFriendModal } from "./pages/profile/profile-content/add-friend-modal
 import { ClassicsScanModal } from "./pages/settings/emulation/classics-scan-modal";
 import { RetroArchScanModal } from "./pages/settings/emulation/retroarch-scan-modal";
 import { CloudGiftNotificationModal } from "./pages/shared-modals/cloud-gift-notification-modal";
+import Library from "./pages/library/library";
+import Catalogue from "./pages/catalogue/catalogue";
+import Downloads from "./pages/downloads/downloads";
+import FriendsWindow from "./pages/friends-window/friends-window";
 
 import type { UserPreferences } from "@types";
 import "./app.scss";
@@ -69,8 +79,18 @@ type WorkWondersWithKnowledge = WorkWonders & {
   };
 };
 
+// Dock pages stay mounted once visited so switching tabs doesn't refetch or
+// lose filters/scroll. Other routes still render through <Outlet />.
+const KEPT_ALIVE_PAGES: Record<string, () => React.ReactElement> = {
+  "/": () => <Library />,
+  "/catalogue": () => <Catalogue />,
+  "/downloads": () => <Downloads />,
+  "/friends": () => <FriendsWindow embedded />,
+};
+
 export function App() {
   const contentRef = useRef<HTMLDivElement>(null);
+  const [visitedPages, setVisitedPages] = useState<string[]>([]);
   const { updateLibrary, library, downloadLibrary } = useLibrary();
 
   // Listen for new download options updates
@@ -84,6 +104,7 @@ export function App() {
   const workwondersInitializingRef = useRef(false);
 
   const {
+    userDetails: currentUser,
     hasActiveSubscription,
     fetchUserDetails,
     updateUserDetails,
@@ -97,6 +118,16 @@ export function App() {
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  const activeKeptPage =
+    location.pathname in KEPT_ALIVE_PAGES &&
+    (location.pathname !== "/friends" || currentUser)
+      ? location.pathname
+      : null;
+
+  if (activeKeptPage && !visitedPages.includes(activeKeptPage)) {
+    setVisitedPages([...visitedPages, activeKeptPage]);
+  }
 
   const draggingDisabled = useAppSelector(
     (state) => state.window.draggingDisabled
@@ -660,7 +691,7 @@ export function App() {
           }`}
         >
           <h4>
-            Hydra
+            Chimaera
             {hasActiveSubscription && (
               <span className="title-bar__cloud-text"> Cloud</span>
             )}
@@ -759,9 +790,23 @@ export function App() {
             id="scrollableDiv"
             className="container__content"
           >
-            <Outlet />
+            {visitedPages
+              .filter((path) => path !== "/friends" || currentUser)
+              .map((path) => (
+                <div
+                  key={path}
+                  style={{
+                    display: path === activeKeptPage ? "contents" : "none",
+                  }}
+                >
+                  {KEPT_ALIVE_PAGES[path]()}
+                </div>
+              ))}
+            {!activeKeptPage && <Outlet />}
           </section>
         </article>
+
+        <NavDock />
       </main>
 
       <BottomPanel />

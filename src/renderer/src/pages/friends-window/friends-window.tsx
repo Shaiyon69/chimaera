@@ -38,7 +38,11 @@ const isRemoteImageUrl = (
 const getProcessedImageKey = (imageUrl: string, size: FriendImageSize) =>
   `${size.width}x${size.height}:${imageUrl}`;
 
-export default function FriendsWindow() {
+export default function FriendsWindow({
+  embedded = false,
+}: {
+  embedded?: boolean;
+}) {
   const { t } = useTranslation("friends_window");
 
   const {
@@ -95,15 +99,17 @@ export default function FriendsWindow() {
   }, [fetchUserDetails, updateUserDetails]);
 
   useEffect(() => {
+    if (embedded) return;
     document.title = t("title");
-  }, [t]);
+  }, [t, embedded]);
 
   useEffect(() => {
-    // This window has its own Redux store, so hydrate the signed-in user.
-    refreshUserDetails();
+    // The detached window has its own Redux store, so hydrate the signed-in
+    // user there; the main window's store is already populated.
+    if (!embedded) refreshUserDetails();
     fetchFriends();
     fetchFriendRequests();
-  }, [refreshUserDetails, fetchFriends, fetchFriendRequests]);
+  }, [embedded, refreshUserDetails, fetchFriends, fetchFriendRequests]);
 
   useEffect(() => {
     const unsubscribeFriends = electron.onFriendsUpdated(() => {
@@ -474,7 +480,9 @@ export default function FriendsWindow() {
   );
 
   return (
-    <div className="friends-window">
+    <div
+      className={`friends-window${embedded ? " friends-window--embedded" : ""}`}
+    >
       <div
         className={`friends-window__header${
           profileBackgroundImageUrl ? " friends-window__header--has-bg" : ""
@@ -488,29 +496,31 @@ export default function FriendsWindow() {
           />
         )}
 
-        <header className="friends-window__title-bar">
-          <h4>{t("title")}</h4>
-          <div className="friends-window__window-controls">
-            <button
-              type="button"
-              className="friends-window__window-control"
-              onClick={() => electron.minimizeFriendsWindow()}
-              title={t("minimize")}
-              aria-label={t("minimize")}
-            >
-              <DashIcon size={16} />
-            </button>
-            <button
-              type="button"
-              className="friends-window__window-control friends-window__window-control--close"
-              onClick={() => electron.closeFriendsWindow()}
-              title={t("close")}
-              aria-label={t("close")}
-            >
-              <XIcon size={16} />
-            </button>
-          </div>
-        </header>
+        {!embedded && (
+          <header className="friends-window__title-bar">
+            <h4>{t("title")}</h4>
+            <div className="friends-window__window-controls">
+              <button
+                type="button"
+                className="friends-window__window-control"
+                onClick={() => electron.minimizeFriendsWindow()}
+                title={t("minimize")}
+                aria-label={t("minimize")}
+              >
+                <DashIcon size={16} />
+              </button>
+              <button
+                type="button"
+                className="friends-window__window-control friends-window__window-control--close"
+                onClick={() => electron.closeFriendsWindow()}
+                title={t("close")}
+                aria-label={t("close")}
+              >
+                <XIcon size={16} />
+              </button>
+            </div>
+          </header>
+        )}
 
         <section className="friends-window__profile">
           <div className="friends-window__profile-content">

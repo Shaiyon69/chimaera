@@ -40,41 +40,13 @@ export default function Settings() {
         id: "general" as const,
         label: t("general"),
         icon: <GearIcon size={16} />,
-      },
-      {
-        id: "downloads" as const,
-        label: t("downloads"),
-        icon: <DownloadIcon size={16} />,
-      },
-      {
-        id: "download_sources" as const,
-        label: t("download_sources"),
-        icon: <LinkIcon size={16} />,
+        group: "general" as const,
       },
       {
         id: "notifications" as const,
         label: t("notifications"),
         icon: <BellIcon size={16} />,
-      },
-      {
-        id: "content_gameplay" as const,
-        label: t("content_gameplay"),
-        icon: <PlayIcon size={16} />,
-      },
-      {
-        id: "integrations" as const,
-        label: t("integrations"),
-        icon: <CloudIcon size={16} />,
-      },
-      {
-        id: "compatibility" as const,
-        label: t("compatibility"),
-        icon: <Wrench size={16} />,
-      },
-      {
-        id: "optiscaler" as const,
-        label: t("optiscaler"),
-        icon: <Wrench size={16} />,
+        group: "general" as const,
       },
       ...(userDetails
         ? [
@@ -82,6 +54,7 @@ export default function Settings() {
               id: "account_privacy" as const,
               label: `${t("account")} & ${t("privacy")}`,
               icon: <ShieldCheckIcon size={16} />,
+              group: "general" as const,
             },
           ]
         : []),
@@ -89,6 +62,43 @@ export default function Settings() {
         id: "big_picture" as const,
         label: t("big_picture"),
         icon: <VideoIcon size={16} />,
+        group: "general" as const,
+      },
+      {
+        id: "downloads" as const,
+        label: t("downloads"),
+        icon: <DownloadIcon size={16} />,
+        group: "library" as const,
+      },
+      {
+        id: "download_sources" as const,
+        label: t("download_sources"),
+        icon: <LinkIcon size={16} />,
+        group: "library" as const,
+      },
+      {
+        id: "content_gameplay" as const,
+        label: t("content_gameplay"),
+        icon: <PlayIcon size={16} />,
+        group: "library" as const,
+      },
+      {
+        id: "integrations" as const,
+        label: t("integrations"),
+        icon: <CloudIcon size={16} />,
+        group: "library" as const,
+      },
+      {
+        id: "compatibility" as const,
+        label: t("compatibility"),
+        icon: <Wrench size={16} />,
+        group: "games" as const,
+      },
+      {
+        id: "optiscaler" as const,
+        label: t("optiscaler"),
+        icon: <Wrench size={16} />,
+        group: "games" as const,
       },
       {
         id: "emulation" as const,
@@ -159,23 +169,18 @@ export default function Settings() {
                 <aside className="settings__sidebar">
                   {categories.map((category, index) => {
                     const prevGroup =
-                      index > 0
-                        ? (categories[index - 1] as { group?: string }).group
-                        : undefined;
-                    const currentGroup = (category as { group?: string }).group;
-                    const showGroupHeader =
-                      currentGroup && currentGroup !== prevGroup;
+                      index > 0 ? categories[index - 1].group : undefined;
+                    const currentGroup = category.group;
+                    const showGroupHeader = currentGroup !== prevGroup;
 
                     return (
                       <Fragment key={category.id}>
                         {showGroupHeader && (
                           <div className="settings__sidebar-group">
-                            <div className="settings__sidebar-divider" />
                             <span className="settings__sidebar-group-label">
-                              {currentGroup === "classics"
-                                ? t("classics_group")
-                                : currentGroup}
+                              {t(`${currentGroup}_group`)}
                             </span>
+                            <div className="settings__sidebar-divider" />
                           </div>
                         )}
                         <button
