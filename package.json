@@ -1,12 +1,12 @@
 {
   "name": "hydralauncher",
-  "version": "4.1.4",
-  "description": "Hydra",
+  "version": "1.0.0",
+  "description": "Chimaera",
   "main": "./out/main/index.js",
-  "author": "Los Broxas",
+  "author": "Shaiyon69",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hydralauncher/hydra.git"
+    "url": "https://github.com/Shaiyon69/chimaera.git"
   },
   "type": "module",
   "engines": {

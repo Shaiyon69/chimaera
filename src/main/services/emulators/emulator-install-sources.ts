@@ -304,7 +304,7 @@ const resolveDolphinOptions = async (
       {
         headers: {
           Accept: "application/vnd.github+json",
-          "User-Agent": "HydraLauncher",
+          "User-Agent": "Chimaera",
         },
         timeout: GITHUB_API_TIMEOUT_MS,
       }
@@ -371,7 +371,7 @@ const fetchRelease = async (
   const config = {
     headers: {
       Accept: "application/vnd.github+json",
-      "User-Agent": "HydraLauncher",
+      "User-Agent": "Chimaera",
     },
     timeout: GITHUB_API_TIMEOUT_MS,
   };

@@ -1,18 +1,12 @@
 <div align="center">
 
-[<img src="https://raw.githubusercontent.com/hydralauncher/hydra/refs/heads/main/resources/icon.png" width="144"/>](https://help.hydralauncher.gg)
+<img src="./resources/icon.png" width="144"/>
 
-  <h1 align="center">Hydra Launcher</h1>
+  <h1 align="center">Chimaera</h1>
 
   <p align="center">
-    <strong>Hydra Launcher is an open-source gaming platform created to be the single tool that you need in order to manage your gaming library. Hydra is written in Node.js (Electron, React, Typescript) and Rust, with libtorrent providing the torrent engine.</strong>
+    <strong>Chimaera is an open-source gaming platform for managing your whole game library in one place. It is a fork of Hydra Launcher, written in Electron, React, TypeScript and Rust, with libtorrent providing the torrent engine.</strong>
   </p>
-
-[![build](https://img.shields.io/github/actions/workflow/status/hydralauncher/hydra/build.yml)](https://github.com/hydralauncher/hydra/actions)
-[![release](https://img.shields.io/github/package-json/v/hydralauncher/hydra)](https://github.com/hydralauncher/hydra/releases)
-[![chocolatey](https://img.shields.io/chocolatey/v/hydralauncher.svg)](https://community.chocolatey.org/packages/hydralauncher)
-
-![Hydra Launcher Home Page](./docs/screenshot.png)
 
 </div>
 
@@ -20,14 +14,14 @@
 
 - Add games that you own to your library
 - Have a nice profile that shows what you are playing to your friends
-- Save your game progress in the cloud with Hydra Cloud
+- Save your game progress in the cloud
 - Unlock achievements
 - Navigate through a rich catalogue with a powerful suggestion algorithm
 - Discover new games that you haven't played before
 
-## Build from source and contributing
+## Build from source
 
-Please, refer to our Documentation pages: [docs.hydralauncher.gg](https://docs.hydralauncher.gg/getting-started)
+Install dependencies with `yarn`, then run `yarn dev`. See `CLAUDE.md` for the full list of commands.
 
 ### Local development requirements
 
@@ -41,12 +35,10 @@ The native build includes a Rust wrapper around pinned libtorrent. Development a
 
 On Windows x64 and Linux x64, the libtorrent bridge comes prebuilt from `native/torrent-bridge/prebuilt`, so installs skip compiling libtorrent through vcpkg. Other platforms build it from source. When a branch push changes `native/torrent-bridge` or `scripts/build-torrent-bridge.cjs`, the "Torrent bridge prebuilts" workflow rebuilds the binaries and commits them to that branch; until then, installs build the bridge from source. Set `HYDRA_TORRENT_BRIDGE_FROM_SOURCE=1` to always build it from source.
 
-## Contributors
+## Credits
 
-<a href="https://github.com/hydralauncher/hydra/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=hydralauncher/hydra" />
-</a>
+Chimaera is built on [Hydra Launcher](https://github.com/hydralauncher/hydra) by Los Broxas and its [contributors](https://github.com/hydralauncher/hydra/graphs/contributors), used under the MIT License.
 
 ## License
 
-Hydra is licensed under the [MIT License](LICENSE).
+Chimaera is licensed under the [MIT License](LICENSE).

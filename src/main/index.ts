@@ -3,6 +3,7 @@ import {
   app,
   BrowserWindow,
   crashReporter,
+  Menu,
   net,
   powerMonitor,
   protocol,
@@ -49,8 +50,8 @@ const { autoUpdater } = updater;
 
 autoUpdater.setFeedURL({
   provider: "github",
-  owner: "hydralauncher",
-  repo: "hydra",
+  owner: "Shaiyon69",
+  repo: "chimaera",
 });
 
 autoUpdater.logger = logger;
@@ -102,6 +103,17 @@ if (process.defaultApp) {
 const initializeApp = async () => {
   refreshPortableShortcutLauncher();
   electronApp.setAppUserModelId("gg.hydralauncher.hydra");
+
+  // macOS has one global menu bar that removeMenu() can't hide; keep Edit so copy/paste shortcuts work.
+  if (process.platform === "darwin") {
+    Menu.setApplicationMenu(
+      Menu.buildFromTemplate([
+        { role: "appMenu" },
+        { role: "editMenu" },
+        { role: "windowMenu" },
+      ])
+    );
+  }
 
   logger.info("Crash dumps directory", app.getPath("crashDumps"));
 
