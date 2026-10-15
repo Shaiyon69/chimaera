@@ -45,12 +45,12 @@
 
     &:hover {
       background-color: #606060;
-      color: #dadbe1;
+      color: var(--text);
     }
 
     &--close:hover {
       background-color: globals.$error-color;
-      color: #ffffff;
+      color: var(--text);
     }
   }
 }

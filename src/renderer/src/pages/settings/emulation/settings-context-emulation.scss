@@ -6,7 +6,7 @@
   gap: 40px;
 
   &__loading {
-    color: #8e919b;
+    color: var(--muted);
     font-size: 13px;
   }
 
@@ -17,16 +17,14 @@
   }
 
   &__title {
-    font-size: 28px;
-    font-weight: 600;
-    color: #fafafa;
-    letter-spacing: -0.56px;
-    margin: 0;
+    @include globals.section-title;
+    font-size: 26px;
+    font-weight: 800;
   }
 
   &__description {
     font-size: 14px;
-    color: #8e919b;
+    color: var(--muted);
     line-height: 22px;
     margin: 0;
     max-width: 680px;

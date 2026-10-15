@@ -14,7 +14,7 @@
   transition: color 0.2s ease;
 
   &:hover {
-    color: #fff;
+    color: var(--text);
 
     .retro-achievements-connect-banner__text {
       text-decoration: underline;

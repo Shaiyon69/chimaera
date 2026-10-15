@@ -10,7 +10,7 @@
     transition: color ease 0.2s;
 
     &--filled {
-      color: #ffffff;
+      color: var(--text);
     }
 
     &--empty {
@@ -18,7 +18,7 @@
     }
 
     &--half {
-      color: #ffffff;
+      color: var(--text);
       position: absolute;
       top: 0;
       left: 0;

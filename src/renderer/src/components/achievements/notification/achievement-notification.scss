@@ -181,7 +181,7 @@ $margin-bottom: 28px;
       content-in 450ms ease-in-out,
       content-wait 450ms ease-in-out 450ms,
       content-expand 450ms ease-in-out 900ms;
-    box-shadow: 0px 2px 16px 0px rgba(0, 0, 0, 0.25);
+    box-shadow: 0px 2px 16px 0px rgb(var(--shade) / 0.25);
   }
 
   &--top-left &__outer-container {
@@ -221,7 +221,7 @@ $margin-bottom: 28px;
   }
 
   &--platinum &__container {
-    background: linear-gradient(94deg, #0c0c0c -25%, #044838 100%);
+    background: linear-gradient(94deg, var(--glass-1) -25%, #044838 100%);
   }
 
   &--rare &__container {
@@ -299,7 +299,7 @@ $margin-bottom: 28px;
     opacity: 0;
     z-index: 1;
     animation: trophy-out 900ms ease-in-out;
-    background: #fff;
+    background: var(--text);
   }
 
   &--rare &__trophy-overlay {
@@ -321,7 +321,7 @@ $margin-bottom: 28px;
         #503808 83.6%,
         #3e2d08 85.77%
       ),
-      #fff;
+      var(--text);
   }
 
   &--platinum &__trophy-overlay {
@@ -477,11 +477,11 @@ $margin-bottom: 28px;
     );
     &__icon {
       path {
-        fill: #fff;
+        fill: var(--text);
       }
     }
     &__label {
-      color: #fff;
+      color: var(--text);
     }
   }
 
@@ -505,11 +505,11 @@ $margin-bottom: 28px;
     );
     &__icon {
       path {
-        fill: #fff;
+        fill: var(--text);
       }
     }
     &__label {
-      color: #fff;
+      color: var(--text);
     }
   }
 

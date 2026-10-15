@@ -13,10 +13,10 @@
     gap: 12px;
     width: 100%;
     padding: 12px;
-    background-color: #000000;
-    border: 1px solid #0c0c0c;
+    background-color: var(--bg);
+    border: 1px solid var(--glass-1);
     border-radius: 8px;
-    color: #c0c1c7;
+    color: var(--muted);
     cursor: pointer;
     transition:
       background-color 0.15s ease,
@@ -24,19 +24,19 @@
     text-align: left;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.02);
-      border-color: rgba(255, 255, 255, 0.12);
+      background-color: var(--bg-2);
+      border-color: var(--line);
     }
 
     &--active {
-      background-color: rgba(255, 255, 255, 0.04);
+      background-color: var(--bg-2);
       border-color: rgba(255, 255, 255, 0.16);
     }
   }
 
   &__option-icon {
     flex-shrink: 0;
-    color: #8e919b;
+    color: var(--muted);
   }
 
   &__option-text {
@@ -50,7 +50,7 @@
   &__option-label {
     font-size: 14px;
     font-weight: 500;
-    color: #c0c1c7;
+    color: var(--muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -58,7 +58,7 @@
 
   &__option-filename {
     font-size: 12px;
-    color: #8e919b;
+    color: var(--muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -82,6 +82,6 @@
     justify-content: space-between;
     gap: 16px;
     padding-top: 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid var(--fill);
   }
 }

@@ -10,10 +10,18 @@
   color: inherit;
   background: globals.$background-color;
   border: 0;
-  border-radius: 4px;
-  box-shadow: 0 8px 10px -2px rgba(0, 0, 0, 0.5);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 22px rgb(var(--shade) / 0.35);
   cursor: pointer;
-  transition: all ease 0.2s;
+  transition:
+    transform 0.25s var(--ease),
+    box-shadow 0.25s var(--ease),
+    opacity 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 16px 34px rgb(var(--shade) / 0.5);
+  }
 
   &:active {
     opacity: globals.$active-opacity;
@@ -33,7 +41,7 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background: #000000;
+    background: var(--bg);
   }
 
   &__classics-backdrop {
@@ -58,12 +66,12 @@
     max-height: 80%;
     margin: auto;
     object-fit: contain;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--line);
     border-radius: 4px;
     box-shadow:
-      0 11px 7px rgba(0, 0, 0, 0.05),
-      0 5px 5px rgba(0, 0, 0, 0.09),
-      0 1px 3px rgba(0, 0, 0, 0.1);
+      0 11px 7px rgb(var(--shade) / 0.05),
+      0 5px 5px rgb(var(--shade) / 0.09),
+      0 1px 3px rgb(var(--shade) / 0.1);
   }
 
   &__placeholder {
@@ -73,9 +81,9 @@
     color: rgba(255, 255, 255, 0.3);
     background: linear-gradient(
       90deg,
-      rgba(255, 255, 255, 0.08) 0%,
-      rgba(255, 255, 255, 0.04) 50%,
-      rgba(255, 255, 255, 0.08) 100%
+      var(--fill) 0%,
+      var(--bg-2) 50%,
+      var(--fill) 100%
     );
 
     svg {

@@ -27,10 +27,10 @@
   }
 
   &__review-score-select {
-    background-color: #161616;
+    background-color: var(--glass-2);
     border: 1px solid #3a3a3a;
     border-radius: 4px;
-    color: #ffffff;
+    color: var(--text);
     padding: 6px 12px;
     font-size: 14px;
     cursor: pointer;
@@ -58,8 +58,8 @@
     }
 
     option {
-      background-color: #161616;
-      color: #ffffff;
+      background-color: var(--glass-2);
+      color: var(--text);
     }
   }
 
@@ -82,13 +82,13 @@
     transition: all 0.2s ease;
 
     &:hover {
-      color: #ffffff;
-      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      background-color: var(--line);
       transform: scale(1.1);
     }
 
     &--filled {
-      color: #ffffff;
+      color: var(--text);
 
       &.game-details__review-score-select--red {
         color: #e74c3c;
@@ -107,7 +107,7 @@
       color: #666666;
 
       &:hover {
-        color: #ffffff;
+        color: var(--text);
       }
     }
 
@@ -119,9 +119,9 @@
   &__review-input-container {
     display: flex;
     flex-direction: column;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 0.5px solid var(--line-strong);
     border-radius: 8px;
-    background-color: globals.$dark-background-color;
+    background-color: var(--glass-1);
     overflow: hidden;
   }
 
@@ -131,7 +131,7 @@
     align-items: center;
     padding: 8px 12px;
     background-color: globals.$background-color;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--line);
   }
 
   &__review-editor-toolbar {
@@ -141,17 +141,17 @@
 
   &__editor-button {
     background: none;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid var(--fill-hover);
     border-radius: 4px;
-    color: #ffffff;
+    color: var(--text);
     padding: 4px 8px;
     cursor: pointer;
     font-size: 12px;
     transition: all 0.2s ease;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.2);
+      background-color: var(--fill);
+      border-color: var(--line-strong);
     }
 
     &.is-active {
@@ -181,7 +181,7 @@
 
     .ProseMirror {
       outline: none;
-      color: #ffffff;
+      color: var(--text);
       font-size: 14px;
       line-height: 1.5;
       min-height: 96px; // 120px - 24px padding

@@ -1,7 +1,6 @@
-import { ChevronDownIcon } from "@primer/octicons-react";
-import { useEffect, useRef, useState } from "react";
 import { CheckboxField } from "@renderer/components/checkbox-field/checkbox-field";
 import { RadioField } from "@renderer/components/radio-field/radio-field";
+import { FilterPopover } from "./filter-popover";
 import SteamDeckLogo from "@renderer/assets/steam-deck-logo.svg?url";
 
 import "./proton-compatibility-section.scss";
@@ -31,44 +30,13 @@ export function ProtonCompatibilitySection({
   onProtonChange,
   onDeckChange,
 }: ProtonCompatibilitySectionProps) {
-  const [isOpen, setIsOpen] = useState(protonValue !== "" || deckChecked);
-  const [height, setHeight] = useState(0);
-  const content = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (content.current) {
-      setHeight(isOpen ? content.current.scrollHeight : 0);
-    }
-  }, [isOpen, protonValue, deckChecked]);
-
   return (
-    <div className="filter-section proton-compatibility-section">
-      <button
-        type="button"
-        className="filter-section__button"
-        onClick={() => setIsOpen((open) => !open)}
-        aria-expanded={isOpen}
-      >
-        <ChevronDownIcon
-          className={`filter-section__chevron ${
-            isOpen ? "filter-section__chevron--open" : ""
-          }`}
-        />
-
-        <div className="filter-section__header">
-          <div
-            className="filter-section__orb"
-            style={{ backgroundColor: color }}
-          />
-          <h3 className="filter-section__title">{title}</h3>
-        </div>
-      </button>
-
-      <div
-        ref={content}
-        className="filter-section__content"
-        style={{ maxHeight: `${height}px` }}
-      >
+    <FilterPopover
+      title={title}
+      color={color}
+      count={(protonValue !== "" ? 1 : 0) + (deckChecked ? 1 : 0)}
+    >
+      <div className="filter-section proton-compatibility-section">
         <div className="filter-section__content-inner proton-compatibility-section__content-inner">
           <div className="proton-compatibility-section__control">
             <span className="proton-compatibility-section__label">
@@ -128,6 +96,6 @@ export function ProtonCompatibilitySection({
           </div>
         </div>
       </div>
-    </div>
+    </FilterPopover>
   );
 }

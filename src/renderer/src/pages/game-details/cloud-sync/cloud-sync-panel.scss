@@ -39,7 +39,7 @@
 
   &__automatic-sync-badge {
     background: linear-gradient(270deg, #16b195 50%, #3e62c0 100%);
-    color: #fff;
+    color: var(--text);
     padding: 0 globals.$spacing-unit;
     border-radius: 4px;
     font-size: globals.$small-font-size;
@@ -61,8 +61,8 @@
   &__backups-count {
     font-size: globals.$small-font-size;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.7);
-    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--muted);
+    background-color: var(--line);
     padding: 4px 8px;
     border-radius: 6px;
     min-width: 24px;

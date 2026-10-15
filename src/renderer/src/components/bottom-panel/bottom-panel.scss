@@ -2,9 +2,11 @@
 
 .bottom-panel {
   width: 100%;
-  border-top: solid 1px globals.$border-color;
-  background-color: globals.$background-color;
-  padding: calc(globals.$spacing-unit / 2) calc(globals.$spacing-unit * 2);
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  min-height: 24px;
+  padding: calc(globals.$spacing-unit / 2) 28px;
   display: flex;
   align-items: center;
   transition: all ease 0.2s;

@@ -14,8 +14,8 @@
   }
 
   &__count {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.7);
+    background-color: var(--line);
+    color: var(--muted);
     padding: 4px 8px;
     border-radius: 6px;
     font-size: 12px;
@@ -39,12 +39,12 @@
     align-items: center;
     gap: calc(globals.$spacing-unit * 2);
     padding: calc(globals.$spacing-unit * 1.5);
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: var(--bg-2);
     border-radius: 8px;
     transition: background-color ease 0.2s;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: var(--line);
     }
   }
 
@@ -83,7 +83,7 @@
 
   &__item-description {
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--muted);
     margin: 0;
   }
 }

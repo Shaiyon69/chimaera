@@ -5,7 +5,7 @@
   flex-direction: column;
   height: 100vh;
   width: 100vw;
-  background: linear-gradient(135deg, #000000 0%, #1a1a2e 50%, #16213e 100%);
+  background: linear-gradient(135deg, var(--bg) 0%, #1a1a2e 50%, #16213e 100%);
   -webkit-app-region: drag;
   padding: calc(globals.$spacing-unit * 3);
   box-sizing: border-box;
@@ -34,9 +34,9 @@
     bottom: 0;
     background: linear-gradient(
       135deg,
-      rgba(0, 0, 0, 0.75) 0%,
-      rgba(0, 0, 0, 0.85) 50%,
-      rgba(0, 0, 0, 0.9) 100%
+      rgb(var(--shade) / 0.75) 0%,
+      rgb(var(--shade) / 0.85) 50%,
+      rgb(var(--shade) / 0.9) 100%
     );
     pointer-events: none;
     z-index: 1;
@@ -88,14 +88,14 @@
     border-radius: 8px;
     object-fit: contain;
     flex-shrink: 0;
-    background-color: globals.$dark-background-color;
+    background-color: var(--glass-1);
   }
 
   &__cover-placeholder {
     height: 100%;
     width: 180px;
     border-radius: 8px;
-    background-color: globals.$dark-background-color;
+    background-color: var(--glass-1);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -195,7 +195,7 @@
     align-items: center;
     gap: calc(globals.$spacing-unit / 2);
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--muted);
   }
 
   &__actions {
@@ -224,7 +224,7 @@
     margin-top: calc(globals.$spacing-unit * 2);
 
     &:hover {
-      background-color: #dadbe1;
+      background-color: var(--text);
     }
 
     &:active {
@@ -237,7 +237,7 @@
       color: globals.$muted-color;
 
       &:hover {
-        background-color: rgba(255, 255, 255, 0.08);
+        background-color: var(--fill);
       }
     }
   }

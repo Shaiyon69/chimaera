@@ -91,7 +91,7 @@
       background: globals.$muted-color;
       cursor: pointer;
       border: 2px solid globals.$background-color;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 2px 4px rgb(var(--shade) / 0.3);
       transition: all 0.2s;
       margin-top: -6px;
 
@@ -112,7 +112,7 @@
       background: globals.$muted-color;
       cursor: pointer;
       border: 2px solid globals.$background-color;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 2px 4px rgb(var(--shade) / 0.3);
       transition: all 0.2s;
       margin-top: -6px;
 
@@ -156,11 +156,11 @@
       outline: none;
 
       &::-webkit-slider-thumb {
-        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+        box-shadow: 0 0 0 3px var(--line-strong);
       }
 
       &::-moz-range-thumb {
-        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+        box-shadow: 0 0 0 3px var(--line-strong);
       }
     }
 

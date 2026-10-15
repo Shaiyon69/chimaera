@@ -11,12 +11,12 @@ $button-transition-duration: 0.2s;
     border-radius: 6px;
     background: globals.$background-color;
     border: 1px solid globals.$border-color;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--text);
     cursor: pointer;
     transition: all ease $button-transition-duration;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.08);
+      background: var(--fill);
     }
 
     svg {

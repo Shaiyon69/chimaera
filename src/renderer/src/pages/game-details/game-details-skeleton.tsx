@@ -7,9 +7,9 @@ export function GameDetailsSkeleton() {
       <section className="game-details__container">
         <div className="game-details__hero">
           <Skeleton
-            height={350}
+            height="100%"
             style={{
-              borderRadius: "0px 0px 8px 8px",
+              borderRadius: "inherit",
               position: "absolute",
               width: "100%",
               zIndex: 0,
@@ -17,34 +17,41 @@ export function GameDetailsSkeleton() {
           />
 
           <div className="game-details__hero-logo-backdrop">
-            <div className="game-details__hero-content">
-              <div className="game-details__game-logo" />
-              <div className="game-details__hero-buttons game-details__hero-buttons--right" />
-            </div>
+            <div className="game-details__hero-inner">
+              <Skeleton
+                height={300}
+                width={200}
+                style={{ borderRadius: "16px" }}
+              />
 
-            <div className="game-details__hero-panel">
-              <div className="hero-panel__container">
-                <div className="hero-panel">
-                  <div className="hero-panel__content">
-                    <Skeleton height={16} width={150} />
-                    <Skeleton height={16} width={120} />
-                  </div>
-                  <div className="hero-panel__actions" style={{ gap: "16px" }}>
-                    <Skeleton
-                      height={36}
-                      width={36}
-                      style={{ borderRadius: "6px" }}
-                    />
-                    <Skeleton
-                      height={36}
-                      width={36}
-                      style={{ borderRadius: "6px" }}
-                    />
-                    <Skeleton
-                      height={36}
-                      width={100}
-                      style={{ borderRadius: "6px" }}
-                    />
+              <div className="game-details__hero-text">
+                <Skeleton height={40} width={260} />
+                <Skeleton height={14} width={220} />
+                <Skeleton height={14} width="70%" />
+
+                <div className="game-details__hero-panel">
+                  <div className="hero-panel__container">
+                    <div className="hero-panel">
+                      <div className="hero-panel__content">
+                        <Skeleton height={16} width={150} />
+                        <Skeleton height={16} width={120} />
+                      </div>
+                      <div
+                        className="hero-panel__actions"
+                        style={{ gap: "16px" }}
+                      >
+                        <Skeleton
+                          height={36}
+                          width={36}
+                          style={{ borderRadius: "6px" }}
+                        />
+                        <Skeleton
+                          height={36}
+                          width={100}
+                          style={{ borderRadius: "6px" }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -54,13 +61,6 @@ export function GameDetailsSkeleton() {
 
         <div className="game-details__description-container">
           <div className="game-details__description-content">
-            <div className="description-header">
-              <section className="description-header__info">
-                <Skeleton height={16} width={200} />
-                <Skeleton height={16} width={150} />
-              </section>
-            </div>
-
             <div className="gallery-slider__container">
               <div
                 className="gallery-slider__viewport"

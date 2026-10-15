@@ -28,6 +28,11 @@ import { DiscSelectionModal } from "../modals/disc-selection-modal";
 
 import "./hero-panel-actions.scss";
 import { useEffect } from "react";
+import { isBloodborne } from "@shared";
+import {
+  BLOODBORNE_CONFIGURED_EVENT,
+  BLOODBORNE_SETUP_EVENT,
+} from "@renderer/components/bloodborne-setup-modal/events";
 
 export function HeroPanelActions() {
   const [toggleLibraryGameDisabled, setToggleLibraryGameDisabled] =
@@ -136,6 +141,21 @@ export function HeroPanelActions() {
       );
     };
   }, [updateLibrary, updateGame]);
+
+  const bloodborne = isBloodborne(gameTitle);
+  const [bloodborneConfigured, setBloodborneConfigured] = useState(true);
+
+  useEffect(() => {
+    if (!bloodborne) return;
+    const refresh = () =>
+      window.electron
+        .getBloodborneSetup()
+        .then((setup) => setBloodborneConfigured(setup.configured));
+    void refresh();
+    window.addEventListener(BLOODBORNE_CONFIGURED_EVENT, refresh);
+    return () =>
+      window.removeEventListener(BLOODBORNE_CONFIGURED_EVENT, refresh);
+  }, [bloodborne]);
 
   const addGameToLibrary = async () => {
     setToggleLibraryGameDisabled(true);
@@ -273,11 +293,12 @@ export function HeroPanelActions() {
       return;
     }
 
-    if (game.executablePath) {
+    // Bloodborne starts through the built-in port launcher, so no exe is picked.
+    if (game.executablePath || isBloodborne(game.title)) {
       window.electron.openGame(
         game.shop,
         game.objectId,
-        game.executablePath,
+        game.executablePath ?? "",
         game.launchOptions
       );
       return;
@@ -308,6 +329,22 @@ export function HeroPanelActions() {
     >
       <PlusCircleIcon />
       {t("add_to_library")}
+    </Button>
+  );
+
+  // Bloodborne's "download" is its one-time setup: the port ships with Chimaera.
+  const bloodborneInstallButton = (
+    <Button
+      theme="outline"
+      disabled={toggleLibraryGameDisabled || deleting}
+      onClick={async () => {
+        if (!game) await addGameToLibrary();
+        window.dispatchEvent(new Event(BLOODBORNE_SETUP_EVENT));
+      }}
+      className="hero-panel-actions__action"
+    >
+      <DownloadIcon />
+      {t("bloodborne_install")}
     </Button>
   );
 
@@ -356,7 +393,13 @@ export function HeroPanelActions() {
     const isPlayableClassics =
       game?.shop === "launchbox" && (game?.discs?.length ?? 0) > 0;
 
-    if (game?.executablePath || isPlayableClassics) {
+    if (bloodborne && !bloodborneConfigured) return bloodborneInstallButton;
+
+    if (
+      game?.executablePath ||
+      isPlayableClassics ||
+      isBloodborne(game?.title)
+    ) {
       return (
         <Button
           onClick={openGame}
@@ -457,6 +500,15 @@ export function HeroPanelActions() {
           }}
         />
       </div>
+    );
+  }
+
+  if (bloodborne) {
+    return (
+      <>
+        {addGameToLibraryButton}
+        {bloodborneInstallButton}
+      </>
     );
   }
 

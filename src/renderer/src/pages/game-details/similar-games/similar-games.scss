@@ -73,7 +73,7 @@ $card-hover-transition-duration: 0.2s;
     padding: calc(globals.$spacing-unit * 2);
     color: globals.$muted-color;
     text-align: center;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-2);
     border-radius: 6px;
   }
 
@@ -87,7 +87,7 @@ $card-hover-transition-duration: 0.2s;
     width: 48px;
     height: 48px;
     color: globals.$muted-color;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgb(var(--shade) / 0.4);
     border: none;
     border-radius: 50%;
     cursor: pointer;
@@ -95,7 +95,7 @@ $card-hover-transition-duration: 0.2s;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     &:hover:not(:disabled) {
-      background-color: rgba(0, 0, 0, 0.6);
+      background-color: rgb(var(--shade) / 0.6);
     }
 
     &:active:not(:disabled) {

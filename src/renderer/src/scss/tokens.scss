@@ -1,0 +1,119 @@
+// Apple-style dark glass tokens. Themes (themes.ts) override these on :root.
+:root {
+  color-scheme: dark;
+
+  --bg: #000;
+  --bg-2: rgb(255 255 255 / 0.04);
+  --backdrop: #000;
+  --shade: 0 0 0;
+  --text: rgb(255 255 255 / 0.92);
+  --muted: rgb(235 235 245 / 0.62);
+  --faint: rgb(235 235 245 / 0.34);
+  --line: rgb(255 255 255 / 0.1);
+  --line-strong: rgb(255 255 255 / 0.2);
+
+  --fill: rgb(255 255 255 / 0.08);
+  --fill-hover: rgb(255 255 255 / 0.14);
+
+  // glass ladder: thin < regular < thick
+  --glass-1: #0a0a0a;
+  --glass-2: #0f0f0f;
+  --glass-3: #141414;
+  --blur: none;
+  --rim: inset 0 0 0 0.5px rgb(255 255 255 / 0.1);
+  --lift: none;
+
+  --accent: #0a84ff;
+  --accent-text: #5eb0ff;
+  --on-accent: #fff;
+  --color-primary: var(--accent);
+  --danger: #ff6961;
+  --good: #30d158;
+  --warn: #ffb340;
+
+  --radius: 16px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-1: #22252f;
+    --glass-2: #1e212b;
+    --glass-3: #181b24;
+    --blur: none;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+input,
+textarea {
+  caret-color: var(--accent);
+}
+
+::selection {
+  background: var(
+    --selection-bg,
+    color-mix(in srgb, var(--accent) 50%, transparent)
+  );
+  color: var(--selection-text, currentColor);
+}
+
+// No scrollbar-width/color: in Chromium they override the ::-webkit-scrollbar rules.
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 0.24);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+
+  &:hover {
+    background: rgb(255 255 255 / 0.42);
+    background-clip: content-box;
+  }
+}
+
+.skeleton {
+  display: block;
+  border-radius: 8px;
+  background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(255 255 255 / 0.07),
+      transparent
+    )
+    var(--fill) 0 0 / 200% 100% no-repeat;
+  animation: shimmer 1.4s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}

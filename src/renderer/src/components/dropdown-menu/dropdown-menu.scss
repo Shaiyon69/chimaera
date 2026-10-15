@@ -2,9 +2,7 @@
 
 .dropdown-menu {
   &__content {
-    background-color: globals.$dark-background-color;
-    border: 1px solid globals.$border-color;
-    border-radius: 6px;
+    @include globals.glass(var(--glass-2), 14px);
     min-width: 200px;
     z-index: calc(globals.$modal-z-index + 1);
     flex-direction: column;

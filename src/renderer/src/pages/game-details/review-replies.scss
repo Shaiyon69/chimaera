@@ -24,7 +24,7 @@
     width: 2px;
     padding: 0 5px;
     border: none;
-    background-color: rgba(255, 255, 255, 0.12);
+    background-color: var(--line);
     background-clip: content-box;
     box-sizing: content-box;
     cursor: pointer;
@@ -84,7 +84,7 @@
 
       .game-details__review-display-name,
       .game-details__reply-date {
-        color: #ffffff;
+        color: var(--text);
         text-shadow: 0 0 5px rgb(0 0 0 / 60%);
         padding-right: calc(globals.$spacing-unit * 0.5);
       }
@@ -122,7 +122,7 @@
     align-self: flex-start;
     flex-shrink: 0;
     padding-right: calc(globals.$spacing-unit * 1.75);
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--muted);
     font-size: globals.$small-font-size;
     white-space: nowrap;
   }
@@ -159,8 +159,8 @@
     transition: all 0.2s ease;
 
     &:hover:not(:disabled):not([aria-disabled="true"]) {
-      color: #ffffff;
-      background: rgba(255, 255, 255, 0.12);
+      color: var(--text);
+      background: var(--line);
     }
 
     &:disabled,
@@ -196,7 +196,7 @@
     transition: color 0.2s ease;
 
     &:hover {
-      color: #ffffff;
+      color: var(--text);
       text-decoration: underline;
     }
 
@@ -208,7 +208,7 @@
 
     &--primary {
       &:hover {
-        color: #ffffff;
+        color: var(--text);
       }
     }
   }

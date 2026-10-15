@@ -26,11 +26,30 @@ $hero-height: 350px;
     display: flex;
     flex-direction: column;
     position: relative;
+    flex-shrink: 0;
     transition: all ease 0.2s;
 
     @media (min-width: 1250px) {
       height: 350px;
       min-height: 350px;
+    }
+
+    // Inset glass-rimmed card like chimaera-next; the classics hero keeps its own frame.
+    &:not(&--classics-wrapper) {
+      width: auto;
+      margin: calc(globals.$spacing-unit * 2) calc(globals.$spacing-unit * 3) 0;
+      border-radius: 28px;
+      overflow: hidden;
+      background: var(--glass-3);
+      box-shadow: var(--rim), var(--lift);
+      // Content (cover + text) sets the height, like chimaera-next's details hero.
+      height: auto;
+      min-height: $hero-height;
+
+      .game-details__hero-image {
+        height: 100%;
+        min-height: 0;
+      }
     }
 
     &--classics-wrapper {
@@ -68,7 +87,7 @@ $hero-height: 350px;
   &__hero-classics-backdrop-overlay {
     position: absolute;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.48);
+    background-color: rgb(var(--shade) / 0.48);
   }
 
   &__hero-classics-content {
@@ -99,12 +118,12 @@ $hero-height: 350px;
       height: auto;
       object-fit: contain;
       border-radius: 4px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid var(--line);
       box-shadow:
-        0 20px 8px rgba(0, 0, 0, 0.01),
-        0 11px 7px rgba(0, 0, 0, 0.05),
-        0 5px 5px rgba(0, 0, 0, 0.09),
-        0 1px 3px rgba(0, 0, 0, 0.1);
+        0 20px 8px rgb(var(--shade) / 0.01),
+        0 11px 7px rgb(var(--shade) / 0.05),
+        0 5px 5px rgb(var(--shade) / 0.09),
+        0 1px 3px rgb(var(--shade) / 0.1);
     }
   }
 
@@ -122,7 +141,7 @@ $hero-height: 350px;
     font-size: 36px;
     line-height: 44px;
     letter-spacing: -0.72px;
-    color: #fafafa;
+    color: var(--text);
     margin: 0;
     max-width: 100%;
     overflow: hidden;
@@ -153,14 +172,14 @@ $hero-height: 350px;
   }
 
   &__hero-classics-chip {
-    background-color: rgba(0, 0, 0, 0.24);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background-color: rgb(var(--shade) / 0.24);
+    border: 1px solid var(--line);
     border-radius: 4px;
     height: 24px;
     padding: 4px 8px;
     display: inline-flex;
     align-items: center;
-    color: #ffffff;
+    color: var(--text);
     font-size: 11px;
     font-weight: 600;
 
@@ -241,17 +260,17 @@ $hero-height: 350px;
     overflow: hidden;
     transform: rotate(45deg);
     background-color: currentColor;
-    box-shadow: inset 0 -1px 1px 0 rgba(255, 255, 255, 0.25);
+    box-shadow: inset 0 -1px 1px 0 var(--line-strong);
 
     .game-details__hero-classics-stripe--blue & {
       width: 500px;
       box-shadow:
-        inset 0 -1px 1px 0 rgba(255, 255, 255, 0.25),
+        inset 0 -1px 1px 0 var(--line-strong),
         0 4px 16px 0 rgba(115, 0, 164, 0.24);
     }
 
     &--shadow {
-      background-color: rgba(0, 0, 0, 0.55);
+      background-color: rgb(var(--shade) / 0.55);
     }
 
     video {
@@ -319,7 +338,7 @@ $hero-height: 350px;
     height: 40px;
     width: 40px;
     padding: 0 calc(globals.$spacing-unit * 1.5);
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgb(var(--shade) / 0.6);
     backdrop-filter: blur(20px);
     border-radius: 8px;
     transition: all ease 0.2s;
@@ -329,7 +348,7 @@ $hero-height: 350px;
     justify-content: center;
     color: globals.$muted-color;
     border: solid 1px globals.$border-color;
-    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.8);
+    box-shadow: 0px 0px 10px 0px rgb(var(--shade) / 0.8);
     animation: slide-in 0.3s cubic-bezier(0.33, 1, 0.68, 1);
 
     &:active {
@@ -337,7 +356,7 @@ $hero-height: 350px;
     }
 
     &:hover {
-      background-color: rgba(0, 0, 0, 0.5);
+      background-color: rgb(var(--shade) / 0.5);
       color: globals.$body-color;
     }
   }
@@ -351,35 +370,88 @@ $hero-height: 350px;
     justify-content: space-between;
   }
 
-  &__hero-image-wrapper {
-    position: absolute;
-    width: 100%;
-    height: 384px;
-    max-height: 384px;
+  // Shade the art from below so the logo and action row stay legible on any banner.
+  &__hero:not(&__hero--classics-wrapper) &__hero-logo-backdrop {
+    position: relative;
+    height: auto;
+    min-height: $hero-height;
+    background: linear-gradient(
+      to top,
+      rgb(var(--shade) / 0.9) 8%,
+      rgb(var(--shade) / 0.4)
+    );
+  }
+
+  &__hero-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: calc(globals.$spacing-unit * 3);
+    padding: 160px calc(globals.$spacing-unit * 3)
+      calc(globals.$spacing-unit * 3);
+  }
+
+  &__cover {
+    width: 200px;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 16px;
+    box-shadow:
+      inset 0 0 0 0.5px var(--line-strong),
+      0 14px 34px rgb(0 0 0 / 0.5);
+  }
+
+  &__hero-text {
+    flex: 1;
+    min-width: 260px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: calc(globals.$spacing-unit * 1.25);
+  }
+
+  &__hero-summary {
+    margin: 0;
+    color: var(--text);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    border-radius: 0px 0px 8px 8px;
-    z-index: 0;
+  }
 
-    &::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.3) 60%,
-        transparent 100%
-      );
-      z-index: 1;
-      pointer-events: none;
-      border-radius: inherit;
-    }
+  // Blurred art behind the page so the glass panels pick up the game's colour.
+  &__ambient {
+    position: absolute;
+    z-index: -1;
+    top: -80px;
+    left: -10%;
+    width: 120%;
+    height: 720px;
+    object-fit: cover;
+    filter: blur(80px) saturate(1.5);
+    opacity: 0.45;
+    pointer-events: none;
+    mask-image: linear-gradient(#000 40%, transparent);
+  }
 
-    @media (min-width: 1250px) {
-      height: calc(350px + 82px);
-      min-height: calc(350px + 84px);
+  // The card already supplies the glass, so the action bar sits flat inside it.
+  &__hero:not(&__hero--classics-wrapper) &__hero-panel {
+    padding: 0;
+
+    .hero-panel {
+      background: transparent;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      padding-inline: 0;
+      // Inside the narrower text column the fixed 72px bar would clip its buttons.
+      height: auto;
+      min-height: 0;
+      flex-wrap: wrap;
+      gap: calc(globals.$spacing-unit * 1.5);
+      overflow: visible;
+      position: relative;
     }
   }
 
@@ -392,7 +464,7 @@ $hero-height: 350px;
     transition: all ease 0.2s;
     position: absolute;
     z-index: 0;
-    border-radius: 0px 0px 8px 8px;
+    border-radius: inherit;
 
     @media (min-width: 1250px) {
       object-position: center;
@@ -408,12 +480,14 @@ $hero-height: 350px;
 
     &--placeholder {
       width: 100%;
-      background: linear-gradient(180deg, #101010 0%, #000000 100%);
+      background: linear-gradient(180deg, #101010 0%, var(--bg) 100%);
     }
   }
 
   &__game-logo {
     width: 200px;
+    max-width: 100%;
+    height: auto;
     align-self: flex-end;
     object-fit: contain;
     object-position: left bottom;
@@ -433,8 +507,8 @@ $hero-height: 350px;
     align-self: flex-end;
     font-size: 1.8rem;
     font-weight: bold;
-    color: #ffffff;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    color: var(--text);
+    text-shadow: 2px 2px 4px rgb(var(--shade) / 0.8);
     text-align: left;
     line-height: 1.2;
     word-wrap: break-word;
@@ -455,7 +529,7 @@ $hero-height: 350px;
   &__cloud-sync-button {
     height: 40px;
     padding: 0 calc(globals.$spacing-unit * 2);
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgb(var(--shade) / 0.6);
     backdrop-filter: blur(20px);
     border-radius: 8px;
     transition: all ease 0.2s;
@@ -467,7 +541,7 @@ $hero-height: 350px;
     color: globals.$muted-color;
     font-size: globals.$small-font-size;
     border: solid 1px globals.$border-color;
-    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.8);
+    box-shadow: 0px 0px 10px 0px rgb(var(--shade) / 0.8);
     animation: slide-in 0.3s cubic-bezier(0.33, 1, 0.68, 1);
 
     &:active {
@@ -480,7 +554,7 @@ $hero-height: 350px;
     }
 
     &:hover {
-      background-color: rgba(0, 0, 0, 0.5);
+      background-color: rgb(var(--shade) / 0.5);
     }
   }
 
@@ -505,7 +579,7 @@ $hero-height: 350px;
     right: calc(globals.$spacing-unit * 2);
     z-index: 100;
     padding: calc(globals.$spacing-unit * 1.5) calc(globals.$spacing-unit * 2);
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: var(--fill);
     backdrop-filter: blur(20px);
     border-radius: 8px;
     transition: all ease 0.2s;
@@ -518,8 +592,8 @@ $hero-height: 350px;
     color: globals.$muted-color;
     border: solid 1px globals.$border-color;
     box-shadow:
-      0px 0px 10px 0px rgba(0, 0, 0, 0.8),
-      0px 2px 8px 0px rgba(255, 255, 255, 0.1);
+      0px 0px 10px 0px rgb(var(--shade) / 0.8),
+      0px 2px 8px 0px var(--line);
     animation: slide-in 0.3s cubic-bezier(0.33, 1, 0.68, 1);
     overflow: visible;
 
@@ -529,7 +603,7 @@ $hero-height: 350px;
     }
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.12);
+      background-color: var(--line);
       color: globals.$body-color;
     }
   }

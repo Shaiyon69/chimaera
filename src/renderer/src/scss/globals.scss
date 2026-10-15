@@ -1,17 +1,19 @@
-$background-color: #000000;
-$dark-background-color: #000000;
+// Colour vars resolve to the runtime tokens in tokens.scss so presets and
+// custom themes recolour every component, not just the ported ones.
+$background-color: var(--bg);
+$dark-background-color: var(--bg);
 
-$muted-color: #f0f1f7;
-$body-color: #d0d1d7;
+$muted-color: var(--text);
+$body-color: var(--muted);
 
-$border-color: rgba(255, 255, 255, 0.08);
-$success-color: #1c9749;
-$danger-color: #801d1e;
-$error-color: #e11d48;
-$warning-color: #ffc107;
+$border-color: var(--line);
+$success-color: var(--good);
+$danger-color: var(--danger);
+$error-color: var(--danger);
+$warning-color: var(--warn);
 
-$brand-teal: #16b195;
-$brand-blue: #3e62c0;
+$brand-teal: var(--accent);
+$brand-blue: var(--accent);
 
 $classics-rainbow: conic-gradient(
   from 0deg,
@@ -43,12 +45,7 @@ $classics-washed: #f6746b;
       transparent 50%,
       rgba(255, 255, 255, 0.15) 100%
     ),
-    linear-gradient(
-      120deg,
-      transparent 0%,
-      $platinum-cyan 30%,
-      $brand-teal 100%
-    );
+    linear-gradient(120deg, transparent 0%, $platinum-cyan 30%, #16b195 100%);
 }
 
 $disabled-opacity: 0.5;
@@ -67,3 +64,114 @@ $hint-font-size: 13px;
 $small-font-size: 12px;
 
 $app-container: app-container;
+
+@mixin glass($tint: var(--glass-2), $radius: var(--radius)) {
+  background: $tint;
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  border-radius: $radius;
+  box-shadow: var(--rim), var(--lift);
+}
+
+// Page-level primitives ported from chimaera-next (styles.scss). Pages
+// compose these instead of hand-rolling their own panels, chips and tabs.
+
+// Panel without padding, for containers whose children carry their own.
+@mixin surface($tint: var(--glass-1), $radius: var(--radius)) {
+  @include glass($tint, $radius);
+}
+
+@mixin panel($tint: var(--glass-1), $radius: var(--radius)) {
+  @include surface($tint, $radius);
+  padding: 16px 18px;
+}
+
+@mixin chip {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--fill);
+  box-shadow: inset 0 0 0 0.5px var(--line-strong);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+// Small square-ish count pill next to a section title.
+@mixin count {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@mixin section-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+// Track for a group of tabs; pair with `segment` on each button.
+@mixin segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 11px;
+  background: var(--bg-2);
+}
+
+@mixin segment {
+  padding: 5px 14px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.18s var(--ease),
+    color 0.18s var(--ease);
+
+  &:hover {
+    color: var(--text);
+  }
+}
+
+@mixin segment-active {
+  background: rgb(255 255 255 / 0.18);
+  color: var(--text);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    0 2px 6px rgb(0 0 0 / 0.3);
+}
+
+@mixin progress-track {
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--fill);
+}
+
+@mixin progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-text));
+  transition: width 0.25s linear;
+}
+
+// Label/value row used in stat lists; rows after the first get a divider.
+@mixin stats-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  line-height: 1.5;
+
+  & + & {
+    border-top: 1px solid var(--line);
+  }
+}

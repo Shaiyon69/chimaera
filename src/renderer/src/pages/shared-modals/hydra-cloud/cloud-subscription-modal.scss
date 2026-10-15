@@ -7,7 +7,7 @@
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgb(var(--shade) / 0.7);
     backdrop-filter: blur(2px);
 
     // Kept mounted (iframe stays loaded + sized) but invisible and
@@ -39,7 +39,7 @@
     max-height: 94vh;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+    box-shadow: 0 24px 64px rgb(var(--shade) / 0.55);
   }
 
   // Pinned to the remote page's design viewport and scaled to fit the frame,
@@ -67,7 +67,7 @@
     gap: 16px;
     padding: 32px;
     background-color: #080808;
-    color: #fff;
+    color: var(--text);
     text-align: center;
   }
 
@@ -82,10 +82,10 @@
     width: 36px;
     height: 36px;
     padding: 0;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--line);
     border-radius: 999px;
-    background-color: rgba(255, 255, 255, 0.12);
-    color: #fff;
+    background-color: var(--line);
+    color: var(--text);
     cursor: pointer;
     transition: background-color 0.2s ease;
 

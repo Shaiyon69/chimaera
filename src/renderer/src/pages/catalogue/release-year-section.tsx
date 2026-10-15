@@ -1,6 +1,5 @@
-import { ChevronDownIcon } from "@primer/octicons-react";
-import { useEffect, useReducer, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { FilterPopover } from "./filter-popover";
 import "./release-year-section.scss";
 
 const MIN_YEAR = 1970;
@@ -20,9 +19,6 @@ export function ReleaseYearSection({
   onChange,
 }: Readonly<ReleaseYearSectionProps>) {
   const { t } = useTranslation("catalogue");
-  const contentRef = useRef<HTMLDivElement>(null);
-  const [isOpen, toggleOpen] = useReducer((s) => !s, value !== undefined);
-  const [, forceUpdate] = useReducer((x) => x + 1, 0);
 
   const gte = value?.gte ?? MIN_YEAR;
   const lte = value?.lte ?? MAX_YEAR;
@@ -30,18 +26,6 @@ export function ReleaseYearSection({
 
   const gtePercent = ((gte - MIN_YEAR) / (MAX_YEAR - MIN_YEAR)) * 100;
   const ltePercent = ((lte - MIN_YEAR) / (MAX_YEAR - MIN_YEAR)) * 100;
-
-  useEffect(() => {
-    forceUpdate();
-  }, []);
-
-  useEffect(() => {
-    if (contentRef.current) {
-      forceUpdate();
-    }
-  }, [isOpen, isActive]);
-
-  const height = isOpen ? (contentRef.current?.scrollHeight ?? 0) : 0;
 
   const handleGteChange = (newGte: number) => {
     emit(Math.min(newGte, lte), lte);
@@ -62,32 +46,8 @@ export function ReleaseYearSection({
   };
 
   return (
-    <div className="filter-section release-year-section">
-      <button
-        type="button"
-        className="filter-section__button"
-        onClick={toggleOpen}
-        aria-expanded={isOpen}
-      >
-        <ChevronDownIcon
-          className={`filter-section__chevron ${
-            isOpen ? "filter-section__chevron--open" : ""
-          }`}
-        />
-        <div className="filter-section__header">
-          <div
-            className="filter-section__orb"
-            style={{ backgroundColor: color }}
-          />
-          <h3 className="filter-section__title">{title}</h3>
-        </div>
-      </button>
-
-      <div
-        ref={contentRef}
-        className="filter-section__content"
-        style={{ maxHeight: `${height}px` }}
-      >
+    <FilterPopover title={title} color={color} count={isActive ? 1 : 0}>
+      <div className="filter-section release-year-section">
         <div className="filter-section__content-inner">
           {isActive && (
             <button
@@ -142,6 +102,6 @@ export function ReleaseYearSection({
           </div>
         </div>
       </div>
-    </div>
+    </FilterPopover>
   );
 }

@@ -111,12 +111,12 @@
       color 0.2s ease;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.08);
+      background-color: var(--fill);
     }
 
     &--close:hover {
       background-color: globals.$error-color;
-      color: #ffffff;
+      color: var(--text);
     }
   }
 
@@ -301,7 +301,7 @@
     transition: background-color 0.2s ease;
 
     &:hover {
-      background-color: #dadbe1;
+      background-color: var(--text);
     }
   }
 
@@ -323,7 +323,7 @@
     }
 
     &:focus-within {
-      border-color: #dadbe1;
+      border-color: var(--text);
     }
   }
 
@@ -465,7 +465,7 @@
 
       .friends-window__friend-name,
       .friends-window__friend-status {
-        color: #ffffff;
+        color: var(--text);
         opacity: 1;
       }
     }
@@ -579,7 +579,7 @@
     height: 28px;
     border-radius: 50%;
     border: 1px solid globals.$border-color;
-    background-color: rgba(255, 255, 255, 0.04);
+    background-color: var(--bg-2);
     color: globals.$body-color;
     cursor: pointer;
     transition:
@@ -590,13 +590,13 @@
     &--accept:hover {
       background-color: globals.$success-color;
       border-color: globals.$success-color;
-      color: #ffffff;
+      color: var(--text);
     }
 
     &--refuse:hover {
       background-color: globals.$error-color;
       border-color: globals.$error-color;
-      color: #ffffff;
+      color: var(--text);
     }
   }
 

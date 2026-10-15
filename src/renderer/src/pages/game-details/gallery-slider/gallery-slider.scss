@@ -23,7 +23,7 @@
     height: 100%;
     position: relative;
     overflow: hidden;
-    border-radius: 8px;
+    border-radius: 12px;
 
     @media (min-width: 1280px) {
       width: 60%;
@@ -73,7 +73,7 @@
     top: globals.$spacing-unit;
     right: globals.$spacing-unit;
     cursor: pointer;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgb(var(--shade) / 0.4);
     border: none;
     border-radius: 50%;
     color: globals.$muted-color;
@@ -86,7 +86,7 @@
     z-index: 2;
 
     &:hover {
-      background-color: rgba(0, 0, 0, 0.6);
+      background-color: rgb(var(--shade) / 0.6);
     }
   }
 
@@ -106,7 +106,7 @@
     height: 100%;
     border: none;
     border-radius: 4px;
-    background-color: rgba(0, 0, 0, 0.25);
+    background-color: rgb(var(--shade) / 0.25);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -114,12 +114,12 @@
     transition: background-color 0.2s ease;
 
     &:hover {
-      background-color: rgba(0, 0, 0, 0.4);
+      background-color: rgb(var(--shade) / 0.4);
     }
   }
 
   &__video-play-icon {
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgb(var(--shade) / 0.6);
     border-radius: 50%;
     width: 56px;
     height: 56px;
@@ -210,7 +210,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgb(var(--shade) / 0.4);
     border-radius: 50%;
     width: 40px;
     height: 40px;
@@ -222,7 +222,7 @@
     pointer-events: none;
 
     .gallery-slider__preview-button:hover & {
-      background-color: rgba(0, 0, 0, 0.6);
+      background-color: rgb(var(--shade) / 0.6);
       transform: translate(-50%, -50%) scale(1.1);
     }
   }
@@ -232,7 +232,7 @@
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgb(var(--shade) / 0.4);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 50%;
     color: globals.$muted-color;
@@ -245,7 +245,7 @@
     z-index: 1;
 
     &:hover {
-      background-color: rgba(0, 0, 0, 0.6);
+      background-color: rgb(var(--shade) / 0.6);
     }
 
     &:active {

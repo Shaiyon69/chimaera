@@ -340,9 +340,9 @@ export default function Library() {
   const location = useLocation();
 
   // Library stays mounted while hidden, so re-apply the saved collection each
-  // time the dock navigates back to "/" (which drops the query string).
+  // time the dock navigates back to "/library" (which drops the query string).
   useLayoutEffect(() => {
-    if (location.pathname !== "/") return;
+    if (location.pathname !== "/library") return;
     if (searchParams.get("collection")) return;
 
     const savedCollectionId = localStorage.getItem("library-collection");

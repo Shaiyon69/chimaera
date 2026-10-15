@@ -46,10 +46,10 @@
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      background: #fff;
+      background: var(--text);
       cursor: pointer;
       pointer-events: all;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 1px 4px rgb(var(--shade) / 0.5);
       margin-top: -6px;
     }
 
@@ -62,11 +62,11 @@
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      background: #fff;
+      background: var(--text);
       cursor: pointer;
       pointer-events: all;
       border: none;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 1px 4px rgb(var(--shade) / 0.5);
     }
 
     &:focus-visible {

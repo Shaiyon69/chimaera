@@ -34,10 +34,10 @@
   &__hydra-cloud-badge {
     background: linear-gradient(
       270deg,
-      color.scale(globals.$brand-teal, $lightness: -30%) 50%,
-      color.scale(globals.$brand-blue, $lightness: -30%) 100%
+      color.scale(#16b195, $lightness: -30%) 50%,
+      color.scale(#3e62c0, $lightness: -30%) 100%
     );
-    color: #fff;
+    color: var(--text);
     padding: 0 globals.$spacing-unit;
     border: none;
     border-radius: 4px;

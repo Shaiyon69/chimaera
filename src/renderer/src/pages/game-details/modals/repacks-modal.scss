@@ -179,8 +179,8 @@
 
   &__source-item {
     padding: calc(globals.$spacing-unit * 0.75) calc(globals.$spacing-unit * 1);
-    background: var(--color-surface, rgba(0, 0, 0, 0.03));
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--color-surface, rgb(var(--shade) / 0.03));
+    border: 1px solid var(--line);
     border-radius: 6px;
     display: flex;
     align-items: center;
@@ -190,7 +190,7 @@
     transition: border-color 0.2s ease;
 
     &:hover {
-      border-color: rgba(255, 255, 255, 0.2);
+      border-color: var(--line-strong);
     }
   }
 

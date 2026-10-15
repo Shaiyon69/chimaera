@@ -24,7 +24,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--muted);
   }
 
   &__value {
@@ -36,7 +36,7 @@
     padding: globals.$spacing-unit calc(globals.$spacing-unit * 1.5);
     border: 1px solid globals.$border-color;
     border-radius: 8px;
-    background-color: globals.$dark-background-color;
+    background-color: var(--glass-1);
   }
 
   &__next {

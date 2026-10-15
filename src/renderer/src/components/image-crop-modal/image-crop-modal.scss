@@ -29,10 +29,10 @@
     overflow: hidden;
     background-color: globals.$dark-background-color;
     background-image:
-      linear-gradient(45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%),
-      linear-gradient(-45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.05) 75%),
-      linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.05) 75%);
+      linear-gradient(45deg, var(--bg-2) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--bg-2) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--bg-2) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--bg-2) 75%);
     background-position:
       0 0,
       0 10px,
@@ -43,8 +43,8 @@
     border-radius: 8px;
     padding: 0;
     box-shadow:
-      0 12px 32px rgba(0, 0, 0, 0.45),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+      0 12px 32px rgb(var(--shade) / 0.45),
+      inset 0 0 0 1px var(--bg-2);
     color: inherit;
     cursor: grab;
     font: inherit;
@@ -60,9 +60,9 @@
       outline: none;
       border-color: globals.$brand-teal;
       box-shadow:
-        0 12px 32px rgba(0, 0, 0, 0.45),
-        0 0 0 3px rgba(globals.$brand-teal, 0.35),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+        0 12px 32px rgb(var(--shade) / 0.45),
+        0 0 0 3px color-mix(in srgb, globals.$brand-teal 35%, transparent),
+        inset 0 0 0 1px var(--bg-2);
     }
 
     &:active {
@@ -95,7 +95,7 @@
   &__grid-line {
     position: absolute;
     background-color: rgba(255, 255, 255, 0.28);
-    box-shadow: 0 0 1px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 1px rgb(var(--shade) / 0.4);
 
     &--v1,
     &--v2 {
@@ -142,7 +142,7 @@
     backdrop-filter: blur(12px);
     border: solid 1px globals.$border-color;
     border-radius: 999px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 24px rgb(var(--shade) / 0.4);
     animation: image-crop-toolbar-in 0.25s cubic-bezier(0.33, 1, 0.68, 1);
   }
 
@@ -168,7 +168,7 @@
     transition: all ease 0.2s;
 
     &:hover:not(:disabled) {
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: var(--line);
     }
 
     &:active:not(:disabled) {
@@ -181,11 +181,19 @@
     }
 
     &--active {
-      background-color: rgba(globals.$brand-teal, 0.18);
+      background-color: color-mix(
+        in srgb,
+        globals.$brand-teal 18%,
+        transparent
+      );
       color: globals.$brand-teal;
 
       &:hover:not(:disabled) {
-        background-color: rgba(globals.$brand-teal, 0.26);
+        background-color: color-mix(
+          in srgb,
+          globals.$brand-teal 26%,
+          transparent
+        );
       }
     }
   }
@@ -196,7 +204,7 @@
     width: clamp(120px, 22vw, 200px);
     height: 6px;
     border-radius: 999px;
-    background-color: rgba(255, 255, 255, 0.12);
+    background-color: var(--line);
     background-image: linear-gradient(
       90deg,
       globals.$muted-color,
@@ -221,7 +229,7 @@
       border-radius: 50%;
       border: solid 2px globals.$muted-color;
       background-color: globals.$background-color;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 2px 6px rgb(var(--shade) / 0.45);
       cursor: pointer;
       transition:
         transform ease 0.15s,
@@ -254,20 +262,20 @@
       border-radius: 50%;
       border: solid 2px globals.$muted-color;
       background-color: globals.$background-color;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 2px 6px rgb(var(--shade) / 0.45);
       cursor: pointer;
     }
 
     &:focus-visible::-webkit-slider-thumb {
       box-shadow:
-        0 2px 6px rgba(0, 0, 0, 0.45),
-        0 0 0 4px rgba(globals.$brand-teal, 0.4);
+        0 2px 6px rgb(var(--shade) / 0.45),
+        0 0 0 4px color-mix(in srgb, globals.$brand-teal 40%, transparent);
     }
 
     &:focus-visible::-moz-range-thumb {
       box-shadow:
-        0 2px 6px rgba(0, 0, 0, 0.45),
-        0 0 0 4px rgba(globals.$brand-teal, 0.4);
+        0 2px 6px rgb(var(--shade) / 0.45),
+        0 0 0 4px color-mix(in srgb, globals.$brand-teal 40%, transparent);
     }
   }
 

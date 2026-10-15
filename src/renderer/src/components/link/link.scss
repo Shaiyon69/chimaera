@@ -1,6 +1,6 @@
 .link {
   text-decoration: none;
-  color: #c0c1c7;
+  color: var(--muted);
   &:hover {
     text-decoration: underline;
   }

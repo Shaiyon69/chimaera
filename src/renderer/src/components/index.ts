@@ -37,3 +37,4 @@ export * from "./window-title-bar/window-title-bar";
 export * from "./error-boundary/error-fallback";
 export * from "./error-boundary/error-boundary";
 export * from "./nav-dock/nav-dock";
+export * from "./traffic-lights/traffic-lights";

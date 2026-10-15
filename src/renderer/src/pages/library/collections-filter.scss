@@ -39,7 +39,7 @@
     }
 
     &--active {
-      color: #fff;
+      color: var(--text);
       background-color: globals.$background-color;
     }
   }

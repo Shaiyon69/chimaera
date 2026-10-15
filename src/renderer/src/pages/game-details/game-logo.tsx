@@ -17,7 +17,7 @@ export function GameLogo({ game, shopDetails }: Readonly<GameLogoProps>) {
   const isCustomGame = game?.shop === "custom";
 
   const logoImage = isCustomGame
-    ? game?.logoImageUrl || ""
+    ? game?.logoImageUrl || shopDetails?.assets?.logoImageUrl || ""
     : getImageWithCustomPriority(
         game?.customLogoImageUrl,
         shopDetails?.assets?.logoImageUrl

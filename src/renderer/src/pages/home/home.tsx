@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { levelDBService } from "@renderer/services/leveldb.service";
 import { orderBy } from "lodash-es";
@@ -9,25 +10,29 @@ import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import { Button, GameCard, Hero } from "@renderer/components";
 import type { DownloadSource, ShopAssets, Steam250Game } from "@types";
 
-import flameIconStatic from "@renderer/assets/icons/flame-static.png";
 import flameIconAnimated from "@renderer/assets/icons/flame-animated.gif";
 import starsIconAnimated from "@renderer/assets/icons/stars-animated.gif";
 
+import { logger } from "@renderer/logger";
 import { buildGameDetailsPath, ensureArray } from "@renderer/helpers";
 import { CatalogueCategory } from "@shared";
 import "./home.scss";
+
+const categories = Object.values(CatalogueCategory);
+
+// Seconds each card takes to pass by; keeps speed constant across row lengths.
+const SECONDS_PER_CARD = 4;
 
 export default function Home() {
   const { t } = useTranslation("home");
   const navigate = useNavigate();
 
-  const [animateFlame, setAnimateFlame] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState<Record<CatalogueCategory, boolean>>({
+    [CatalogueCategory.Hot]: true,
+    [CatalogueCategory.Weekly]: true,
+    [CatalogueCategory.Achievements]: true,
+  });
   const [randomGame, setRandomGame] = useState<Steam250Game | null>(null);
-
-  const [currentCatalogueCategory, setCurrentCatalogueCategory] = useState(
-    CatalogueCategory.Hot
-  );
 
   const [catalogue, setCatalogue] = useState<
     Record<CatalogueCategory, ShopAssets[]>
@@ -39,9 +44,6 @@ export default function Home() {
 
   const getCatalogue = useCallback(async (category: CatalogueCategory) => {
     try {
-      setCurrentCatalogueCategory(category);
-      setIsLoading(true);
-
       const sources = (await levelDBService.values(
         "downloadSources"
       )) as DownloadSource[];
@@ -53,23 +55,32 @@ export default function Home() {
         downloadSourceIds: downloadSources.map((source) => source.id),
       };
 
-      const catalogue = await window.electron.hydraApi.get<ShopAssets[]>(
-        `/catalogue/${category}`,
-        {
-          params,
-          needsAuth: false,
+      // The API often resets the first connection at startup, so retry.
+      let result: ShopAssets[] | undefined;
+      for (let attempt = 1; !result; attempt++) {
+        try {
+          result = await window.electron.hydraApi.get<ShopAssets[]>(
+            `/catalogue/${category}`,
+            {
+              params,
+              needsAuth: false,
+            }
+          );
+        } catch (error) {
+          if (attempt >= 3) throw error;
+          await new Promise((resolve) => setTimeout(resolve, 1500 * attempt));
         }
-      );
+      }
 
       setCatalogue((prev) => ({
         ...prev,
-        [category]: ensureArray<ShopAssets>(
-          catalogue,
-          `/catalogue/${category}`
-        ),
+        [category]: ensureArray<ShopAssets>(result, `/catalogue/${category}`),
       }));
+    } catch (error) {
+      // One failing row must not break the others.
+      logger.error(`Failed to load catalogue ${category}`, error);
     } finally {
-      setIsLoading(false);
+      setLoading((prev) => ({ ...prev, [category]: false }));
     }
   }, []);
 
@@ -92,32 +103,10 @@ export default function Home() {
     }
   };
 
-  const handleCategoryClick = (category: CatalogueCategory) => {
-    if (category !== currentCatalogueCategory) {
-      getCatalogue(category);
-    }
-  };
-
   useEffect(() => {
-    setIsLoading(true);
-    getCatalogue(CatalogueCategory.Hot);
-
+    categories.forEach(getCatalogue);
     getRandomGame();
   }, [getCatalogue, getRandomGame]);
-
-  const categories = Object.values(CatalogueCategory);
-
-  const handleMouseEnterCategory = (category: CatalogueCategory) => {
-    if (category === CatalogueCategory.Hot) {
-      setAnimateFlame(true);
-    }
-  };
-
-  const handleMouseLeaveCategory = (category: CatalogueCategory) => {
-    if (category === CatalogueCategory.Hot) {
-      setAnimateFlame(false);
-    }
-  };
 
   return (
     <SkeletonTheme baseColor="#0c0c0c" highlightColor="#444">
@@ -125,42 +114,6 @@ export default function Home() {
         <Hero />
 
         <section className="home__header">
-          <ul className="home__buttons-list">
-            {categories.map((category) => (
-              <li key={category}>
-                <Button
-                  theme={
-                    category === currentCatalogueCategory
-                      ? "primary"
-                      : "outline"
-                  }
-                  onClick={() => handleCategoryClick(category)}
-                  onMouseEnter={() => handleMouseEnterCategory(category)}
-                  onMouseLeave={() => handleMouseLeaveCategory(category)}
-                >
-                  {category === CatalogueCategory.Hot && (
-                    <div className="home__icon-wrapper">
-                      <img
-                        src={flameIconStatic}
-                        alt=""
-                        className="home__flame-icon"
-                        style={{ display: animateFlame ? "none" : "block" }}
-                      />
-                      <img
-                        src={flameIconAnimated}
-                        alt=""
-                        className="home__flame-icon"
-                        style={{ display: animateFlame ? "block" : "none" }}
-                      />
-                    </div>
-                  )}
-
-                  {t(category)}
-                </Button>
-              </li>
-            ))}
-          </ul>
-
           <Button
             onClick={handleRandomizerClick}
             theme="outline"
@@ -177,33 +130,72 @@ export default function Home() {
           </Button>
         </section>
 
-        <h2 className="home__title">
-          {currentCatalogueCategory === CatalogueCategory.Hot && (
-            <div className="home__title-icon">
-              <img
-                src={flameIconAnimated}
-                alt=""
-                className="home__title-flame-icon"
-              />
-            </div>
-          )}
+        {categories.map((category) => {
+          const games = catalogue[category];
 
-          {t(currentCatalogueCategory)}
-        </h2>
+          return (
+            <section className="home__row" key={category}>
+              <h2 className="home__title">
+                {category === CatalogueCategory.Hot && (
+                  <div className="home__title-icon">
+                    <img
+                      src={flameIconAnimated}
+                      alt=""
+                      className="home__title-flame-icon"
+                    />
+                  </div>
+                )}
 
-        <section className="home__cards">
-          {isLoading
-            ? Array.from({ length: 12 }).map((_, index) => (
-                <Skeleton key={index} className="home__card-skeleton" />
-              ))
-            : catalogue[currentCatalogueCategory].map((result) => (
-                <GameCard
-                  key={result.objectId}
-                  game={result}
-                  onClick={() => navigate(buildGameDetailsPath(result))}
-                />
-              ))}
-        </section>
+                {t(category)}
+              </h2>
+
+              {loading[category] ? (
+                <div className="home__skeleton-row">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <div className="home__marquee-item" key={index}>
+                      <Skeleton className="home__card-skeleton" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="home__marquee">
+                  <div
+                    className="home__marquee-track"
+                    style={
+                      {
+                        "--duration": `${games.length * SECONDS_PER_CARD}s`,
+                      } as CSSProperties
+                    }
+                  >
+                    {[0, 1].map((copy) => (
+                      <div
+                        className="home__marquee-group"
+                        key={copy}
+                        aria-hidden={copy === 1}
+                        // Second copy only exists for the seamless loop; keep it out of tab order.
+                        {...(copy === 1 ? { inert: "" } : {})}
+                      >
+                        {games.map((game) => (
+                          <div
+                            className="home__marquee-item"
+                            key={game.objectId}
+                          >
+                            <GameCard
+                              game={game}
+                              onClick={() =>
+                                navigate(buildGameDetailsPath(game))
+                              }
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+          );
+        })}
       </section>
     </SkeletonTheme>
   );

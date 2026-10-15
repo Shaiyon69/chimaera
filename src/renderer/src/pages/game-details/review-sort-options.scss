@@ -10,7 +10,7 @@
   }
 
   &__label {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--muted);
     font-size: 14px;
     font-weight: 400;
   }
@@ -41,11 +41,11 @@
     gap: 4px;
 
     &:hover:not(:disabled) {
-      color: rgba(255, 255, 255, 0.6);
+      color: var(--muted);
     }
 
     &.active {
-      color: rgba(255, 255, 255, 0.9);
+      color: var(--text);
       font-weight: 500;
     }
 

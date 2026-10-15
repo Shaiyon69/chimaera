@@ -115,11 +115,16 @@ export class WindowManager {
         : {
             backgroundColor: "#000000",
             titleBarStyle: "hidden",
-            titleBarOverlay: {
-              symbolColor: "#DADBE1",
-              color: "#00000000",
-              height: 34,
-            },
+            // Windows draws its own traffic-light buttons in the renderer.
+            ...(process.platform === "win32"
+              ? {}
+              : {
+                  titleBarOverlay: {
+                    symbolColor: "#DADBE1",
+                    color: "#00000000",
+                    height: 34,
+                  },
+                }),
           }),
     };
 

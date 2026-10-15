@@ -233,25 +233,38 @@ export function GameDetailsContent() {
   const renderClassicsHero = isLaunchboxGame && !classicsUseHeroLayout;
 
   const heroImage = isCustomGame
-    ? game?.libraryHeroImageUrl || game?.iconUrl || ""
+    ? game?.libraryHeroImageUrl ||
+      // Bloodborne's library record can predate its bundled art.
+      shopDetails?.assets?.libraryHeroImageUrl ||
+      game?.iconUrl ||
+      ""
     : getImageWithCustomPriority(
         game?.customHeroImageUrl,
         shopDetails?.assets?.libraryHeroImageUrl
       );
 
-  const launchboxCover = isLaunchboxGame
-    ? game?.customCoverImageUrl ||
-      shopDetails?.assets?.coverImageUrl ||
-      shopDetails?.assets?.libraryImageUrl ||
-      game?.libraryImageUrl ||
-      shopDetails?.assets?.iconUrl ||
-      game?.iconUrl ||
-      ""
-    : "";
+  const coverImage =
+    game?.customCoverImageUrl ||
+    shopDetails?.assets?.coverImageUrl ||
+    shopDetails?.assets?.libraryImageUrl ||
+    game?.libraryImageUrl ||
+    shopDetails?.assets?.iconUrl ||
+    game?.iconUrl ||
+    "";
 
   const resolvedHeroImage = isLaunchboxGame
-    ? heroImage || launchboxCover
+    ? heroImage || coverImage
     : heroImage;
+
+  const shortDescription = useMemo(() => {
+    const raw = shopDetails?.short_description;
+    if (!raw) return "";
+    // Steam returns HTML entities; decode as text, never inject markup.
+    return (
+      new DOMParser().parseFromString(raw, "text/html").documentElement
+        .textContent ?? ""
+    );
+  }, [shopDetails?.short_description]);
 
   const launchboxPlatform = isLaunchboxGame
     ? (game?.platform ?? shopDetails?.platform ?? null)
@@ -297,10 +310,54 @@ export function GameDetailsContent() {
     <div className="game-details__hero-image game-details__hero-image--placeholder" />
   );
 
+  const heroButtons = (
+    <div className="game-details__hero-buttons game-details__hero-buttons--right">
+      {game && (
+        <button
+          type="button"
+          className="game-details__edit-custom-game-button"
+          onClick={handleEditGameClick}
+          title={t("edit_game_modal_button")}
+        >
+          <PencilIcon size={16} />
+        </button>
+      )}
+
+      {game && cloudSaveVisibility?.hero === "legacy" && (
+        <button
+          type="button"
+          className="game-details__cloud-sync-button"
+          onClick={handleLegacyCloudSaveButtonClick}
+        >
+          <div className="game-details__cloud-icon-container">
+            <img
+              src={cloudIconAnimated}
+              alt=""
+              className="game-details__cloud-icon"
+            />
+          </div>
+          {t("cloud_save")}
+        </button>
+      )}
+
+      {game && objectId && cloudSaveVisibility?.hero === "v2" && (
+        <CloudSaveWidget />
+      )}
+    </div>
+  );
+
   return (
     <div
       className={`game-details__wrapper ${hasNSFWContentBlocked ? "game-details__wrapper--blurred" : ""}`}
     >
+      {!renderClassicsHero && resolvedHeroImage && (
+        <img
+          src={resolvedHeroImage}
+          alt=""
+          aria-hidden="true"
+          className="game-details__ambient"
+        />
+      )}
       <section className="game-details__container">
         <div
           className={`game-details__hero${renderClassicsHero ? " game-details__hero--classics-wrapper" : ""}`}
@@ -309,17 +366,15 @@ export function GameDetailsContent() {
             <>
               <div className="game-details__hero--classics">
                 <div className="game-details__hero-classics-backdrop">
-                  {launchboxCover && (
-                    <img src={launchboxCover} alt="" aria-hidden="true" />
+                  {coverImage && (
+                    <img src={coverImage} alt="" aria-hidden="true" />
                   )}
                   <div className="game-details__hero-classics-backdrop-overlay" />
                 </div>
               </div>
               <div className="game-details__hero-classics-content">
                 <div className="game-details__hero-classics-cover">
-                  {launchboxCover && (
-                    <img src={launchboxCover} alt={game?.title} />
-                  )}
+                  {coverImage && <img src={coverImage} alt={game?.title} />}
                 </div>
                 <div className="game-details__hero-classics-meta">
                   <h1 className="game-details__hero-classics-title">
@@ -415,59 +470,51 @@ export function GameDetailsContent() {
             className="game-details__hero-logo-backdrop"
             style={{ opacity: backdropOpacity }}
           >
-            <div className="game-details__hero-content">
-              {!renderClassicsHero && (
-                <div className="game-details__hero-standard-meta">
-                  <GameLogo game={game} shopDetails={shopDetails} />
-                  {classicsChips}
+            {renderClassicsHero ? (
+              <>
+                <div className="game-details__hero-content">{heroButtons}</div>
+
+                <div className="game-details__hero-panel">
+                  <HeroPanel />
                 </div>
-              )}
-
-              <div className="game-details__hero-buttons game-details__hero-buttons--right">
-                {game && (
-                  <button
-                    type="button"
-                    className="game-details__edit-custom-game-button"
-                    onClick={handleEditGameClick}
-                    title={t("edit_game_modal_button")}
-                  >
-                    <PencilIcon size={16} />
-                  </button>
+              </>
+            ) : (
+              <div className="game-details__hero-inner">
+                {coverImage && (
+                  <img
+                    src={coverImage}
+                    alt=""
+                    className="game-details__cover"
+                  />
                 )}
 
-                {game && cloudSaveVisibility?.hero === "legacy" && (
-                  <button
-                    type="button"
-                    className="game-details__cloud-sync-button"
-                    onClick={handleLegacyCloudSaveButtonClick}
-                  >
-                    <div className="game-details__cloud-icon-container">
-                      <img
-                        src={cloudIconAnimated}
-                        alt=""
-                        className="game-details__cloud-icon"
-                      />
-                    </div>
-                    {t("cloud_save")}
-                  </button>
-                )}
+                <div className="game-details__hero-text">
+                  <div className="game-details__hero-standard-meta">
+                    <GameLogo game={game} shopDetails={shopDetails} />
+                    {classicsChips}
+                  </div>
 
-                {game && objectId && cloudSaveVisibility?.hero === "v2" && (
-                  <CloudSaveWidget />
-                )}
+                  <DescriptionHeader />
+
+                  {shortDescription && (
+                    <p className="game-details__hero-summary">
+                      {shortDescription}
+                    </p>
+                  )}
+
+                  {heroButtons}
+
+                  <div className="game-details__hero-panel">
+                    <HeroPanel />
+                  </div>
+                </div>
               </div>
-            </div>
-
-            <div className="game-details__hero-panel">
-              <HeroPanel />
-            </div>
+            )}
           </div>
         </div>
 
         <div className="game-details__description-container">
           <div className="game-details__description-content">
-            <DescriptionHeader />
-
             {showPrompt && (
               <ReviewPromptBanner
                 onYesClick={handleReviewPromptYes}
@@ -475,7 +522,10 @@ export function GameDetailsContent() {
               />
             )}
 
-            <GallerySlider />
+            <section className="game-details__section">
+              <h2 className="game-details__description-title">{t("media")}</h2>
+              <GallerySlider />
+            </section>
 
             {shopDetails?.about_the_game && (
               <h2 className="game-details__description-title">
@@ -526,7 +576,7 @@ export function GameDetailsContent() {
             )}
           </div>
 
-          {shop !== "custom" && <Sidebar />}
+          {(shop !== "custom" || objectId === "bloodborne") && <Sidebar />}
         </div>
       </section>
     </div>

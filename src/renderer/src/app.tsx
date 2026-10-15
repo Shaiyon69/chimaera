@@ -4,28 +4,24 @@ import {
   NavDock,
   Sidebar,
   Toast,
+  TrafficLights,
 } from "@renderer/components";
 import { VideoIcon } from "@primer/octicons-react";
 import {
-  DashIcon,
-  ScreenFullIcon,
-  ScreenNormalIcon,
-  XIcon,
-} from "@primer/octicons-react";
-import {
   useAppDispatch,
   useAppSelector,
-  useDownload,
   useLibrary,
   useToast,
   useUserDetails,
 } from "@renderer/hooks";
 import { useDownloadOptionsListener } from "@renderer/hooks/use-download-options-listener";
 import i18n from "i18next";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { WorkWonders } from "workwonders-sdk";
 
 import {
+  clearDownload as clearDownloadAction,
+  setLastPacket as setLastPacketAction,
   clearExtraction,
   closeToast,
   failClassicsScan,
@@ -48,17 +44,19 @@ import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useSubscription } from "./hooks/use-subscription";
 import { ArchiveDeletionModal } from "./pages/downloads/archive-deletion-error-modal";
+import { BloodborneSetupModal } from "./components/bloodborne-setup-modal/bloodborne-setup-modal";
 import { CloudSubscriptionModal } from "./pages/shared-modals/hydra-cloud/cloud-subscription-modal";
 import { AddFriendModal } from "./pages/profile/profile-content/add-friend-modal";
 import { ClassicsScanModal } from "./pages/settings/emulation/classics-scan-modal";
 import { RetroArchScanModal } from "./pages/settings/emulation/retroarch-scan-modal";
 import { CloudGiftNotificationModal } from "./pages/shared-modals/cloud-gift-notification-modal";
+import Home from "./pages/home/home";
 import Library from "./pages/library/library";
 import Catalogue from "./pages/catalogue/catalogue";
 import Downloads from "./pages/downloads/downloads";
 import FriendsWindow from "./pages/friends-window/friends-window";
 
-import type { UserPreferences } from "@types";
+import type { DownloadProgress, UserPreferences } from "@types";
 import "./app.scss";
 import {
   getAchievementSoundUrl,
@@ -81,11 +79,19 @@ type WorkWondersWithKnowledge = WorkWonders & {
 
 // Dock pages stay mounted once visited so switching tabs doesn't refetch or
 // lose filters/scroll. Other routes still render through <Outlet />.
+// Memoized so App re-renders don't cascade into hidden pages.
+const MemoHome = memo(Home);
+const MemoLibrary = memo(Library);
+const MemoCatalogue = memo(Catalogue);
+const MemoDownloads = memo(Downloads);
+const MemoFriendsWindow = memo(FriendsWindow);
+
 const KEPT_ALIVE_PAGES: Record<string, () => React.ReactElement> = {
-  "/": () => <Library />,
-  "/catalogue": () => <Catalogue />,
-  "/downloads": () => <Downloads />,
-  "/friends": () => <FriendsWindow embedded />,
+  "/": () => <MemoHome />,
+  "/library": () => <MemoLibrary />,
+  "/catalogue": () => <MemoCatalogue />,
+  "/downloads": () => <MemoDownloads />,
+  "/friends": () => <MemoFriendsWindow embedded />,
 };
 
 export function App() {
@@ -98,7 +104,10 @@ export function App() {
 
   const { t } = useTranslation("app");
 
-  const { clearDownload, setLastPacket, lastPacket } = useDownload();
+  // Selecting only the id keeps App from re-rendering on every progress packet.
+  const activeDownloadGameId = useAppSelector(
+    (state) => state.download.lastPacket?.gameId
+  );
 
   const workwondersRef = useRef<WorkWonders | null>(null);
   const workwondersInitializingRef = useRef(false);
@@ -115,6 +124,15 @@ export function App() {
     useSubscription();
 
   const dispatch = useAppDispatch();
+
+  const clearDownload = useCallback(
+    () => dispatch(clearDownloadAction()),
+    [dispatch]
+  );
+  const setLastPacket = useCallback(
+    (packet: DownloadProgress | null) => dispatch(setLastPacketAction(packet)),
+    [dispatch]
+  );
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -142,14 +160,16 @@ export function App() {
   const [archivePaths, setArchivePaths] = useState<string[]>([]);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
 
+  // Preferences changes arrive through onUserPreferencesUpdated, so read once.
   useEffect(() => {
-    Promise.all([
-      levelDBService.get("userPreferences", null, "json"),
-      updateLibrary(),
-    ]).then(([preferences]) => {
+    levelDBService.get("userPreferences", null, "json").then((preferences) => {
       dispatch(setUserPreferences(preferences as UserPreferences | null));
     });
-  }, [navigate, location.pathname, dispatch, updateLibrary]);
+  }, [dispatch]);
+
+  useEffect(() => {
+    updateLibrary();
+  }, [location.pathname, updateLibrary]);
 
   useEffect(() => {
     const unsubscribe = window.electron.onUserPreferencesUpdated(
@@ -203,16 +223,16 @@ export function App() {
   }, [updateLibrary]);
 
   useEffect(() => {
-    if (!lastPacket?.gameId) return;
+    if (!activeDownloadGameId) return;
 
     const activeGame = downloadLibrary.find(
-      (game) => game.id === lastPacket.gameId
+      (game) => game.id === activeDownloadGameId
     );
 
     if (!activeGame || activeGame.download?.status !== "active") {
       clearDownload();
     }
-  }, [clearDownload, lastPacket?.gameId, downloadLibrary]);
+  }, [clearDownload, activeDownloadGameId, downloadLibrary]);
 
   const setupWorkWonders = useCallback(
     async (token?: string, locale?: string) => {
@@ -549,6 +569,15 @@ export function App() {
           t("executable_not_found_description", { ns: "game_details" })
         );
       }),
+      window.electron.onBloodborneLaunchError((problems) => {
+        showErrorToast(
+          t("bloodborne_launch_failed_title", { ns: "game_details" }),
+          t("bloodborne_launch_failed_description", {
+            ns: "game_details",
+            problems: problems.join("; "),
+          })
+        );
+      }),
       window.electron.onDownloadHalted((gameTitle) => {
         updateLibrary();
         showErrorToast(
@@ -655,9 +684,10 @@ export function App() {
   const [isWindowMaximized, setIsWindowMaximized] = useState(false);
 
   useEffect(() => {
-    if (window.electron.platform !== "linux") return;
+    const { platform, isWayland } = window.electron;
+    if (platform !== "linux" && platform !== "win32") return;
 
-    if (window.electron.isWayland) {
+    if (platform === "linux" && isWayland) {
       document.body.classList.add("window-rounded");
     }
 
@@ -685,11 +715,7 @@ export function App() {
     <>
       {(window.electron.platform === "win32" ||
         window.electron.platform === "linux") && (
-        <div
-          className={`title-bar${
-            window.electron.platform === "win32" ? " title-bar--windows" : ""
-          }`}
-        >
+        <div className="title-bar">
           <h4>
             Chimaera
             {hasActiveSubscription && (
@@ -706,45 +732,7 @@ export function App() {
             {t("big_picture", { ns: "sidebar" })}
           </button>
 
-          {window.electron.platform === "linux" && (
-            <div className="title-bar__window-controls">
-              <button
-                type="button"
-                className="title-bar__window-control"
-                onClick={() => window.electron.minimizeMainWindow()}
-                title={t("header:minimize")}
-                aria-label={t("header:minimize")}
-              >
-                <DashIcon size={16} />
-              </button>
-              <button
-                type="button"
-                className="title-bar__window-control"
-                onClick={() => window.electron.toggleMaximizeMainWindow()}
-                title={
-                  isWindowMaximized ? t("header:restore") : t("header:maximize")
-                }
-                aria-label={
-                  isWindowMaximized ? t("header:restore") : t("header:maximize")
-                }
-              >
-                {isWindowMaximized ? (
-                  <ScreenNormalIcon size={16} />
-                ) : (
-                  <ScreenFullIcon size={16} />
-                )}
-              </button>
-              <button
-                type="button"
-                className="title-bar__window-control title-bar__window-control--close"
-                onClick={() => window.electron.closeMainWindow()}
-                title={t("header:close")}
-                aria-label={t("header:close")}
-              >
-                <XIcon size={16} />
-              </button>
-            </div>
-          )}
+          <TrafficLights isMaximized={isWindowMaximized} />
         </div>
       )}
 
@@ -765,6 +753,8 @@ export function App() {
 
       <CloudGiftNotificationModal />
 
+      <BloodborneSetupModal />
+
       <ArchiveDeletionModal
         visible={showArchiveDeletionModal}
         archivePaths={archivePaths}
@@ -780,7 +770,12 @@ export function App() {
       <RetroArchScanModal />
 
       <main>
-        <Sidebar />
+        <NavDock />
+
+        {/* Hidden, not unmounted: it keeps the library in sync on download/pin events. */}
+        <div hidden>
+          <Sidebar />
+        </div>
 
         <article className="container">
           <Header />
@@ -805,8 +800,6 @@ export function App() {
             {!activeKeptPage && <Outlet />}
           </section>
         </article>
-
-        <NavDock />
       </main>
 
       <BottomPanel />

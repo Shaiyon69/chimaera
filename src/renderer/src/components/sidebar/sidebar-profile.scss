@@ -18,7 +18,7 @@
     padding: globals.$spacing-unit globals.$spacing-unit;
     &:hover,
     &--active {
-      background-color: rgba(255, 255, 255, 0.15);
+      background-color: var(--fill-hover);
     }
   }
 
@@ -82,8 +82,8 @@
       #676a73
     );
     box-shadow:
-      0 2px 5px rgba(0, 0, 0, 0.45),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+      0 2px 5px rgb(var(--shade) / 0.45),
+      inset 0 0 0 1px var(--line);
     transform-origin: center;
     animation: sidebar-profile-classic-disc-spin 8s linear infinite;
     will-change: transform;
@@ -119,13 +119,13 @@
     top: 100%;
     left: calc(globals.$spacing-unit * 2);
     right: calc(globals.$spacing-unit * 2);
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgb(var(--shade) / 0.4);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--fill);
     border-radius: 6px;
     padding: calc(globals.$spacing-unit / 2);
     z-index: 100;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 12px rgb(var(--shade) / 0.4);
     will-change: transform, opacity;
     transform: translateZ(0);
     backface-visibility: hidden;
@@ -150,7 +150,7 @@
     font-size: globals.$body-font-size;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.15);
+      background-color: var(--fill-hover);
       color: globals.$body-color;
     }
 
@@ -180,7 +180,7 @@
     padding: 0 4px;
     font-size: 10px;
     font-weight: bold;
-    color: #fff;
+    color: var(--text);
 
     &--online {
       background-color: globals.$success-color;
@@ -189,7 +189,7 @@
 
   &__dropdown-separator {
     height: 1px;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--line);
     margin: calc(globals.$spacing-unit / 2) 0;
   }
 }

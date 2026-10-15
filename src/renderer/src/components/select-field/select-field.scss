@@ -19,7 +19,7 @@
   }
 
   &--focused {
-    border-color: #dadbe1;
+    border-color: var(--text);
   }
 
   &--disabled {
@@ -43,14 +43,14 @@
   }
 
   &__option {
-    background-color: globals.$dark-background-color;
+    background-color: var(--glass-1);
     border-right: 4px solid;
     border-color: transparent;
     border-radius: 8px;
     width: fit-content;
     height: 100%;
     outline: none;
-    color: #dadbe1;
+    color: var(--text);
     cursor: default;
     font-family: inherit;
     font-size: globals.$body-font-size;

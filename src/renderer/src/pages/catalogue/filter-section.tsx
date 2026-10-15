@@ -1,8 +1,8 @@
 import { CheckboxField } from "@renderer/components/checkbox-field/checkbox-field";
 import { TextField } from "@renderer/components/text-field/text-field";
 import { useFormat } from "@renderer/hooks";
-import { ChevronDownIcon } from "@primer/octicons-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { FilterPopover } from "./filter-popover";
 import "./filter.scss";
 import List from "rc-virtual-list";
 import { useTranslation } from "react-i18next";
@@ -32,11 +32,8 @@ export function FilterSection({
   onSelect,
   onClear,
 }: FilterSectionProps) {
-  const content = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  const [isOpen, setIsOpen] = useState(() => items.some((i) => i.checked));
-  const [height, setHeight] = useState(0);
   const { t } = useTranslation("catalogue");
 
   const availableGroups = useMemo(() => {
@@ -87,50 +84,13 @@ export function FilterSection({
 
   const { formatNumber } = useFormat();
 
-  useEffect(() => {
-    if (content.current && content.current.scrollHeight !== height) {
-      setHeight(isOpen ? content.current.scrollHeight : 0);
-    } else if (!isOpen) {
-      setHeight(0);
-    }
-  }, [isOpen, filteredItems, height, search]);
-
   if (!items.length) {
     return null;
   }
 
   return (
-    <div className="filter-section">
-      <button
-        type="button"
-        className="filter-section__button"
-        onClick={() => setIsOpen((open) => !open)}
-        aria-expanded={isOpen}
-      >
-        <ChevronDownIcon
-          className={`filter-section__chevron ${
-            isOpen ? "filter-section__chevron--open" : ""
-          }`}
-        />
-        <div className="filter-section__header">
-          <div
-            className="filter-section__orb"
-            style={{ backgroundColor: color }}
-          />
-          <h3 className="filter-section__title">{title}</h3>
-          {selectedItemsCount > 0 && (
-            <span className="filter-section__header-count">
-              {formatNumber(selectedItemsCount)}
-            </span>
-          )}
-        </div>
-      </button>
-
-      <div
-        ref={content}
-        className="filter-section__content"
-        style={{ maxHeight: `${height}px` }}
-      >
+    <FilterPopover title={title} color={color} count={selectedItemsCount}>
+      <div className="filter-section">
         <div className="filter-section__content-inner">
           {selectedItemsCount > 0 && (
             <button
@@ -218,6 +178,6 @@ export function FilterSection({
           </List>
         </div>
       </div>
-    </div>
+    </FilterPopover>
   );
 }

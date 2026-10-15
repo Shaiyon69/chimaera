@@ -37,8 +37,9 @@ import type { SuggestionShop } from "@renderer/hooks/use-search-suggestions";
 import { debounce } from "lodash-es";
 
 const pathTitle: Record<string, string> = {
-  "/": "library",
+  "/": "home",
   "/catalogue": "catalogue",
+  "/library": "library",
   "/downloads": "downloads",
   "/settings": "settings",
   "/friends": "friends",
@@ -67,7 +68,7 @@ export function Header() {
     (state) => state.library.searchQuery
   );
 
-  const isOnLibraryPage = location.pathname === "/";
+  const isOnLibraryPage = location.pathname.startsWith("/library");
   const isOnCataloguePage = location.pathname.startsWith("/catalogue");
 
   const isLibraryScanSupported =
@@ -135,6 +136,8 @@ export function Header() {
     if (location.pathname.startsWith("/achievements")) return headerTitle;
     if (location.pathname.startsWith("/profile")) return headerTitle;
     if (location.pathname.startsWith("/notifications")) return headerTitle;
+    if (location.pathname.startsWith("/library"))
+      return headerTitle || t("library");
     if (location.pathname.startsWith("/search")) return t("search_results");
 
     return t(pathTitle[location.pathname]);

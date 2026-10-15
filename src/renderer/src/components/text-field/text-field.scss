@@ -11,31 +11,34 @@
     transition: all ease 0.2s;
     width: 100%;
     align-items: center;
-    border-radius: 8px;
-    border: solid 1px globals.$border-color;
+    border-radius: 10px;
+    border: 0;
+    box-shadow: inset 0 0 0 0.5px var(--line-strong);
     height: 40px;
     min-height: 40px;
     flex: 1;
     min-width: 0;
 
     &:hover {
-      border-color: rgba(255, 255, 255, 0.5);
+      box-shadow: inset 0 0 0 0.5px var(--faint);
     }
 
     &--primary {
-      background-color: globals.$dark-background-color;
+      background-color: var(--bg-2);
     }
 
     &--dark {
-      background-color: globals.$background-color;
+      background-color: var(--bg-2);
     }
 
     &--has-error {
-      border-color: globals.$danger-color;
+      box-shadow: inset 0 0 0 1px var(--danger);
     }
 
     &--focused {
-      border-color: #dadbe1;
+      box-shadow:
+        inset 0 0 0 1px var(--accent),
+        0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
     }
   }
 
@@ -45,7 +48,7 @@
     width: 100%;
     height: 100%;
     outline: none;
-    color: #dadbe1;
+    color: var(--text);
     cursor: default;
     font-family: inherit;
     text-overflow: ellipsis;

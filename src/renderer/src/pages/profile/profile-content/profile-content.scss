@@ -53,7 +53,7 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.06);
+    background-color: var(--fill);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -75,8 +75,8 @@
   }
 
   &__section-badge {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.7);
+    background-color: var(--line);
+    color: var(--muted);
     padding: 4px 8px;
     border-radius: 6px;
     font-size: 12px;
@@ -89,7 +89,7 @@
   &__collapse-button {
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--muted);
     cursor: pointer;
     padding: 4px;
     border-radius: 4px;
@@ -100,17 +100,16 @@
     flex-shrink: 0;
 
     &:hover {
-      color: rgba(255, 255, 255, 0.9);
-      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      background-color: var(--line);
     }
   }
 
   &__tabs {
-    display: flex;
-    gap: calc(globals.$spacing-unit);
+    @include globals.segmented;
     margin-bottom: calc(globals.$spacing-unit * 2);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
+    align-self: flex-start;
   }
 
   &__tab-wrapper {
@@ -118,20 +117,13 @@
   }
 
   &__tab {
-    background: none;
-    border: none;
-    color: rgba(255, 255, 255, 0.6);
-    padding: calc(globals.$spacing-unit) calc(globals.$spacing-unit * 2);
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: color ease 0.2s;
+    @include globals.segment;
     display: flex;
     align-items: center;
     gap: calc(globals.$spacing-unit * 0.5);
 
     &--active {
-      color: white;
+      @include globals.segment-active;
     }
   }
 
@@ -142,15 +134,16 @@
     min-width: 18px;
     height: 18px;
     padding: 0 6px;
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: var(--line);
     border-radius: 9px;
     font-size: 11px;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--text);
     line-height: 1;
   }
 
   &__tab-underline {
+    display: none;
     position: absolute;
     bottom: -1px;
     left: 0;
@@ -187,7 +180,7 @@
     padding: calc(globals.$spacing-unit * 1.5) calc(globals.$spacing-unit * 2);
     border: 1px solid globals.$border-color;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--bg-2);
   }
 
   &__souvenirs-notice-icon {
@@ -198,7 +191,7 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--fill);
     color: globals.$muted-color;
   }
 
@@ -238,7 +231,7 @@
       background-color 0.2s ease;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.08);
+      background: var(--fill);
       color: globals.$muted-color;
     }
 
@@ -276,7 +269,7 @@
       padding: calc(globals.$spacing-unit * 1.5);
       border: 1px solid globals.$border-color;
       border-radius: 6px;
-      background: rgba(255, 255, 255, 0.03);
+      background: var(--bg-2);
       flex-direction: column;
       gap: globals.$spacing-unit;
       flex-shrink: 0;
@@ -325,7 +318,7 @@
     padding: calc(globals.$spacing-unit * 1.5) calc(globals.$spacing-unit * 2);
     border: 1px solid globals.$border-color;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--bg-2);
 
     > svg {
       flex-shrink: 0;
@@ -422,7 +415,7 @@
       min-width: 24px;
       padding: 4px 8px;
       border-radius: 6px;
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: var(--line);
       color: globals.$body-color;
       font-size: 12px;
       font-weight: 600;
@@ -514,7 +507,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(255, 255, 255, 0.04);
+      background: var(--bg-2);
       color: globals.$body-color;
     }
 
@@ -671,13 +664,13 @@
       gap: 4px;
       height: 24px;
       padding: 0 6px;
-      border: solid 1px rgba(255, 255, 255, 0.15);
+      border: solid 1px var(--fill-hover);
       border-radius: 4px;
-      background: rgba(0, 0, 0, 0.4);
+      background: rgb(var(--shade) / 0.4);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      color: rgba(255, 255, 255, 0.8);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      color: var(--text);
+      box-shadow: 0 2px 4px rgb(var(--shade) / 0.2);
     }
 
     &-private-indicator {
@@ -690,7 +683,7 @@
       transition: all ease 0.2s;
 
       &:hover:not(:disabled) {
-        background: rgba(0, 0, 0, 0.6);
+        background: rgb(var(--shade) / 0.6);
         color: globals.$muted-color;
       }
 
@@ -740,7 +733,7 @@
     }
 
     &--drag-over {
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--bg-2);
       border: 2px dashed rgba(255, 255, 255, 0.3);
       position: relative;
       transition: all ease 0.2s;
@@ -756,7 +749,7 @@
         font-weight: 500;
         z-index: 10;
         pointer-events: none;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgb(var(--shade) / 0.8);
         padding: 8px 16px;
         border-radius: 4px;
         backdrop-filter: blur(10px);
@@ -778,7 +771,7 @@
 // Reviews minimal styles
 .user-reviews__loading {
   padding: calc(globals.$spacing-unit * 2);
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text);
   text-align: center;
   display: flex;
   justify-content: center;
@@ -788,7 +781,7 @@
 .user-reviews__empty {
   text-align: center;
   padding: calc(globals.$spacing-unit * 4) calc(globals.$spacing-unit * 2);
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--muted);
 }
 
 .user-reviews__list {
@@ -859,7 +852,7 @@
 .user-reviews__game-title {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text);
   font-weight: 600;
   cursor: pointer;
   text-align: left;
@@ -873,7 +866,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--muted);
   font-size: globals.$small-font-size;
 }
 
@@ -881,20 +874,20 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-2);
   border-radius: 8px;
   padding: 2px 6px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 0.5px solid var(--line-strong);
   font-size: 11px;
   font-weight: 500;
 }
 
 .user-reviews__review-star {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--muted);
   transition: color 0.2s ease;
 
   &--filled {
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--muted);
 
     svg {
       fill: currentColor;
@@ -910,13 +903,13 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--muted);
   font-size: 11px;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-2);
   border-radius: 8px;
   padding: 2px 6px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 0.5px solid var(--line-strong);
 }
 
 .user-reviews__review-content {
@@ -939,7 +932,7 @@
   padding: 0;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--muted);
   font-size: 0.875rem;
   cursor: pointer;
   text-decoration: none;
@@ -947,14 +940,14 @@
 
   &:hover {
     text-decoration: underline;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--text);
   }
 }
 
 .user-reviews__review-actions {
   margin-top: calc(globals.$spacing-unit * 2);
   padding-top: calc(globals.$spacing-unit);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--line);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -969,8 +962,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
   border-radius: 6px;
   padding: 6px 12px;
   color: #ccc;
@@ -979,13 +972,13 @@
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
+    background: var(--line);
+    border-color: var(--line-strong);
+    color: var(--text);
   }
 
   &--active {
-    color: #ffffff;
+    color: var(--text);
     border-color: rgba(255, 255, 255, 0.3);
 
     svg {

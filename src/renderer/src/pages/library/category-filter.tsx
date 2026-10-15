@@ -1,4 +1,5 @@
 import { StackIcon, DeviceDesktopIcon } from "@primer/octicons-react";
+import { useId } from "react";
 import { useTranslation } from "react-i18next";
 import "./category-filter.scss";
 
@@ -12,13 +13,15 @@ export function ClassicsIcon({
   size?: number;
   className?: string;
 }) {
+  // Unique id per instance: a shared id resolves to the first copy in the DOM, which may sit in a hidden page and paint nothing.
+  const gradientId = useId();
   return (
     <svg
       width={size}
       height={size}
       viewBox="0 0 24 24"
       fill="none"
-      stroke="url(#classics-switch-gradient)"
+      stroke={`url(#${gradientId})`}
       strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -27,7 +30,7 @@ export function ClassicsIcon({
     >
       <defs>
         <linearGradient
-          id="classics-switch-gradient"
+          id={gradientId}
           x1="2"
           y1="2"
           x2="22"

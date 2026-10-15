@@ -134,8 +134,9 @@ export function Sidebar() {
   const { formatDateTime } = useDate();
   const { numberFormatter } = useFormat();
   const achievementsCount = achievements?.length ?? 0;
+  const isBloodborne = shop === "custom" && objectId === "bloodborne";
   const shouldRenderAchievementsSection =
-    (!!userDetails && achievementsCount > 0) ||
+    ((!!userDetails || isBloodborne) && achievementsCount > 0) ||
     (shop === "launchbox" &&
       !!shopDetails?.retroAchievementsGameId &&
       !userPreferences?.retroAchievementsWebApiKey);
@@ -239,16 +240,18 @@ export function Sidebar() {
           <ul className="list">
             <RetroAchievementsConnectBanner />
 
-            {!hasActiveSubscription && achievementsCount > 0 && (
-              <button
-                type="button"
-                className="subscription-required-button"
-                onClick={() => showHydraCloudModal("achievements")}
-              >
-                <AlertIcon size={14} />
-                <span>{t("achievements_not_sync")}</span>
-              </button>
-            )}
+            {!hasActiveSubscription &&
+              !isBloodborne &&
+              achievementsCount > 0 && (
+                <button
+                  type="button"
+                  className="subscription-required-button"
+                  onClick={() => showHydraCloudModal("achievements")}
+                >
+                  <AlertIcon size={14} />
+                  <span>{t("achievements_not_sync")}</span>
+                </button>
+              )}
 
             {(achievements ?? []).slice(0, 4).map((achievement) => (
               <li key={achievement.displayName}>

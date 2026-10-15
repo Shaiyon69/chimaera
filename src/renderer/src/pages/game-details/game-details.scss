@@ -6,6 +6,10 @@
     flex-direction: column;
     width: 100%;
     height: 100%;
+    position: relative;
+    isolation: isolate;
+    // The ambient art is wider than the page.
+    overflow-x: clip;
     transition: all ease 0.3s;
 
     &--blurred {
@@ -23,17 +27,19 @@
 
   // Description Section Styles
   &__description-container {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    align-items: start;
     width: 100%;
     flex: 1;
     min-width: 0;
-    background: linear-gradient(
-      0deg,
-      globals.$background-color 50%,
-      globals.$dark-background-color 100%
-    );
+    background: transparent;
     padding: calc(globals.$spacing-unit * 1.5);
-    gap: calc(globals.$spacing-unit * 1.5);
+    gap: calc(globals.$spacing-unit * 4);
+
+    @media (max-width: 1024px) {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 
   &__description-content {
@@ -49,18 +55,10 @@
   }
 
   &__description-title {
+    @include globals.section-title;
     font-size: 20px;
-    font-weight: 600;
     width: 100%;
-    margin: 0 auto;
-
-    @media (min-width: 1280px) {
-      width: 60%;
-    }
-
-    @media (min-width: 1536px) {
-      width: 50%;
-    }
+    margin: 0;
   }
 
   &__description {
@@ -68,35 +66,14 @@
     line-height: 22px;
     font-size: globals.$body-font-size;
     width: 100%;
-    margin-left: auto;
-    margin-right: auto;
     overflow-x: auto;
     min-height: auto;
     transition: max-height 0.3s ease-in-out;
 
-    @media (min-width: 1280px) {
-      width: 60%;
-    }
-
-    @media (min-width: 1536px) {
-      width: 50%;
-    }
-
     &--collapsed {
       max-height: 300px;
       overflow: hidden;
-      position: relative;
-
-      &::after {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 60px;
-        background: linear-gradient(transparent, globals.$background-color);
-        pointer-events: none;
-      }
+      mask-image: linear-gradient(#000 60%, transparent);
     }
 
     &--expanded {
@@ -132,29 +109,37 @@
     }
   }
 
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: calc(globals.$spacing-unit * 1.5);
+  }
+
   &__description-toggle {
     background: none;
-    border: 1px solid globals.$border-color;
-    color: globals.$body-color;
-    padding: calc(globals.$spacing-unit * 0.75)
-      calc(globals.$spacing-unit * 1.5);
-    border-radius: 4px;
+    border: 0;
+    padding: 0;
+    color: var(--accent-text);
     cursor: pointer;
     font-size: globals.$body-font-size;
-    margin-top: calc(globals.$spacing-unit * 1.5);
-    transition: all 0.2s ease;
-    align-self: center;
+    transition: opacity 0.2s ease;
+    align-self: flex-start;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.1);
+      opacity: 0.8;
+      text-decoration: underline;
     }
   }
 
   // Skeleton-specific styles
   &__skeleton {
     .react-loading-skeleton {
-      background: linear-gradient(90deg, #0c0c0c 25%, #161616 50%, #0c0c0c 75%);
+      background: linear-gradient(
+        90deg,
+        var(--glass-1) 25%,
+        var(--glass-2) 50%,
+        var(--glass-1) 75%
+      );
       background-size: 200% 100%;
       animation: skeleton-loading 1.5s infinite;
     }

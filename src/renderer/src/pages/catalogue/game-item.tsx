@@ -1,4 +1,3 @@
-import { Badge } from "@renderer/components/badge/badge";
 import { buildGameDetailsPath } from "@renderer/helpers";
 import { useAppSelector, useLibrary } from "@renderer/hooks";
 import { lazy, Suspense, useMemo, useState, useEffect } from "react";
@@ -85,9 +84,7 @@ export function GameItem({ game }: GameItemProps) {
         <img
           className="game-item__cover"
           src={game.libraryImageUrl}
-          alt={game.title}
-          width={200}
-          height={103}
+          alt=""
           loading="lazy"
         />
       );
@@ -98,7 +95,7 @@ export function GameItem({ game }: GameItemProps) {
         <QuestionIcon size={28} />
       </div>
     );
-  }, [game.libraryImageUrl, game.title]);
+  }, [game.libraryImageUrl]);
 
   const rawProtonValue =
     game.tier ??
@@ -129,7 +126,7 @@ export function GameItem({ game }: GameItemProps) {
         </div>
 
         <div className="game-item__details">
-          <span>{game.title}</span>
+          <span className="game-item__title">{game.title}</span>
           {genres && genres.length > 0 ? (
             <span className="game-item__genres">{genres.join(", ")}</span>
           ) : (
@@ -137,12 +134,6 @@ export function GameItem({ game }: GameItemProps) {
               {t("no_genres", { ns: "catalogue" })}
             </span>
           )}
-
-          <div className="game-item__repackers">
-            {game.downloadSources.map((sourceName) => (
-              <Badge key={sourceName}>{sourceName}</Badge>
-            ))}
-          </div>
         </div>
       </Link>
       <button

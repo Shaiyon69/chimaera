@@ -21,11 +21,12 @@
   &__item {
     display: flex;
     flex-direction: column;
-    background-color: globals.$dark-background-color;
-    border-radius: 8px;
+    background-color: var(--bg-2);
+    border-radius: 12px;
     padding: calc(globals.$spacing-unit * 2);
     gap: globals.$spacing-unit;
-    border: solid 1px globals.$border-color;
+    border: 0;
+    box-shadow: inset 0 0 0 0.5px var(--line-strong);
     transition: all ease 0.2s;
 
     &--syncing {

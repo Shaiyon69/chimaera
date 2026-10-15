@@ -42,9 +42,9 @@
       height: 40px;
       background: linear-gradient(
         to bottom,
-        rgba(0, 0, 0, 0.4) 0%,
-        rgba(0, 0, 0, 0.22) 35%,
-        rgba(0, 0, 0, 0.08) 65%,
+        rgb(var(--shade) / 0.4) 0%,
+        rgb(var(--shade) / 0.22) 35%,
+        rgb(var(--shade) / 0.08) 65%,
         transparent 100%
       );
       opacity: 0;
@@ -85,11 +85,9 @@
     }
   }
 
+  // The header already renders this title at page size.
   &__page-title {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.95);
+    display: none;
   }
 
   &__controls-row {
@@ -125,13 +123,13 @@
     padding: 10px;
     border: none;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--bg-2);
     color: globals.$muted-color;
     cursor: pointer;
     transition: background-color 0.2s ease;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.08);
+      background: var(--fill);
     }
   }
 
@@ -160,14 +158,14 @@
   &__filter-label {
     font-size: 14px;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text);
     white-space: nowrap;
   }
 
   &__separator {
     width: 100%;
     height: 1px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--line);
     border: none;
     margin: 0;
   }
@@ -176,19 +174,20 @@
     display: flex;
     align-items: center;
     gap: calc(globals.$spacing-unit);
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    padding: 8px 16px;
+    @include globals.count;
+    display: flex;
+    gap: calc(globals.$spacing-unit);
+    padding: 6px 12px;
   }
 
   &__count-label {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--muted);
     font-size: 13px;
     font-weight: 500;
   }
 
   &__count-number {
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--text);
     font-size: 13px;
     font-weight: 600;
   }
@@ -208,7 +207,7 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.06);
+    background-color: var(--fill);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -229,7 +228,7 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.06);
+    background-color: var(--fill);
     display: flex;
     align-items: center;
     justify-content: center;

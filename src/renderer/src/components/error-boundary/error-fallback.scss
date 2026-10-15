@@ -86,7 +86,7 @@ $mono-font: "SFMono-Regular", "Menlo", "Consolas", "Liberation Mono", monospace;
     margin: 0;
     padding: calc(globals.$spacing-unit * 2);
     text-align: left;
-    background-color: globals.$dark-background-color;
+    background-color: var(--glass-1);
     border: 1px solid globals.$border-color;
     border-radius: 8px;
     font-family: $mono-font;

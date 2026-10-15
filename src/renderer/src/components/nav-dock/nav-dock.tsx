@@ -38,7 +38,7 @@ export function NavDock() {
             {render()}
           </button>
         ))}
-      <Tooltip id={tooltipId} place="left" />
+      <Tooltip id={tooltipId} place="right" />
     </nav>
   );
 }

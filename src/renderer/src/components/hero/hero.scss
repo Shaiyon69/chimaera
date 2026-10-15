@@ -1,15 +1,18 @@
 @use "../../scss/globals.scss";
 
 .hero {
-  width: 100%;
+  width: auto;
+  margin: 24px 24px 24px;
   height: 180px;
   min-height: 150px;
-  border-radius: 0;
-  color: #dadbe1;
+  border-radius: 28px;
+  color: var(--text);
   overflow: hidden;
-  box-shadow: 0px 0px 15px 0px #000000;
+  box-shadow:
+    var(--rim),
+    0 18px 44px rgb(var(--shade) / 0.4);
   cursor: pointer;
-  border: solid 1px globals.$border-color;
+  border: 0;
   z-index: 1;
   flex-shrink: 0;
 
@@ -50,7 +53,11 @@
   &__backdrop {
     width: 100%;
     height: 100%;
-    background: linear-gradient(0deg, rgba(0, 0, 0, 0.8) 25%, transparent 100%);
+    background: linear-gradient(
+      0deg,
+      rgb(var(--shade) / 0.8) 25%,
+      transparent 100%
+    );
     position: relative;
     display: flex;
     overflow: hidden;

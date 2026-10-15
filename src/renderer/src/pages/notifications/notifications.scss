@@ -18,11 +18,9 @@
   }
 
   &__filter-tabs {
-    display: flex;
-    gap: globals.$spacing-unit;
+    @include globals.segmented;
     position: relative;
-    flex: 1;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    align-self: flex-start;
   }
 
   &__tab-wrapper {
@@ -30,24 +28,13 @@
   }
 
   &__tab {
-    background: none;
-    border: none;
-    color: rgba(255, 255, 255, 0.6);
-    padding: calc(globals.$spacing-unit) calc(globals.$spacing-unit * 2);
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: color ease 0.2s;
+    @include globals.segment;
     display: flex;
     align-items: center;
     gap: calc(globals.$spacing-unit * 0.5);
 
-    &:hover {
-      color: rgba(255, 255, 255, 0.8);
-    }
-
     &--active {
-      color: white;
+      @include globals.segment-active;
     }
   }
 
@@ -58,15 +45,16 @@
     min-width: 20px;
     height: 20px;
     padding: 0 6px;
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: var(--fill-hover);
     border-radius: 6px;
     font-size: 11px;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--text);
     line-height: 20px;
   }
 
   &__tab-underline {
+    display: none;
     position: absolute;
     bottom: -1px;
     left: 0;
@@ -116,7 +104,7 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.06);
+    background-color: var(--fill);
     display: flex;
     align-items: center;
     justify-content: center;

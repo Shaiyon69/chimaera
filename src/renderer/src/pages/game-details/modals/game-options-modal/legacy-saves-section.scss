@@ -34,7 +34,7 @@
     gap: calc(globals.$spacing-unit * 2);
     padding: calc(globals.$spacing-unit * 2);
     color: globals.$body-color;
-    background-color: globals.$dark-background-color;
+    background-color: var(--glass-1);
     border: 1px solid globals.$border-color;
     border-radius: 8px;
   }

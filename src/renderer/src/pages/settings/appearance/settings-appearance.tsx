@@ -6,6 +6,8 @@ import { ImportThemeModal } from "./modals/import-theme-modal";
 import { settingsContext } from "@renderer/context";
 import { useNavigate } from "react-router-dom";
 import { levelDBService } from "@renderer/services/leveldb.service";
+import { useTranslation } from "react-i18next";
+import { THEME_PRESETS, getPresetId, setPreset } from "@renderer/themes";
 
 interface SettingsAppearanceProps {
   appearance: {
@@ -28,6 +30,8 @@ export function SettingsAppearance({
   } | null>(null);
   const [hasShownModal, setHasShownModal] = useState(false);
 
+  const { t } = useTranslation("settings");
+  const [presetId, setPresetId] = useState(getPresetId);
   const { clearTheme } = useContext(settingsContext);
   const navigate = useNavigate();
 
@@ -83,6 +87,30 @@ export function SettingsAppearance({
 
   return (
     <div className="settings-appearance">
+      <div className="theme-presets">
+        <span className="theme-presets__title">{t("theme_presets")}</span>
+        {THEME_PRESETS.map((preset) => (
+          <button
+            key={preset.id}
+            type="button"
+            className="theme-presets__item"
+            aria-pressed={presetId === preset.id}
+            onClick={() => {
+              setPreset(preset.id);
+              setPresetId(preset.id);
+            }}
+          >
+            <span
+              className="theme-presets__swatch"
+              style={{
+                background: `linear-gradient(135deg, ${preset.preview[0]} 0 45%, ${preset.preview[1]} 45% 75%, ${preset.preview[2]} 75%)`,
+              }}
+            />
+            {preset.name}
+          </button>
+        ))}
+      </div>
+
       <ThemeActions onListUpdated={loadThemes} themesCount={themes.length} />
 
       <div className="settings-appearance__themes">

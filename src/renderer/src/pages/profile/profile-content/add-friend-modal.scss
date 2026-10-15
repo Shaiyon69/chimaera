@@ -13,7 +13,7 @@
     gap: calc(globals.$spacing-unit * 1.5);
     padding: calc(globals.$spacing-unit * 1.5);
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 0.5px solid var(--line-strong);
   }
 
   &__my-code-label {
@@ -43,7 +43,7 @@
     transition: all ease 0.2s;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: var(--line);
       color: globals.$body-color;
     }
   }
@@ -65,7 +65,7 @@
     font-size: globals.$small-font-size;
     text-align: center;
     padding: calc(globals.$spacing-unit / 2);
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: var(--bg-2);
     border-radius: 4px;
     margin-top: calc(globals.$spacing-unit * -1);
   }
@@ -98,7 +98,7 @@
     align-items: center;
     gap: calc(globals.$spacing-unit * 2);
     padding: calc(globals.$spacing-unit * 1.5);
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: var(--bg-2);
     border-radius: 8px;
     border: none;
     cursor: pointer;
@@ -106,7 +106,7 @@
     text-align: left;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: var(--line);
     }
   }
 

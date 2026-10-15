@@ -1,21 +1,18 @@
 @use "../../../scss/globals.scss";
 
 .profile-section {
-  background-color: globals.$background-color;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  @include globals.surface;
   overflow: hidden;
 
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: globals.$background-color;
+    background-color: transparent;
     padding-right: calc(globals.$spacing-unit * 2);
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: var(--line);
     }
   }
 
@@ -29,8 +26,8 @@
     cursor: pointer;
     transition: all ease 0.2s;
     gap: globals.$spacing-unit;
-    font-size: globals.$body-font-size;
-    font-weight: bold;
+    font-size: 15px;
+    font-weight: 700;
     border: none;
 
     &:active {
@@ -39,11 +36,7 @@
   }
 
   &__count {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.7);
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 12px;
+    @include globals.count;
     font-weight: 600;
     min-width: 24px;
     text-align: center;
@@ -65,7 +58,7 @@
   &__content {
     overflow: hidden;
     transition: max-height 0.4s cubic-bezier(0, 1, 0, 1);
-    background-color: globals.$dark-background-color;
+    background-color: transparent;
     position: relative;
   }
 }

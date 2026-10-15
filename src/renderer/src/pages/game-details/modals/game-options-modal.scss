@@ -40,11 +40,11 @@ $disc-menu-transition-duration: 0.15s;
       background-color 0.1s ease;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.15);
+      background: var(--fill-hover);
     }
 
     &--active {
-      background: rgba(255, 255, 255, 0.1);
+      background: var(--line);
     }
 
     &-icon {
@@ -300,7 +300,7 @@ $disc-menu-transition-duration: 0.15s;
     background: globals.$dark-background-color;
     border: 1px solid globals.$border-color;
     border-radius: 8px;
-    color: #c0c1c7;
+    color: var(--muted);
     cursor: pointer;
     text-align: left;
     transition:
@@ -308,13 +308,13 @@ $disc-menu-transition-duration: 0.15s;
       background-color 0.15s ease;
 
     &:hover {
-      border-color: rgba(255, 255, 255, 0.25);
+      border-color: var(--line-strong);
     }
   }
 
   &__icon {
     flex-shrink: 0;
-    color: #8e919b;
+    color: var(--muted);
   }
 
   &__text {
@@ -328,7 +328,7 @@ $disc-menu-transition-duration: 0.15s;
   &__label {
     font-size: 14px;
     font-weight: 500;
-    color: #dadbe1;
+    color: var(--text);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -336,7 +336,7 @@ $disc-menu-transition-duration: 0.15s;
 
   &__filename {
     font-size: 12px;
-    color: #8e919b;
+    color: var(--muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -344,7 +344,7 @@ $disc-menu-transition-duration: 0.15s;
 
   &__chevron {
     flex-shrink: 0;
-    color: #8e919b;
+    color: var(--muted);
     transition: transform 0.15s ease;
 
     &--open {
@@ -362,10 +362,10 @@ $disc-menu-transition-duration: 0.15s;
     flex-direction: column;
     gap: 0;
     padding: 0;
-    background: #000000;
-    border: 1px solid #0c0c0c;
+    background: var(--bg);
+    border: 1px solid var(--glass-1);
     border-radius: 8px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 12px 32px rgb(var(--shade) / 0.5);
     max-height: $disc-menu-max-height;
     overflow-y: auto;
     opacity: 0;
@@ -415,11 +415,11 @@ $disc-menu-transition-duration: 0.15s;
     }
 
     &:hover {
-      background: rgba(255, 255, 255, 0.04);
+      background: var(--bg-2);
     }
 
     &--active {
-      background: rgba(255, 255, 255, 0.06);
+      background: var(--fill);
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
     }
   }
@@ -469,7 +469,7 @@ $disc-menu-transition-duration: 0.15s;
     }
 
     &::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
+      background: var(--fill-hover);
       border-radius: 3px;
     }
   }
@@ -525,13 +525,13 @@ $disc-menu-transition-duration: 0.15s;
   transition: all 0.15s;
 
   &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.15);
+    background: var(--fill);
+    border-color: var(--fill-hover);
   }
 
   &--selected {
     border-color: rgba(255, 255, 255, 0.35) !important;
-    background: rgba(255, 255, 255, 0.08) !important;
+    background: var(--fill) !important;
   }
 
   &--nospace {
@@ -542,7 +542,7 @@ $disc-menu-transition-duration: 0.15s;
   &__icon {
     flex-shrink: 0;
     opacity: 0.7;
-    color: #fff;
+    color: var(--text);
   }
 
   &__body {
@@ -563,7 +563,7 @@ $disc-menu-transition-duration: 0.15s;
   &__label {
     font-size: 14px;
     font-weight: 600;
-    color: #fff;
+    color: var(--text);
     opacity: 0.9;
     white-space: nowrap;
     overflow: hidden;
@@ -574,7 +574,7 @@ $disc-menu-transition-duration: 0.15s;
     font-size: 12px;
     white-space: nowrap;
     flex-shrink: 0;
-    color: #fff;
+    color: var(--text);
     opacity: 0.8;
   }
 
@@ -587,7 +587,7 @@ $disc-menu-transition-duration: 0.15s;
     position: relative;
     width: 100%;
     height: 3px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--fill);
     border-radius: 2px;
     overflow: hidden;
   }
@@ -654,7 +654,7 @@ $disc-menu-transition-duration: 0.15s;
   &__track {
     width: 100%;
     height: 4px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--line);
     border-radius: 3px;
     overflow: hidden;
     margin-bottom: 6px;
@@ -688,7 +688,7 @@ $disc-menu-transition-duration: 0.15s;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgb(var(--shade) / 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -696,12 +696,12 @@ $disc-menu-transition-duration: 0.15s;
 }
 
 .cancel-confirm-modal {
-  background: #0c0c0c;
+  background: var(--glass-1);
   border-radius: 16px;
   padding: 24px 32px;
   min-width: 420px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 40px rgb(var(--shade) / 0.5);
 
   h4 {
     margin: 0 0 8px;
