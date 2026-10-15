@@ -4,6 +4,10 @@ import { UserNotLoggedInError } from "@shared";
 import { logger } from "../logger";
 import { db, levelKeys } from "@main/level";
 import { AchievementMemoryStore } from "./achievement-memory-store";
+import {
+  BLOODBORNE_OBJECT_ID,
+  bloodborneAchievements,
+} from "../bloodborne/bloodborne";
 
 export const getGameAchievementData = async (
   objectId: string,
@@ -11,7 +15,7 @@ export const getGameAchievementData = async (
   useCachedData: boolean
 ) => {
   if (shop === "custom") {
-    return [];
+    return objectId === BLOODBORNE_OBJECT_ID ? bloodborneAchievements() : [];
   }
 
   const cachedAchievements = AchievementMemoryStore.get(shop, objectId);

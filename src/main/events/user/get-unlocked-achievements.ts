@@ -7,12 +7,25 @@ import { AchievementMemoryStore } from "@main/services/achievements/achievement-
 import { AchievementSouvenirStore } from "@main/services/achievements/achievement-souvenir-store";
 import { fetchRemoteUserGameAchievements } from "@main/services/achievements/get-achievement-souvenirs";
 import { mergeUnlockedAchievementLists } from "@main/services/achievements/merge-unlocked-achievements";
+import {
+  BLOODBORNE_OBJECT_ID,
+  bloodborneAchievements,
+} from "@main/services/bloodborne/bloodborne";
 
 export const getUnlockedAchievements = async (
   objectId: string,
   shop: GameShop,
   useCachedData: boolean
 ): Promise<UserAchievement[]> => {
+  // No trophy hooks in the port: show the list locked, skip remote sync.
+  if (shop === "custom" && objectId === BLOODBORNE_OBJECT_ID) {
+    return bloodborneAchievements().map((achievement) => ({
+      ...achievement,
+      unlocked: false,
+      unlockTime: null,
+    }));
+  }
+
   const userPreferences = await db.get<string, UserPreferences | null>(
     levelKeys.userPreferences,
     {

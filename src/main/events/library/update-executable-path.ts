@@ -10,6 +10,10 @@ import {
 import { logger } from "@main/services";
 import { runAutomaticCloudSaveSync } from "@main/services/cloud-save";
 import { AchievementWatcherManager } from "@main/services/achievements/achievement-watcher-manager";
+import {
+  BLOODBORNE_OBJECT_ID,
+  resetBloodborneSetup,
+} from "@main/services/bloodborne/bloodborne";
 import type { GameShop } from "@types";
 
 const updateExecutablePath = async (
@@ -26,6 +30,7 @@ const updateExecutablePath = async (
 
   const game = await gamesSublevel.get(gameKey);
   if (!game) return;
+  if (!parsedPath && objectId === BLOODBORNE_OBJECT_ID) resetBloodborneSetup();
   const environmentChanged =
     parsedPath !== null && game.executablePath !== parsedPath;
 

@@ -1158,6 +1158,7 @@ contextBridge.exposeInMainWorld("electron", {
     objectId: string,
     saveFolderPath: string
   ) => ipcRenderer.invoke("openGameSaveFolder", shop, objectId, saveFolderPath),
+  getOptiscalerGpu: () => ipcRenderer.invoke("getOptiscalerGpu"),
   getOptiscalerStatus: (shop: GameShop, objectId: string, proxy?: string) =>
     ipcRenderer.invoke("getOptiscalerStatus", shop, objectId, proxy),
   installOptiscaler: (shop: GameShop, objectId: string, proxy: string) =>
@@ -1340,6 +1341,47 @@ contextBridge.exposeInMainWorld("electron", {
     ipcRenderer.on("on-game-executable-not-found", listener);
     return () =>
       ipcRenderer.removeListener("on-game-executable-not-found", listener);
+  },
+  getBloodborneSetup: () => ipcRenderer.invoke("getBloodborneSetup"),
+  saveBloodborneSetup: (settings: unknown) =>
+    ipcRenderer.invoke("saveBloodborneSetup", settings),
+  selectBloodborneGameDir: () => ipcRenderer.invoke("selectBloodborneGameDir"),
+  downloadBloodbornePort: () => ipcRenderer.invoke("downloadBloodbornePort"),
+  onBloodbornePortProgress: (
+    cb: (progress: {
+      phase: "downloading" | "extracting";
+      percent: number;
+    }) => void
+  ) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      progress: { phase: "downloading" | "extracting"; percent: number }
+    ) => cb(progress);
+    ipcRenderer.on("on-bloodborne-port-progress", listener);
+    return () =>
+      ipcRenderer.removeListener("on-bloodborne-port-progress", listener);
+  },
+  getBloodborneMods: () => ipcRenderer.invoke("getBloodborneMods"),
+  saveBloodborneMods: (state: unknown) =>
+    ipcRenderer.invoke("saveBloodborneMods", state),
+  addBloodborneMod: (kind: "folder" | "archive") =>
+    ipcRenderer.invoke("addBloodborneMod", kind),
+  removeBloodborneMod: (name: string) =>
+    ipcRenderer.invoke("removeBloodborneMod", name),
+  openBloodborneModsFolder: () =>
+    ipcRenderer.invoke("openBloodborneModsFolder"),
+  onBloodborneSetupRequired: (cb: () => void) => {
+    const listener = () => cb();
+    ipcRenderer.on("on-bloodborne-setup-required", listener);
+    return () =>
+      ipcRenderer.removeListener("on-bloodborne-setup-required", listener);
+  },
+  onBloodborneLaunchError: (cb: (problems: string[]) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, problems: string[]) =>
+      cb(problems);
+    ipcRenderer.on("on-bloodborne-launch-error", listener);
+    return () =>
+      ipcRenderer.removeListener("on-bloodborne-launch-error", listener);
   },
   onArchiveDeletionPrompt: (cb: (archivePaths: string[]) => void) => {
     const listener = (

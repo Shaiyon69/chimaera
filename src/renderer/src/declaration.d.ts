@@ -116,6 +116,44 @@ export interface DriveInfo {
 }
 
 declare global {
+  interface BloodborneSettings {
+    eboot: string;
+    fps: string;
+    res: string;
+    aniso: string;
+    windowMode: string;
+    upscaler: string;
+    preset: string;
+    mods: boolean;
+    featOverlay: boolean;
+    featHud: boolean;
+    featFpsPatch: boolean;
+    featResScaling: boolean;
+    enabledPatches: string[];
+  }
+
+  interface BloodborneModsState {
+    enabled: boolean;
+    mods: { name: string; enabled: boolean }[];
+  }
+
+  interface BloodborneSetup {
+    configured: boolean;
+    portInstalled: boolean;
+    settings: BloodborneSettings;
+    upscalerSupport: Record<string, boolean>;
+    choices: {
+      fps: string[];
+      res: string[];
+      windowMode: string[];
+      /** label -> BB_UPSCALER engine id ("" = in-game menu) */
+      upscalers: Record<string, string>;
+      patches: string[];
+    };
+  }
+}
+
+declare global {
   declare module "*.svg" {
     const content: React.FunctionComponent<React.SVGAttributes<SVGElement>>;
     export default content;
@@ -484,6 +522,11 @@ declare global {
       objectId: string
     ) => Promise<string | null>;
     verifyExecutablePathInUse: (executablePath: string) => Promise<Game>;
+    getOptiscalerGpu: () => Promise<{
+      detected: "native" | "desktop" | "igpu";
+      effective: "native" | "desktop" | "igpu";
+      autoDlls: { exact: string | null; lossy: string | null };
+    }>;
     getOptiscalerStatus: (
       shop: GameShop,
       objectId: string,
@@ -499,6 +542,8 @@ declare global {
       latestTag: string | null;
       updateAvailable: boolean;
       fsr4Available: boolean;
+      fsr4Gpu: "native" | "desktop" | "igpu";
+      fsr4Variant: "exact" | "lossy";
       proxyConflict: string | null;
     }>;
     installOptiscaler: (
@@ -996,6 +1041,25 @@ declare global {
     ) => () => Electron.IpcRenderer;
     onGameExecutableNotFound: (
       cb: (shop: GameShop, objectId: string) => void
+    ) => () => Electron.IpcRenderer;
+    getBloodborneSetup: () => Promise<BloodborneSetup>;
+    saveBloodborneSetup: (settings: BloodborneSettings) => Promise<void>;
+    selectBloodborneGameDir: () => Promise<string | null>;
+    downloadBloodbornePort: () => Promise<void>;
+    onBloodbornePortProgress: (
+      cb: (progress: {
+        phase: "downloading" | "extracting";
+        percent: number;
+      }) => void
+    ) => () => Electron.IpcRenderer;
+    getBloodborneMods: () => Promise<BloodborneModsState>;
+    saveBloodborneMods: (state: BloodborneModsState) => Promise<void>;
+    addBloodborneMod: (kind: "folder" | "archive") => Promise<string | null>;
+    removeBloodborneMod: (name: string) => Promise<void>;
+    openBloodborneModsFolder: () => Promise<void>;
+    onBloodborneSetupRequired: (cb: () => void) => () => Electron.IpcRenderer;
+    onBloodborneLaunchError: (
+      cb: (problems: string[]) => void
     ) => () => Electron.IpcRenderer;
     onArchiveDeletionPrompt: (
       cb: (archivePaths: string[]) => void

@@ -11,6 +11,7 @@ import {
 import "./auth";
 import "./autoupdater";
 import "./big-picture";
+import "./bloodborne";
 import "./catalogue";
 import "./cloud-save";
 import "./connectivity";

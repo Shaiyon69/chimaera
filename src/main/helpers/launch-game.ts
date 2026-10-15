@@ -38,6 +38,8 @@ import {
   wasGameLauncherGameDetected,
 } from "@main/services/game-launcher-status";
 import { UmuUpdater } from "@main/services/umu-updater";
+import { launchBloodborne } from "@main/services/bloodborne/bloodborne";
+import { isBloodborne } from "@shared";
 import { updateGameRecord } from "@main/services/game-record-updater";
 import { dispatchSteamProtocolLaunch } from "@main/services/steam-integration/steam-protocol-launch-dispatch";
 import { resolveSteamProtocolLaunch } from "@main/services/steam-integration/steam-protocol-launch";
@@ -937,6 +939,9 @@ export const launchGame = async (options: LaunchGameOptions) => {
   const record = await gamesSublevel
     .get(levelKeys.game(options.shop, options.objectId))
     .catch(() => null);
+  if (process.platform === "win32" && isBloodborne(record?.title)) {
+    return launchBloodborne(options.shop, options.objectId);
+  }
   if (record?.externalLaunch) {
     try {
       await launchExternal(record.externalLaunch);

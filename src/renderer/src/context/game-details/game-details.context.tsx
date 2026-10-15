@@ -147,7 +147,11 @@ export function GameDetailsContextProvider({
           setIsLoading(false);
         }
 
-        if (userDetails && shop !== "custom") {
+        // Bloodborne's local trophy list needs no Hydra account.
+        if (
+          (userDetails && shop !== "custom") ||
+          (shop === "custom" && objectId === "bloodborne")
+        ) {
           const achievementUpdateCount = achievementUpdateCountRef.current;
           const isStaleAchievementResult = () =>
             abortController.signal.aborted ||

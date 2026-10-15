@@ -1,0 +1,35 @@
+.bloodborne-mods {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .checkbox-field {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  &__error {
+    color: var(--danger);
+  }
+}

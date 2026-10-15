@@ -1,4 +1,9 @@
 import {
+  BLOODBORNE_OBJECT_ID,
+  bloodborneShopAssets,
+  bloodborneShopDetails,
+} from "@main/services/bloodborne/bloodborne";
+import {
   getSteamAppDetails,
   getSteamLanguage,
   HydraApi,
@@ -227,7 +232,10 @@ const getGameShopDetails = async (
   shop: GameShop,
   language: string
 ): Promise<ShopDetailsWithAssets | null> => {
-  if (shop === "custom") return null;
+  if (shop === "custom") {
+    if (objectId !== BLOODBORNE_OBJECT_ID) return null;
+    return { ...bloodborneShopDetails(), assets: bloodborneShopAssets() };
+  }
 
   if (shop === "launchbox") {
     const details = await getLaunchboxShopDetails(objectId, shop, language);

@@ -1,4 +1,5 @@
 import type { LibraryGame } from "@types";
+import { isBloodborne } from "@shared";
 import { useCallback } from "react";
 import { getClassicsLaunchErrorCode } from "@renderer/helpers";
 import { IS_DESKTOP } from "../../../constants";
@@ -65,7 +66,7 @@ export function useLibraryLaunchGame(
         return;
       }
 
-      if (!game.executablePath) {
+      if (!game.executablePath && !isBloodborne(game.title)) {
         onMissingExecutable(game);
         return;
       }
@@ -74,7 +75,7 @@ export function useLibraryLaunchGame(
       await globalThis.window.electron.openGame(
         game.shop,
         game.objectId,
-        game.executablePath,
+        game.executablePath ?? "",
         game.launchOptions
       );
     },

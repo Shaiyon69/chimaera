@@ -7,7 +7,9 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
+import { isBloodborne } from "@shared";
 import { Modal } from "@renderer/components";
+import { BLOODBORNE_CONFIGURED_EVENT } from "@renderer/components/bloodborne-setup-modal/events";
 import {
   formatBytes,
   GAMEMODE_SITE_URL,
@@ -48,6 +50,8 @@ import {
   GearIcon,
   HistoryIcon,
   ImageIcon,
+  PackageIcon,
+  ZapIcon,
 } from "@primer/octicons-react";
 import { Wrench } from "lucide-react";
 import { GameAssetsSettings } from "./game-assets-settings";
@@ -70,6 +74,7 @@ import {
   isLegacyCloudSaveSettingsAvailable,
 } from "../cloud-save-visibility";
 import { OptiscalerSection } from "./game-options-modal/optiscaler-section";
+import { BloodborneModsSection } from "./game-options-modal/bloodborne-mods-section";
 import { LegacySavesSection } from "./game-options-modal/legacy-saves-section";
 import {
   getAvailableGameSettingsCategory,
@@ -619,6 +624,8 @@ export function GameOptionsModal({
       game.objectId,
       null
     );
+    // Lets the Bloodborne hero button fall back to Install.
+    window.dispatchEvent(new Event(BLOODBORNE_CONFIGURED_EVENT));
     updateGame();
   };
 
@@ -866,6 +873,8 @@ export function GameOptionsModal({
   };
 
   const isLaunchbox = game.shop === "launchbox";
+  const showOptiscalerSettings =
+    !!game.executablePath && globalThis.window.electron.platform === "win32";
   const showDownloadSettings = game.shop !== "custom";
   const shouldShowWinePrefixConfiguration =
     globalThis.window.electron.platform === "linux";
@@ -896,6 +905,24 @@ export function GameOptionsModal({
         label: t("settings_category_customization"),
         icon: <ImageIcon size={16} />,
       },
+      ...(showOptiscalerSettings
+        ? [
+            {
+              id: "optiscaler" as const,
+              label: t("settings_category_optiscaler"),
+              icon: <ZapIcon size={16} />,
+            },
+          ]
+        : []),
+      ...(isBloodborne(game.title)
+        ? [
+            {
+              id: "mods" as const,
+              label: t("settings_category_mods"),
+              icon: <PackageIcon size={16} />,
+            },
+          ]
+        : []),
       ...(showCloudSaveV2Settings && cloudSaveAccessAction !== "sign-in"
         ? [
             {
@@ -948,11 +975,13 @@ export function GameOptionsModal({
     ],
     [
       cloudSaveAccessAction,
+      game.title,
       isLaunchbox,
       legacyPurpose,
       showCloudSaveV2Settings,
       showLegacyCloudSaveSettings,
       showDownloadSettings,
+      showOptiscalerSettings,
       shouldShowWinePrefixConfiguration,
       t,
     ]
@@ -974,6 +1003,7 @@ export function GameOptionsModal({
       showCloudSaveV2Settings,
       showLegacyCloudSaveSettings,
       showDownloadSettings,
+      showOptiscalerSettings,
     });
 
     setSelectedCategory(availableCategory);
@@ -992,6 +1022,7 @@ export function GameOptionsModal({
     cloudSaveAccessAction,
     initialCategory,
     showDownloadSettings,
+    showOptiscalerSettings,
     showCloudSaveV2Settings,
     showLegacyCloudSaveSettings,
     showHydraCloudModal,
@@ -1007,6 +1038,7 @@ export function GameOptionsModal({
         showCloudSaveV2Settings,
         showLegacyCloudSaveSettings,
         showDownloadSettings,
+        showOptiscalerSettings,
       })
     );
   }, [
@@ -1014,6 +1046,7 @@ export function GameOptionsModal({
     showCloudSaveV2Settings,
     showLegacyCloudSaveSettings,
     showDownloadSettings,
+    showOptiscalerSettings,
     visible,
   ]);
 
@@ -1257,11 +1290,10 @@ export function GameOptionsModal({
                 showLaunchOptionsSection={!isLaunchbox}
               />
             )}
-            {selectedCategory === "general" &&
-              game.executablePath &&
-              window.electron.platform === "win32" && (
-                <OptiscalerSection game={game} />
-              )}
+            {selectedCategory === "optiscaler" && showOptiscalerSettings && (
+              <OptiscalerSection game={game} />
+            )}
+            {selectedCategory === "mods" && <BloodborneModsSection />}
             {selectedCategory === "locations" && (
               <GeneralSettingsSection
                 {...baseGeneralSettingsProps}

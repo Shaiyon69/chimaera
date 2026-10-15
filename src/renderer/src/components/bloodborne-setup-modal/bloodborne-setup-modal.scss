@@ -1,0 +1,47 @@
+@use "../../scss/globals.scss";
+
+.bloodborne-setup {
+  display: flex;
+  flex-direction: column;
+  gap: calc(globals.$spacing-unit * 2);
+  width: min(480px, 100%);
+
+  &__folder {
+    display: flex;
+    align-items: flex-end;
+    gap: globals.$spacing-unit;
+
+    > :first-child {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: calc(globals.$spacing-unit * 2);
+  }
+
+  &__hint {
+    color: globals.$body-color;
+    font-size: 12px;
+  }
+
+  &__error {
+    color: #d72626;
+    font-size: 12px;
+  }
+
+  &__patches {
+    display: flex;
+    flex-direction: column;
+    gap: globals.$spacing-unit;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: globals.$spacing-unit;
+  }
+}

@@ -12,6 +12,7 @@ import {
   handleClassicsLaunchError,
 } from "@renderer/helpers";
 import { logger } from "@renderer/logger";
+import { isBloodborne } from "@shared";
 import { useGameOptionsModal } from "@renderer/context/game-options-modal/game-options-modal.context";
 import type { GameSettingsCategoryId } from "@renderer/pages/game-details/modals/game-options-modal/types";
 import type { GameContextMenuGame } from "./game-context-menu.types";
@@ -42,7 +43,9 @@ export function useGameActions(game: GameContextMenuGame) {
   const isClassics = game.shop === "launchbox";
   const hasClassicsDiscs = (game.discs?.length ?? 0) > 0;
   const canPlay =
-    Boolean(game.executablePath) || (isClassics && hasClassicsDiscs);
+    Boolean(game.executablePath) ||
+    isBloodborne(game.title) ||
+    (isClassics && hasClassicsDiscs);
   const isDeleting = isGameDeleting(game.id ?? "");
   const isGameDownloading =
     game.download?.status === "active" && lastPacket?.gameId === game.id;
@@ -137,7 +140,7 @@ export function useGameActions(game: GameContextMenuGame) {
       await window.electron.openGame(
         game.shop,
         game.objectId,
-        game.executablePath!,
+        game.executablePath ?? "",
         game.launchOptions
       );
     } catch (error) {

@@ -20,6 +20,7 @@ import { useBigPictureToast } from "./use-big-picture-toast.hook";
 import { NavigationAudioService } from "../services";
 import { useBigPictureRunningGame } from "./use-big-picture-running-games.hook";
 import { useUserPreferences } from "./use-user-preferences.hook";
+import { isBloodborne } from "@shared";
 
 const buildFallbackShopDetails = (
   objectId: string,
@@ -214,13 +215,13 @@ export function useGameDetails(objectId: string, shop: GameShop) {
         return;
       }
 
-      if (!game.executablePath) return;
+      if (!game.executablePath && !isBloodborne(game.title)) return;
 
       NavigationAudioService.getInstance().play("launch");
       globalThis.window.electron.openGame(
         game.shop,
         game.objectId,
-        game.executablePath,
+        game.executablePath ?? "",
         game.launchOptions
       );
     },
