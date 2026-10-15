@@ -28,7 +28,8 @@ use image::imageops::{crop_imm, resize, FilterType};
 use image::{AnimationDecoder, Frame, ImageFormat, ImageReader, ImageResult, RgbaImage};
 use napi::bindgen_prelude::Error;
 use napi_derive::napi;
-use sysinfo::{ProcessesToUpdate, System};
+use std::sync::{Mutex, OnceLock};
+use sysinfo::{ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
 use uuid::Uuid;
 
 #[napi(object)]
@@ -177,8 +178,21 @@ fn process_image_sync(
 
 #[napi]
 pub fn list_processes() -> Vec<NativeProcessPayload> {
-    let mut system = System::new_all();
-    system.refresh_processes(ProcessesToUpdate::All, true);
+    // Reused across the 2s watcher ticks: System::new_all() rebuilt CPU, disk,
+    // network and user tables each call that are never read.
+    static SYSTEM: OnceLock<Mutex<System>> = OnceLock::new();
+    let mut system = SYSTEM
+        .get_or_init(|| Mutex::new(System::new()))
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+
+    let mut refresh_kind = ProcessRefreshKind::nothing().with_exe(UpdateKind::OnlyIfNotSet);
+    if !cfg!(target_os = "windows") {
+        refresh_kind = refresh_kind
+            .with_cwd(UpdateKind::OnlyIfNotSet)
+            .with_environ(UpdateKind::OnlyIfNotSet);
+    }
+    system.refresh_processes_specifics(ProcessesToUpdate::All, true, refresh_kind);
 
     let mut processes: Vec<NativeProcessPayload> = system
         .processes()

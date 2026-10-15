@@ -125,6 +125,7 @@ export const getGamesRunning = () => {
 
 const TICKS_TO_UPDATE_API = (3 * 60 * 1000) / INTERVALS.processWatcher; // 3 minutes
 let currentTick = 1;
+let lastGamesRunningWasEmpty = false;
 
 const platform = process.platform;
 
@@ -361,7 +362,15 @@ export const watchProcesses = async () => {
 
   currentTick++;
 
-  WindowManager.sendToAppWindows("on-games-running", getGamesRunning());
+  // Running sessions carry a live duration, so only the idle case can be deduped.
+  const gamesRunning = getGamesRunning();
+  const isIdle = gamesRunning.length === 0;
+
+  if (!isIdle || !lastGamesRunningWasEmpty) {
+    WindowManager.sendToAppWindows("on-games-running", gamesRunning);
+  }
+
+  lastGamesRunningWasEmpty = isIdle;
 };
 
 async function onOpenGame(game: Game, matchedPath: string) {

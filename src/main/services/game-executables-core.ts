@@ -40,6 +40,8 @@ export const normalizeGameExecutableCatalog = (
 
 export class GameExecutableCatalogStore {
   private catalog: GameExecutableCatalog = {};
+  // Avoids building Object.keys(catalog) on every 2s watcher tick.
+  private loaded = false;
   private loadPromise: Promise<boolean> | null = null;
   private retryAfter = 0;
 
@@ -53,7 +55,7 @@ export class GameExecutableCatalogStore {
     load: () => Promise<GameExecutableCatalogResponse>,
     forceRetry = false
   ): Promise<boolean> {
-    if (Object.keys(this.catalog).length > 0) return true;
+    if (this.loaded) return true;
     if (this.loadPromise !== null) return this.loadPromise;
     if (!forceRetry && this.now() < this.retryAfter) return false;
 
@@ -67,6 +69,7 @@ export class GameExecutableCatalogStore {
         }
 
         this.catalog = catalog;
+        this.loaded = true;
         this.retryAfter = 0;
         return true;
       })

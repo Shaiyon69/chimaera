@@ -100,6 +100,8 @@ interface AllDebridBatchState {
   batchSpeed: number;
 }
 
+const SEED_SIZE_CHECK_INTERVAL_MS = 60_000;
+
 export class DownloadManager {
   private static downloadingGameId: string | null = null;
   private static jsDownloader: JsHttpDownloader | null = null;
@@ -1146,6 +1148,15 @@ export class DownloadManager {
     await this.processNextQueuedDownload();
   }
 
+  private static lastSeedStatusWasEmpty = false;
+  private static lastSeedSizeCheck = new Map<string, number>();
+
+  private static sendEmptySeedStatus() {
+    if (this.lastSeedStatusWasEmpty) return;
+    this.lastSeedStatusWasEmpty = true;
+    WindowManager.sendToAppWindows("on-seeding-status", []);
+  }
+
   public static async getSeedStatus() {
     let seedStatus: LibtorrentPayload[] = [];
 
@@ -1155,18 +1166,23 @@ export class DownloadManager {
       ).then((res) => res.data);
     } catch (error) {
       logger.error("[DownloadManager] Torrent seed status poll failed", error);
-      WindowManager.sendToAppWindows("on-seeding-status", []);
+      this.sendEmptySeedStatus();
       return;
     }
 
     if (!seedStatus.length) {
-      WindowManager.sendToAppWindows("on-seeding-status", []);
+      this.sendEmptySeedStatus();
       return;
     }
 
-    logger.log(seedStatus);
+    this.lastSeedStatusWasEmpty = false;
 
     for (const status of seedStatus) {
+      // Walking the folder tree is the expensive part; hard deletes don't need 2s latency.
+      const lastCheck = this.lastSeedSizeCheck.get(status.gameId) ?? 0;
+      if (Date.now() - lastCheck < SEED_SIZE_CHECK_INTERVAL_MS) continue;
+      this.lastSeedSizeCheck.set(status.gameId, Date.now());
+
       const download = await downloadsSublevel.get(status.gameId);
 
       if (!download) continue;

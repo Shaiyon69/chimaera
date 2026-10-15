@@ -73,13 +73,37 @@ const getWatchedGames = async (onlyWithWinePrefix = false) => {
   );
 };
 
+// Folder discovery does sync readdir/exists over ~20 cracker dirs on the main
+// thread, so reuse it between ticks. shortcut: a new cracker folder can take up
+// to DISCOVERY_TTL_MS to be noticed; switch to fs.watch if that matters.
+const DISCOVERY_TTL_MS = 30_000;
+let discoveryCache: {
+  at: number;
+  staticFilesByObjectId: ReturnType<typeof findAllAchievementFiles>;
+  nestedFilesByObjectId: Awaited<ReturnType<typeof findNestedAchievementFiles>>;
+} | null = null;
+
+const getDiscoveredAchievementFiles = async () => {
+  if (discoveryCache && Date.now() - discoveryCache.at < DISCOVERY_TTL_MS) {
+    return discoveryCache;
+  }
+
+  discoveryCache = {
+    at: Date.now(),
+    staticFilesByObjectId: findAllAchievementFiles(),
+    nestedFilesByObjectId: await findNestedAchievementFiles(),
+  };
+
+  return discoveryCache;
+};
+
 const watchAchievementsWindows = async () => {
   const games = await getWatchedGames();
 
   if (games.length === 0) return;
 
-  const staticFilesByObjectId = findAllAchievementFiles();
-  const nestedFilesByObjectId = await findNestedAchievementFiles();
+  const { staticFilesByObjectId, nestedFilesByObjectId } =
+    await getDiscoveredAchievementFiles();
   const includeSteamCache = await getEnableSteamAchievements();
 
   for (const game of games) {

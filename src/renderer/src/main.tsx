@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import ReactDOM from "react-dom/client";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
@@ -19,6 +19,7 @@ import { GameOptionsModalProvider } from "@renderer/context/game-options-modal/g
 import { App } from "./app";
 
 import { store } from "./store";
+import { loadPreset } from "./themes";
 
 import resources from "@locales";
 
@@ -32,24 +33,48 @@ import GameDetails from "./pages/game-details/game-details";
 import Settings from "./pages/settings/settings";
 import Profile from "./pages/profile/profile";
 import Achievements from "./pages/achievements/achievements";
-import ThemeEditor from "./pages/theme-editor/theme-editor";
+const ThemeEditor = lazy(() => import("./pages/theme-editor/theme-editor"));
 import Notifications from "./pages/notifications/notifications";
 import { AchievementNotification } from "./pages/achievements/notification/achievement-notification";
 import { AchievementNotificationOverlay } from "./components/achievements/notification/achievement-notification-overlay";
 import GameLauncher from "./pages/game-launcher/game-launcher";
 import FriendsWindow from "./pages/friends-window/friends-window";
-import AuthWindow from "./pages/auth-window/auth-window";
-import RetroAchievementsConnectionWindow from "./pages/retroachievements-connection-window/retroachievements-connection-window";
-import BigPictureApp from "../../big-picture/src/app";
-import BigPictureCatalogue from "../../big-picture/src/pages/catalogue/catalogue";
-import BigPictureComponentLab from "../../big-picture/src/pages/component-lab/component-lab";
-import BigPictureDownloads from "../../big-picture/src/pages/downloads/downloads";
-import BigPictureHome from "../../big-picture/src/pages/home/home";
-import BigPictureSettings from "../../big-picture/src/pages/settings/settings";
-import BigPictureLibrary from "../../big-picture/src/pages/library/page";
-import BigPictureGame from "../../big-picture/src/pages/game/game";
-import BigPictureGameAchievements from "../../big-picture/src/pages/game-achievements/game-achievements";
-import BigPictureProfile from "../../big-picture/src/pages/profile/profile";
+const AuthWindow = lazy(() => import("./pages/auth-window/auth-window"));
+const RetroAchievementsConnectionWindow = lazy(
+  () =>
+    import(
+      "./pages/retroachievements-connection-window/retroachievements-connection-window"
+    )
+);
+const BigPictureApp = lazy(() => import("../../big-picture/src/app"));
+const BigPictureCatalogue = lazy(
+  () => import("../../big-picture/src/pages/catalogue/catalogue")
+);
+const BigPictureComponentLab = lazy(
+  () => import("../../big-picture/src/pages/component-lab/component-lab")
+);
+const BigPictureDownloads = lazy(
+  () => import("../../big-picture/src/pages/downloads/downloads")
+);
+const BigPictureHome = lazy(
+  () => import("../../big-picture/src/pages/home/home")
+);
+const BigPictureSettings = lazy(
+  () => import("../../big-picture/src/pages/settings/settings")
+);
+const BigPictureLibrary = lazy(
+  () => import("../../big-picture/src/pages/library/page")
+);
+const BigPictureGame = lazy(
+  () => import("../../big-picture/src/pages/game/game")
+);
+const BigPictureGameAchievements = lazy(
+  () =>
+    import("../../big-picture/src/pages/game-achievements/game-achievements")
+);
+const BigPictureProfile = lazy(
+  () => import("../../big-picture/src/pages/profile/profile")
+);
 
 console.log = logger.log;
 
@@ -121,6 +146,8 @@ globalThis.electron.onUserPreferencesUpdated((preferences) => {
   }
 });
 
+loadPreset();
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Provider store={store}>
@@ -129,68 +156,67 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <CollectionContextMenuProvider>
             <GameOptionsModalProvider>
               <AchievementNotificationOverlay />
-              <Routes>
-                <Route element={<App />}>
-                  {/* "/", "/catalogue", "/downloads" and "/friends" are
+              <Suspense fallback={null}>
+                <Routes>
+                  <Route element={<App />}>
+                    {/* "/", "/catalogue", "/library" and "/downloads" are
                       rendered keep-alive by <App />, not through the Outlet. */}
-                  <Route path="/" element={null} />
-                  <Route path="/catalogue" element={null} />
-                  <Route
-                    path="/library"
-                    element={<Navigate to="/" replace />}
-                  />
-                  <Route path="/downloads" element={null} />
-                  <Route
-                    path="/friends"
-                    element={<Navigate to="/" replace />}
-                  />
-                  <Route
-                    path="/game/:shop/:objectId"
-                    element={<GameDetails />}
-                  />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/profile/:userId" element={<Profile />} />
-                  <Route path="/achievements" element={<Achievements />} />
-                  <Route path="/notifications" element={<Notifications />} />
-                </Route>
+                    <Route path="/" element={null} />
+                    <Route path="/catalogue" element={null} />
+                    <Route path="/library" element={null} />
+                    <Route path="/downloads" element={null} />
+                    <Route
+                      path="/friends"
+                      element={<Navigate to="/" replace />}
+                    />
+                    <Route
+                      path="/game/:shop/:objectId"
+                      element={<GameDetails />}
+                    />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/profile/:userId" element={<Profile />} />
+                    <Route path="/achievements" element={<Achievements />} />
+                    <Route path="/notifications" element={<Notifications />} />
+                  </Route>
 
-                <Route path="/theme-editor" element={<ThemeEditor />} />
-                <Route
-                  path="/achievement-notification"
-                  element={<AchievementNotification />}
-                />
-                <Route path="/game-launcher" element={<GameLauncher />} />
-                <Route path="/friends-window" element={<FriendsWindow />} />
-                <Route path="/auth-window" element={<AuthWindow />} />
-                <Route
-                  path="/retroachievements-connection"
-                  element={<RetroAchievementsConnectionWindow />}
-                />
+                  <Route path="/theme-editor" element={<ThemeEditor />} />
+                  <Route
+                    path="/achievement-notification"
+                    element={<AchievementNotification />}
+                  />
+                  <Route path="/game-launcher" element={<GameLauncher />} />
+                  <Route path="/friends-window" element={<FriendsWindow />} />
+                  <Route path="/auth-window" element={<AuthWindow />} />
+                  <Route
+                    path="/retroachievements-connection"
+                    element={<RetroAchievementsConnectionWindow />}
+                  />
 
-                <Route path="/big-picture" element={<BigPictureApp />}>
-                  <Route index element={<BigPictureHome />} />
-                  <Route path="catalogue" element={<BigPictureCatalogue />} />
-                  <Route
-                    path="component-lab"
-                    element={<BigPictureComponentLab />}
-                  />
-                  <Route path="downloads" element={<BigPictureDownloads />} />
-                  <Route path="settings" element={<BigPictureSettings />} />
-                  <Route path="library" element={<BigPictureLibrary />} />
-                  <Route
-                    path="profile/:userId?"
-                    element={<BigPictureProfile />}
-                  />
-                  <Route
-                    path="game/:shop/:objectId"
-                    element={<BigPictureGame />}
-                  />
-                  <Route
-                    path="game/:shop/:objectId/achievements"
-                    element={<BigPictureGameAchievements />}
-                  />
-                </Route>
-              </Routes>
+                  <Route path="/big-picture" element={<BigPictureApp />}>
+                    <Route index element={<BigPictureHome />} />
+                    <Route path="catalogue" element={<BigPictureCatalogue />} />
+                    <Route
+                      path="component-lab"
+                      element={<BigPictureComponentLab />}
+                    />
+                    <Route path="downloads" element={<BigPictureDownloads />} />
+                    <Route path="settings" element={<BigPictureSettings />} />
+                    <Route path="library" element={<BigPictureLibrary />} />
+                    <Route
+                      path="profile/:userId?"
+                      element={<BigPictureProfile />}
+                    />
+                    <Route
+                      path="game/:shop/:objectId"
+                      element={<BigPictureGame />}
+                    />
+                    <Route
+                      path="game/:shop/:objectId/achievements"
+                      element={<BigPictureGameAchievements />}
+                    />
+                  </Route>
+                </Routes>
+              </Suspense>
             </GameOptionsModalProvider>
           </CollectionContextMenuProvider>
         </HashRouter>

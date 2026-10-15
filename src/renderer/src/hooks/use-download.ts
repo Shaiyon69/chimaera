@@ -23,8 +23,9 @@ export function useDownload() {
 
   const userPrefs = useAppSelector((state) => state.userPreferences.value);
 
-  const { lastPacket, gamesWithDeletionInProgress } = useAppSelector(
-    (state) => state.download
+  const lastPacket = useAppSelector((state) => state.download.lastPacket);
+  const gamesWithDeletionInProgress = useAppSelector(
+    (state) => state.download.gamesWithDeletionInProgress
   );
   const dispatch = useAppDispatch();
 
