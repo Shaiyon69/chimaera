@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { configureIni } from "./ini.js";
+import { configureIni, type Fsr4Mode } from "./ini.js";
 
 export const MARKER = "optiscaler_manager.json";
 export const BACKUP = ".optiscaler_backup";
@@ -83,9 +83,11 @@ export const install = (opts: {
   proxy: string;
   tag: string;
   fsr4Dll?: string | null;
+  fsr4Mode?: Fsr4Mode;
   api?: string;
 }): [string, string][] => {
   const { payload, exeDir, proxy, tag, fsr4Dll, api = "unknown" } = opts;
+  const fsr4Mode = opts.fsr4Mode ?? (fsr4Dll ? "dll" : null);
   const old = readMarker(exeDir);
   if (old) uninstall(exeDir, true); // restore originals first so backups stay the true originals
 
@@ -139,7 +141,7 @@ export const install = (opts: {
       if (!copied.includes(FSR4_DLL)) copied.push(FSR4_DLL);
     }
     writeMarker(exeDir, marker);
-    return configureIni(path.join(exeDir, "OptiScaler.ini"), api, !!fsr4Dll);
+    return configureIni(path.join(exeDir, "OptiScaler.ini"), api, fsr4Mode);
   } catch (err) {
     try {
       uninstall(exeDir);

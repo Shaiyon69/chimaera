@@ -10,6 +10,7 @@ import { SETTINGS_CATEGORY_STORAGE_KEY } from "@renderer/session-state";
 
 export type SettingsCategoryId =
   | "general"
+  | "appearance"
   | "downloads"
   | "download_sources"
   | "notifications"
@@ -33,12 +34,14 @@ const legacyTabMap: Record<number, SettingsCategoryId> = {
 const isSettingsCategoryId = (value: string): value is SettingsCategoryId => {
   return [
     "general",
+    "appearance",
     "downloads",
     "download_sources",
     "notifications",
     "content_gameplay",
     "integrations",
     "compatibility",
+    "optiscaler",
     "account_privacy",
     "big_picture",
     "emulation",
@@ -143,7 +146,7 @@ export function SettingsContextProvider({
   }, [defaultTab]);
 
   useEffect(() => {
-    if (appearance.theme) setCurrentCategoryId("general");
+    if (appearance.theme) setCurrentCategoryId("appearance");
   }, [appearance.theme]);
 
   useEffect(() => {

@@ -47,6 +47,7 @@ describe("game options category selection", () => {
         showCloudSaveV2Settings: true,
         showLegacyCloudSaveSettings: false,
         showDownloadSettings: true,
+        showOptiscalerSettings: true,
       }),
       "assets"
     );
@@ -59,6 +60,7 @@ describe("game options category selection", () => {
         showCloudSaveV2Settings: false,
         showLegacyCloudSaveSettings: true,
         showDownloadSettings: true,
+        showOptiscalerSettings: true,
       }),
       "general"
     );
@@ -68,6 +70,7 @@ describe("game options category selection", () => {
         showCloudSaveV2Settings: true,
         showLegacyCloudSaveSettings: false,
         showDownloadSettings: true,
+        showOptiscalerSettings: true,
       }),
       "general"
     );
@@ -80,6 +83,7 @@ describe("game options category selection", () => {
         showCloudSaveV2Settings: true,
         showLegacyCloudSaveSettings: true,
         showDownloadSettings: true,
+        showOptiscalerSettings: true,
       }),
       "general"
     );
@@ -92,6 +96,20 @@ describe("game options category selection", () => {
         showCloudSaveV2Settings: true,
         showLegacyCloudSaveSettings: true,
         showDownloadSettings: false,
+        showOptiscalerSettings: true,
+      }),
+      "general"
+    );
+  });
+
+  it("falls back when OptiScaler is unavailable", () => {
+    assert.equal(
+      getAvailableGameSettingsCategory("optiscaler", {
+        cloudSaveAccessAction: "open",
+        showCloudSaveV2Settings: true,
+        showLegacyCloudSaveSettings: true,
+        showDownloadSettings: true,
+        showOptiscalerSettings: false,
       }),
       "general"
     );

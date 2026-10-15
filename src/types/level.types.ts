@@ -207,6 +207,7 @@ export interface UserPreferences {
   optiscalerFsr4ExactPath?: string | null;
   optiscalerFsr4LossyPath?: string | null;
   optiscalerFsr4Variant?: "exact" | "lossy";
+  optiscalerFsr4Gpu?: "auto" | "native" | "desktop" | "igpu";
   deleteArchiveFilesAfterExtractionByDefault?: boolean;
   enableSteamAchievements?: boolean;
   enableAchievementSouvenirs?: boolean;

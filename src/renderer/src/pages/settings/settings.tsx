@@ -13,12 +13,14 @@ import {
   DownloadIcon,
   GearIcon,
   LinkIcon,
+  PaintbrushIcon,
   PlayIcon,
   VideoIcon,
   ShieldCheckIcon,
 } from "@primer/octicons-react";
 import { Gamepad2, Wrench } from "lucide-react";
 import { SettingsContextGeneral } from "./settings-context-general";
+import { SettingsAppearance } from "./appearance";
 import { SettingsContextDownloads } from "./settings-context-downloads";
 import { SettingsContextDownloadSources } from "./settings-context-download-sources";
 import { SettingsContextNotifications } from "./settings-context-notifications";
@@ -40,6 +42,12 @@ export default function Settings() {
         id: "general" as const,
         label: t("general"),
         icon: <GearIcon size={16} />,
+        group: "general" as const,
+      },
+      {
+        id: "appearance" as const,
+        label: t("appearance"),
+        icon: <PaintbrushIcon size={16} />,
         group: "general" as const,
       },
       {
@@ -121,7 +129,11 @@ export default function Settings() {
 
           const renderCategory = () => {
             if (selectedCategoryId === "general") {
-              return <SettingsContextGeneral appearance={appearance} />;
+              return <SettingsContextGeneral />;
+            }
+
+            if (selectedCategoryId === "appearance") {
+              return <SettingsAppearance appearance={appearance} />;
             }
 
             if (selectedCategoryId === "downloads") {

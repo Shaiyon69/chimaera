@@ -7,6 +7,7 @@ export interface GameSettingsCategoryAvailability {
   showCloudSaveV2Settings: boolean;
   showLegacyCloudSaveSettings: boolean;
   showDownloadSettings: boolean;
+  showOptiscalerSettings: boolean;
 }
 
 export interface GameSettingsCategoryInitializationState {
@@ -43,6 +44,10 @@ export const getAvailableGameSettingsCategory = (
   }
 
   if (category === "downloads" && !availability.showDownloadSettings) {
+    return "general";
+  }
+
+  if (category === "optiscaler" && !availability.showOptiscalerSettings) {
     return "general";
   }
 

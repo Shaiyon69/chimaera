@@ -27,6 +27,9 @@ export const iniGetSet = (
   return old;
 };
 
+/** native: GPU runs AMD's own FSR4. dll: override DLL installed. null: no FSR4. */
+export type Fsr4Mode = "native" | "dll" | null;
+
 const UPSCALER_KEYS: Record<string, [string, string][]> = {
   dx12: [["Dx12Upscaler", "fsr31"]],
   dx11: [["Dx11Upscaler", "fsr31_12"]],
@@ -42,20 +45,21 @@ const UPSCALER_KEYS: Record<string, [string, string][]> = {
 export const configureIni = (
   iniPath: string,
   api: string,
-  hasFsr4: boolean
+  fsr4: Fsr4Mode
 ): [string, string][] => {
   if (!fs.existsSync(iniPath)) return [];
   let wanted: [string, string][] = [
     ["LogToFile", "true"],
     ["LogLevel", "2"],
   ];
-  if (hasFsr4) {
+  if (fsr4) {
     wanted = [
       ["Fsr4Update", "true"],
-      ["Fsr4ForceEnableInt8", "true"],
+      // RDNA4 runs FSR4 natively; INT8 is the fallback for the override DLL on older cards.
+      ...(fsr4 === "dll" ? [["Fsr4ForceEnableInt8", "true"]] : []),
       ...(UPSCALER_KEYS[api] ?? UPSCALER_KEYS.unknown),
       ...wanted,
-    ];
+    ] as [string, string][];
   }
   const done: [string, string][] = [];
   for (const [k, v] of wanted) {

@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "@renderer/components";
+import { Badge, Button, SelectField } from "@renderer/components";
 import type { LibraryGame } from "@types";
 
 import { OptiscalerConfig } from "./optiscaler-config";
+
+import "./optiscaler-section.scss";
 
 type Status = Awaited<ReturnType<typeof window.electron.getOptiscalerStatus>>;
 type Confirm = "install" | "uninstall" | null;
@@ -86,65 +88,92 @@ export function OptiscalerSection({ game }: Readonly<{ game: LibraryGame }>) {
       ? t("optiscaler_update", { version: status.latestTag })
       : t("optiscaler_reinstall");
 
+  const fsr4Label =
+    status?.fsr4Gpu === "native"
+      ? t("optiscaler_fsr4_native")
+      : t("optiscaler_fsr4_lite", {
+          gpu: t(`optiscaler_gpu_${status?.fsr4Gpu ?? "desktop"}`),
+          variant: t(`optiscaler_fsr4_${status?.fsr4Variant ?? "exact"}`, {
+            ns: "settings",
+          }),
+        });
+
   return (
-    <div className="game-options-modal__optiscaler">
+    <div className="optiscaler">
       <h3>{t("optiscaler_title")}</h3>
       {status && (
         <>
-          <p>
-            {status.installed
-              ? t("optiscaler_installed", {
-                  version: status.version,
-                  proxy: status.proxy,
-                })
-              : t("optiscaler_not_installed")}
-            {status.loaded
-              ? ` · ${t(status.loaded === "live" ? "optiscaler_fsr4_live" : "optiscaler_loaded")}`
-              : ""}
-            {` · ${t("optiscaler_api", { api: status.api })}`}
-          </p>
-          <select
+          <div className="optiscaler__badges">
+            <Badge>
+              {status.installed
+                ? t("optiscaler_installed", {
+                    version: status.version,
+                    proxy: status.proxy,
+                  })
+                : t("optiscaler_not_installed")}
+            </Badge>
+            <Badge>{t("optiscaler_api", { api: status.api })}</Badge>
+            <Badge>{fsr4Label}</Badge>
+            {status.loaded && (
+              <Badge>
+                {t(
+                  status.loaded === "live"
+                    ? "optiscaler_fsr4_live"
+                    : "optiscaler_loaded"
+                )}
+              </Badge>
+            )}
+          </div>
+          <SelectField
+            label={t("optiscaler_proxy_label")}
             value={proxy ?? ""}
             disabled={busy}
+            options={status.proxies.map((p) => ({
+              key: p,
+              value: p,
+              label: p,
+            }))}
             onChange={(e) => {
               setProxy(e.target.value);
               setConfirm(null);
             }}
-          >
-            {status.proxies.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-          {!status.fsr4Available && <p>{t("optiscaler_no_fsr4")}</p>}
+          />
+          {!status.fsr4Available && (
+            <p className="optiscaler__warning">{t("optiscaler_no_fsr4")}</p>
+          )}
           {confirm === "install" && status.anticheat && (
-            <p>
+            <p className="optiscaler__warning">
               {t("optiscaler_anticheat_warning", { name: status.anticheat })}
             </p>
           )}
           {confirm === "install" && status.proxyConflict && (
-            <p>
+            <p className="optiscaler__warning">
               {t("optiscaler_proxy_conflict_warning", {
                 proxy: status.proxyConflict,
               })}
             </p>
           )}
           {confirm === "uninstall" && (
-            <p>{t("optiscaler_uninstall_confirm")}</p>
+            <p className="optiscaler__warning">
+              {t("optiscaler_uninstall_confirm")}
+            </p>
           )}
-          <Button theme="primary" disabled={busy} onClick={install}>
-            {installLabel}
-          </Button>
-          {status.installed && (
-            <Button theme="danger" disabled={busy} onClick={uninstall}>
-              {t("optiscaler_uninstall")}
+          <div className="optiscaler__actions">
+            <Button theme="primary" disabled={busy} onClick={install}>
+              {installLabel}
             </Button>
-          )}
+            {status.installed && (
+              <Button theme="danger" disabled={busy} onClick={uninstall}>
+                {t("optiscaler_uninstall")}
+              </Button>
+            )}
+          </div>
         </>
       )}
-      {status?.installed && !busy && <OptiscalerConfig game={game} />}
-      {error && <p>{error}</p>}
+      {status?.installed && !busy && (
+        <OptiscalerConfig game={game} native={status.fsr4Gpu === "native"} />
+      )}
+      {error && <p className="optiscaler__error">{error}</p>}
     </div>
   );
 }

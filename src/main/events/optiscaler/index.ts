@@ -17,6 +17,15 @@ import {
 } from "@main/services/optiscaler/detect";
 import { readConfig, writeConfigValue } from "@main/services/optiscaler/ini";
 import { loadedState } from "@main/services/optiscaler/status";
+import {
+  cachedFsr4Dll,
+  ensureFsr4Dlls,
+} from "@main/services/optiscaler/fsr4-dll";
+import {
+  classifyGpus,
+  detectGpuNames,
+  type Fsr4Gpu,
+} from "@main/services/optiscaler/gpu";
 
 const getContext = async (shop: GameShop, objectId: string) => {
   const game = await gamesSublevel.get(levelKeys.game(shop, objectId));
@@ -30,13 +39,28 @@ const getPrefs = () =>
     valueEncoding: "json",
   });
 
-/** Chosen FSR4 DLL if it still exists on disk. */
-const resolveFsr4Dll = (prefs: UserPreferences | null): string | null => {
-  const dll =
-    prefs?.optiscalerFsr4Variant === "lossy"
-      ? prefs.optiscalerFsr4LossyPath
+const detectGpu = async () => classifyGpus(await detectGpuNames());
+
+/** Manual override from settings, else the detected GPU. */
+const resolveFsr4Gpu = async (
+  prefs: UserPreferences | null
+): Promise<Fsr4Gpu> => {
+  const chosen = prefs?.optiscalerFsr4Gpu;
+  return chosen && chosen !== "auto" ? chosen : detectGpu();
+};
+
+/** User-chosen FSR4 DLL if it still exists, else the auto-downloaded one. Native GPUs need none. */
+const resolveFsr4Dll = (
+  prefs: UserPreferences | null,
+  gpu: Fsr4Gpu
+): string | null => {
+  if (gpu === "native") return null;
+  const variant = prefs?.optiscalerFsr4Variant === "lossy" ? "lossy" : "exact";
+  const chosen =
+    variant === "lossy"
+      ? prefs?.optiscalerFsr4LossyPath
       : (prefs?.optiscalerFsr4ExactPath ?? prefs?.optiscalerFsr4DllPath);
-  return dll && fs.existsSync(dll) ? dll : null;
+  return chosen && fs.existsSync(chosen) ? chosen : cachedFsr4Dll(gpu, variant);
 };
 
 const getStatus = async (
@@ -48,6 +72,9 @@ const getStatus = async (
   const { exePath, exeDir } = await getContext(shop, objectId);
   const prefs = await getPrefs();
   const marker = readMarker(exeDir);
+  const gpu = await resolveFsr4Gpu(prefs);
+  // Warm the cache so the first install already has the DLLs.
+  if (gpu !== "native") void ensureFsr4Dlls(gpu);
   const latestTag = await fetchLatestTag(!!prefs?.optiscalerNightly);
   return {
     installed: !!marker,
@@ -59,7 +86,9 @@ const getStatus = async (
     proxies: PROXIES,
     latestTag,
     updateAvailable: !!marker && !!latestTag && marker.version !== latestTag,
-    fsr4Available: !!resolveFsr4Dll(prefs),
+    fsr4Available: gpu === "native" || !!resolveFsr4Dll(prefs, gpu),
+    fsr4Gpu: gpu,
+    fsr4Variant: prefs?.optiscalerFsr4Variant === "lossy" ? "lossy" : "exact",
     // A foreign DLL under the chosen proxy name would be moved to backup.
     proxyConflict:
       !marker && proxy && fs.existsSync(path.join(exeDir, proxy))
@@ -78,12 +107,16 @@ const installOptiscaler = async (
   const { exePath, exeDir } = await getContext(shop, objectId);
   const prefs = await getPrefs();
   const { tag, payload } = await fetchLatest(!!prefs?.optiscalerNightly);
+  const gpu = await resolveFsr4Gpu(prefs);
+  if (gpu !== "native") await ensureFsr4Dlls(gpu);
+  const fsr4Dll = resolveFsr4Dll(prefs, gpu);
   install({
     payload,
     exeDir,
     proxy,
     tag,
-    fsr4Dll: resolveFsr4Dll(prefs),
+    fsr4Dll,
+    fsr4Mode: gpu === "native" ? "native" : fsr4Dll ? "dll" : null,
     api: detectApi(exePath),
   });
   return { version: tag };
@@ -98,6 +131,20 @@ const uninstallOptiscaler = async (
   uninstall(exeDir);
 };
 
+registerEvent("getOptiscalerGpu", async () => {
+  const prefs = await getPrefs();
+  const effective = await resolveFsr4Gpu(prefs);
+  // Fetch now so settings can show the DLLs that install will use.
+  if (effective !== "native") await ensureFsr4Dlls(effective);
+  return {
+    detected: await detectGpu(),
+    effective,
+    autoDlls: {
+      exact: effective === "native" ? null : cachedFsr4Dll(effective, "exact"),
+      lossy: effective === "native" ? null : cachedFsr4Dll(effective, "lossy"),
+    },
+  };
+});
 registerEvent("getOptiscalerStatus", getStatus);
 registerEvent("installOptiscaler", installOptiscaler);
 registerEvent("uninstallOptiscaler", uninstallOptiscaler);

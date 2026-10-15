@@ -10,6 +10,7 @@ import {
   writeConfigValue,
 } from "./ini.js";
 import { install, readMarker, uninstall } from "./install.js";
+import { classifyGpus } from "./gpu.js";
 import { detectAnticheat, detectApi, gameRootFromExeDir } from "./detect.js";
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), "chimaera-os-"));
@@ -53,7 +54,7 @@ test("configureIni only changes keys still set to auto", () => {
     ini,
     "Fsr4Update=false\nFsr4ForceEnableInt8=auto\nDx12Upscaler=auto\nLogToFile=auto\nLogLevel=1\n"
   );
-  const done = configureIni(ini, "dx12", true);
+  const done = configureIni(ini, "dx12", "dll");
   assert.deepEqual(
     done.map(([k]) => k),
     ["Fsr4ForceEnableInt8", "Dx12Upscaler", "LogToFile"]
@@ -154,4 +155,25 @@ test("writeConfigValue validates key and value", () => {
   assert.throws(() => writeConfigValue(ini, "Sharpness", "5"));
   assert.throws(() => writeConfigValue(ini, "Sharpness", "1\nEvil=1"));
   assert.equal(iniGetSet(ini, "Other"), "1");
+});
+
+test("configureIni native mode skips the INT8 override", () => {
+  const ini = path.join(tmp(), "n.ini");
+  fs.writeFileSync(ini, "Fsr4Update=auto\nFsr4ForceEnableInt8=auto\n");
+  configureIni(ini, "dx12", "native");
+  assert.equal(iniGetSet(ini, "Fsr4Update"), "true");
+  assert.equal(iniGetSet(ini, "Fsr4ForceEnableInt8"), "auto");
+});
+
+test("classifyGpus picks the best card", () => {
+  assert.equal(classifyGpus(["AMD Radeon RX 9070 XT"]), "native");
+  assert.equal(classifyGpus(["AMD Radeon RX 7900 XTX"]), "desktop");
+  assert.equal(classifyGpus(["NVIDIA GeForce RTX 4070"]), "desktop");
+  assert.equal(classifyGpus(["AMD Radeon(TM) 780M Graphics"]), "igpu");
+  assert.equal(classifyGpus(["AMD Custom GPU 0405"]), "igpu");
+  assert.equal(
+    classifyGpus(["AMD Radeon(TM) Graphics", "AMD Radeon RX 7800 XT"]),
+    "desktop"
+  );
+  assert.equal(classifyGpus([]), "desktop");
 });

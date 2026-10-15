@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { CheckboxField, SelectField, TextField } from "@renderer/components";
 import type { LibraryGame } from "@types";
 
 type Field = Awaited<
   ReturnType<typeof window.electron.getOptiscalerConfig>
 >[number];
 
-export function OptiscalerConfig({ game }: Readonly<{ game: LibraryGame }>) {
+export function OptiscalerConfig({
+  game,
+  native,
+}: Readonly<{ game: LibraryGame; native: boolean }>) {
   const { t } = useTranslation("game_details");
   const [fields, setFields] = useState<Field[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -44,46 +48,58 @@ export function OptiscalerConfig({ game }: Readonly<{ game: LibraryGame }>) {
   if (!fields.length && !error) return null;
 
   return (
-    <div className="game-options-modal__optiscaler-config">
+    <div className="optiscaler__config">
       <h4>{t("optiscaler_config_title")}</h4>
-      {fields.map((field) => (
-        <label key={field.key}>
-          {t(`optiscaler_cfg_${field.key}`)}
-          {field.type === "toggle" && (
-            <input
-              type="checkbox"
-              checked={field.value.toLowerCase() === "true"}
-              onChange={(e) => void save(field.key, String(e.target.checked))}
-            />
-          )}
-          {field.type === "select" && (
-            <select
-              value={field.value}
-              onChange={(e) => void save(field.key, e.target.value)}
-            >
-              {field.options.map((o) => (
-                <option key={o} value={o}>
-                  {o}
-                </option>
-              ))}
-            </select>
-          )}
-          {field.type === "number" && (
-            <input
-              type="number"
-              min={field.min}
-              max={field.max}
-              step={0.1}
-              defaultValue={field.value}
-              onBlur={(e) => {
-                if (e.target.value !== field.value)
-                  void save(field.key, e.target.value);
-              }}
-            />
-          )}
-        </label>
-      ))}
-      {error && <p>{error}</p>}
+      <div className="optiscaler__config-grid">
+        {fields
+          // RDNA4 runs FSR4 natively, so the INT8 fallback is meaningless there.
+          .filter((f) => !(native && f.key === "Fsr4ForceEnableInt8"))
+          .map((field) => {
+            const label = t(`optiscaler_cfg_${field.key}`);
+            if (field.type === "toggle")
+              return (
+                <CheckboxField
+                  key={field.key}
+                  label={label}
+                  checked={field.value.toLowerCase() === "true"}
+                  onChange={(e) =>
+                    void save(field.key, String(e.target.checked))
+                  }
+                />
+              );
+            if (field.type === "select")
+              return (
+                <SelectField
+                  key={field.key}
+                  label={label}
+                  value={field.value}
+                  options={field.options.map((o) => ({
+                    key: o,
+                    value: o,
+                    label: o,
+                  }))}
+                  onChange={(e) => void save(field.key, e.target.value)}
+                />
+              );
+            return (
+              <TextField
+                key={field.key}
+                label={label}
+                type="number"
+                theme="dark"
+                min={field.min}
+                max={field.max}
+                step={0.1}
+                defaultValue={field.value}
+                onBlur={(e) => {
+                  if (e.target.value !== field.value)
+                    void save(field.key, e.target.value);
+                }}
+              />
+            );
+          })}
+      </div>
+      {error && <p className="optiscaler__error">{error}</p>}
     </div>
   );
 }
