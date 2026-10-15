@@ -4,10 +4,11 @@
   @include globals.segmented;
   display: flex;
   width: auto;
+  // The filter bar must not squeeze the labels below their text width.
+  flex-shrink: 0;
 
   &__option {
-    flex: 1;
-    min-width: 0;
+    flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -19,10 +20,6 @@
       flex-shrink: 0;
     }
 
-    span {
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
     &--active {
       @include globals.segment-active;
     }
