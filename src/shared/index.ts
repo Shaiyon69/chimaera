@@ -19,6 +19,7 @@ import {
 
 import { isArchiveOrgFileUri } from "./archive-org";
 import { charMap } from "./char-map";
+import { CHIMAERA_ICON_DATA_URI } from "./chimaera-icon";
 import { Downloader } from "./constants";
 import { format } from "date-fns";
 import { AchievementNotificationInfo, GameRepack } from "@types";
@@ -342,7 +343,7 @@ export const generateAchievementCustomNotificationTest = (
       ns: "notifications",
       lng: language ?? "en",
     }),
-    iconUrl: "https://cdn.losbroxas.org/favicon.svg",
+    iconUrl: CHIMAERA_ICON_DATA_URI,
     points: 2440,
     isHidden: options.isHidden ?? false,
     isRare: options.isRare ?? false,
@@ -351,3 +352,4 @@ export const generateAchievementCustomNotificationTest = (
 };
 export * from "./emulator-systems";
 export * from "./bloodborne";
+export * from "./chimaera-icon";
