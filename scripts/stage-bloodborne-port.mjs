@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const REPO = "https://github.com/Shaiyon69/bloodborne_pc_windows_port.git";
 // Pinned so a package build is reproducible; bump deliberately.
-const COMMIT = "43e86f948fd7e00735e8f52a90727182ba008ca3";
+const COMMIT = "fc026c3bb6d5befb5d773f6b4339377cc7202e35";
 
 // run.bat needs Python 3; ship the embeddable build so players need not install it.
 const PYTHON_URL =

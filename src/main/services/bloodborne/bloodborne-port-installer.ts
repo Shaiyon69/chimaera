@@ -13,9 +13,9 @@ import { isPortDir } from "./bloodborne-core";
 // Produced by `yarn stage:bloodborne` (prints the sha256). Upload the zip to this
 // release, then paste the hash. Empty hash = not published, downloads refuse to run.
 const PORT_ASSET =
-  "https://github.com/Shaiyon69/chimaera/releases/download/bloodborne-port-43e86f9/bloodborne-port.zip";
+  "https://github.com/Shaiyon69/chimaera/releases/download/bloodborne-port-fc026c3/bloodborne-port.zip";
 const PORT_SHA256 =
-  "55ca3b8c0a0a6c6e402a3b09113b0f017784465dd834c8284b6eaf2571ec0644";
+  "cc47ebc3391cf08dddcb85a602c253aa188d34e1e058ae3178027cbcf71e4520";
 
 /** The NSIS installer writes this when "Include Bloodborne port" is ticked. */
 const INSTALL_REQUESTED_MARKER = "bloodborne-install-requested";
