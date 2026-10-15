@@ -29,6 +29,8 @@ import { db, gamesSublevel, levelKeys } from "./level";
 import { GameShop, UserPreferences } from "@types";
 import { launchGame, openClassicsGame } from "./helpers";
 import { refreshPortableShortcutLauncher } from "./helpers/shortcut-launch";
+import { sweepTempFiles } from "./helpers/sweep-temp-files";
+import { installBloodbornePortIfRequested } from "./services/bloodborne/bloodborne-port-installer";
 import { lookupCachedPlatform } from "./events/library/get-library";
 import { loadState } from "./main";
 import {
@@ -102,7 +104,9 @@ if (process.defaultApp) {
 
 const initializeApp = async () => {
   refreshPortableShortcutLauncher();
-  electronApp.setAppUserModelId("gg.hydralauncher.hydra");
+  void sweepTempFiles();
+  void installBloodbornePortIfRequested();
+  electronApp.setAppUserModelId("io.github.shaiyon69.chimaera");
 
   // macOS has one global menu bar that removeMenu() can't hide; keep Edit so copy/paste shortcuts work.
   if (process.platform === "darwin") {
