@@ -8,8 +8,9 @@ import {
   powerMonitor,
   protocol,
 } from "electron";
-import updater from "electron-updater";
+import updater, { type NsisUpdater } from "electron-updater";
 import i18n from "i18next";
+import { execFile } from "node:child_process";
 import path from "node:path";
 import url from "node:url";
 import { electronApp, optimizer } from "@electron-toolkit/utils";
@@ -30,6 +31,7 @@ import { GameShop, UserPreferences } from "@types";
 import { launchGame, openClassicsGame } from "./helpers";
 import { refreshPortableShortcutLauncher } from "./helpers/shortcut-launch";
 import { sweepTempFiles } from "./helpers/sweep-temp-files";
+import { checkSignature } from "./services/update-signature-core";
 import { installBloodbornePortIfRequested } from "./services/bloodborne/bloodborne-port-installer";
 import { lookupCachedPlatform } from "./events/library/get-library";
 import { loadState } from "./main";
@@ -57,6 +59,45 @@ autoUpdater.setFeedURL({
 });
 
 autoUpdater.logger = logger;
+
+if (process.platform === "win32") {
+  (autoUpdater as NsisUpdater).verifyUpdateCodeSignature = (_names, file) =>
+    new Promise((resolve) => {
+      // The path travels in the environment so it is never parsed as PowerShell code.
+      const env: NodeJS.ProcessEnv = {
+        ...process.env,
+        CHIMAERA_UPDATE_FILE: file,
+      };
+      // A PSModulePath inherited from another shell can stop Get-AuthenticodeSignature from loading.
+      delete env.PSModulePath;
+      execFile(
+        path.join(
+          process.env.SystemRoot ?? "C:\\Windows",
+          "System32",
+          "WindowsPowerShell",
+          "v1.0",
+          "powershell.exe"
+        ),
+        [
+          "-NoProfile",
+          "-NonInteractive",
+          "-Command",
+          "$s = Get-AuthenticodeSignature -LiteralPath $env:CHIMAERA_UPDATE_FILE; @{ Status = [int]$s.Status; SignerCertificate = @{ Thumbprint = $s.SignerCertificate.Thumbprint } } | ConvertTo-Json -Compress",
+        ],
+        {
+          env,
+          timeout: 30_000,
+          windowsHide: true,
+        },
+        (error, stdout) =>
+          resolve(
+            error
+              ? `Signature check failed: ${error.message}`
+              : checkSignature(stdout)
+          )
+      );
+    });
+}
 
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) app.quit();
