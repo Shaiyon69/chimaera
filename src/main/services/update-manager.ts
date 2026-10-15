@@ -1,5 +1,7 @@
 import updater, { UpdateInfo } from "electron-updater";
+import axios from "axios";
 import { logger, WindowManager } from "@main/services";
+import { pickUpdateTag } from "./update-feed-core";
 import { AppUpdaterEvent, UserPreferences } from "@types";
 import { app } from "electron";
 import { publishNotificationUpdateReadyToInstall } from "@main/services/notifications";
@@ -7,6 +9,12 @@ import { db, levelKeys } from "@main/level";
 
 const { autoUpdater } = updater;
 const sendEventsForDebug = false;
+
+const REPO = "Shaiyon69/chimaera";
+const MANIFESTS: Partial<Record<NodeJS.Platform, string>> = {
+  darwin: "latest-mac.yml",
+  linux: "latest-linux.yml",
+};
 
 export class UpdateManager {
   private static hasNotified = false;
@@ -41,6 +49,31 @@ export class UpdateManager {
     return false;
   }
 
+  /** Pins the feed to the newest app release; on failure the GitHub provider feed stays in place. */
+  private static async pointFeedAtAppRelease() {
+    try {
+      const { data } = await axios.get(
+        `https://api.github.com/repos/${REPO}/releases?per_page=20`,
+        {
+          headers: { Accept: "application/vnd.github+json" },
+          timeout: 15_000,
+        }
+      );
+      const tag = pickUpdateTag(
+        data,
+        MANIFESTS[process.platform] ?? "latest.yml"
+      );
+      if (tag) {
+        autoUpdater.setFeedURL({
+          provider: "generic",
+          url: `https://github.com/${REPO}/releases/download/${tag}`,
+        });
+      }
+    } catch (err) {
+      logger.error("Could not resolve the update feed", err);
+    }
+  }
+
   public static async checkForUpdates() {
     autoUpdater
       .removeAllListeners()
@@ -61,6 +94,7 @@ export class UpdateManager {
 
     if (app.isPackaged) {
       autoUpdater.autoDownload = isAutoInstallAvailable;
+      await this.pointFeedAtAppRelease();
       autoUpdater.checkForUpdates().then((result) => {
         logger.log(`Check for updates result: ${result}`);
       });
