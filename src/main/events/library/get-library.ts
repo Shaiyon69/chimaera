@@ -3,6 +3,7 @@ import fs from "node:fs";
 
 import type { LibraryGame } from "@types";
 import { registerEvent } from "../register-event";
+import { dedupeLibrary } from "./dedupe-library";
 import {
   downloadsSublevel,
   gamesArtworkSelectionSublevel,
@@ -47,88 +48,87 @@ const getLibrary = async (
     .all()
     .then((results) => {
       return Promise.all(
-        results
-          .filter(([_key, game]) =>
+        dedupeLibrary(
+          results.filter(([_key, game]) =>
             belongsToLibraryCollection(game, collection)
           )
-          .map(async ([key, game]) => {
-            const download = await downloadsSublevel.get(key);
-            const gameAssets = await gamesShopAssetsSublevel.get(key);
-            const artworkSelection =
-              await gamesArtworkSelectionSublevel.get(key);
-            const composedAssets = composeAssetsWithArtwork(
-              gameAssets ?? null,
-              artworkSelection
+        ).map(async ([key, game]) => {
+          const download = await downloadsSublevel.get(key);
+          const gameAssets = await gamesShopAssetsSublevel.get(key);
+          const artworkSelection = await gamesArtworkSelectionSublevel.get(key);
+          const composedAssets = composeAssetsWithArtwork(
+            gameAssets ?? null,
+            artworkSelection
+          );
+          const unlockedAchievementCount = resolveUnlockedAchievementCount(
+            game.shop,
+            game.objectId,
+            game.unlockedAchievementCount
+          );
+
+          // Verify installer still exists, clear if deleted externally
+          let installerSizeInBytes = game.installerSizeInBytes;
+          if (installerSizeInBytes && download?.folderName) {
+            const installerPath = path.join(
+              download.downloadPath,
+              download.folderName
             );
-            const unlockedAchievementCount = resolveUnlockedAchievementCount(
+
+            if (!fs.existsSync(installerPath)) {
+              installerSizeInBytes = null;
+              gamesSublevel.put(key, { ...game, installerSizeInBytes: null });
+            }
+          }
+
+          if (
+            game.shop === "launchbox" &&
+            (!game.platform || game.platform === null)
+          ) {
+            const cachedPlatform = await lookupCachedPlatform(key);
+            if (cachedPlatform) {
+              game.platform = cachedPlatform;
+              gamesSublevel.put(key, game).catch(() => {});
+            }
+          }
+
+          // Verify installed folder still exists, clear if deleted externally
+          let installedSizeInBytes = game.installedSizeInBytes;
+          if (installedSizeInBytes && game.executablePath) {
+            const executableDir = path.dirname(game.executablePath);
+
+            if (!fs.existsSync(executableDir)) {
+              installedSizeInBytes = null;
+              gamesSublevel.put(key, {
+                ...game,
+                installerSizeInBytes,
+                installedSizeInBytes: null,
+              });
+            }
+          }
+
+          return {
+            id: key,
+            ...game,
+            installerSizeInBytes,
+            installedSizeInBytes,
+            download: download ?? null,
+            unlockedAchievementCount,
+            achievementCount: resolveAchievementCount(
               game.shop,
               game.objectId,
-              game.unlockedAchievementCount
-            );
-
-            // Verify installer still exists, clear if deleted externally
-            let installerSizeInBytes = game.installerSizeInBytes;
-            if (installerSizeInBytes && download?.folderName) {
-              const installerPath = path.join(
-                download.downloadPath,
-                download.folderName
-              );
-
-              if (!fs.existsSync(installerPath)) {
-                installerSizeInBytes = null;
-                gamesSublevel.put(key, { ...game, installerSizeInBytes: null });
-              }
-            }
-
-            if (
-              game.shop === "launchbox" &&
-              (!game.platform || game.platform === null)
-            ) {
-              const cachedPlatform = await lookupCachedPlatform(key);
-              if (cachedPlatform) {
-                game.platform = cachedPlatform;
-                gamesSublevel.put(key, game).catch(() => {});
-              }
-            }
-
-            // Verify installed folder still exists, clear if deleted externally
-            let installedSizeInBytes = game.installedSizeInBytes;
-            if (installedSizeInBytes && game.executablePath) {
-              const executableDir = path.dirname(game.executablePath);
-
-              if (!fs.existsSync(executableDir)) {
-                installedSizeInBytes = null;
-                gamesSublevel.put(key, {
-                  ...game,
-                  installerSizeInBytes,
-                  installedSizeInBytes: null,
-                });
-              }
-            }
-
-            return {
-              id: key,
-              ...game,
-              installerSizeInBytes,
-              installedSizeInBytes,
-              download: download ?? null,
-              unlockedAchievementCount,
-              achievementCount: resolveAchievementCount(
-                game.shop,
-                game.objectId,
-                game.achievementCount
-              ),
-              // Spread composed assets last to ensure all image URLs are properly set
-              ...composedAssets,
-              title: composedAssets?.title || game.title,
-              platform: game.platform ?? null,
-              // Preserve custom image URLs from game if they exist
-              customIconUrl: game.customIconUrl,
-              customLogoImageUrl: game.customLogoImageUrl,
-              customHeroImageUrl: game.customHeroImageUrl,
-              customCoverImageUrl: game.customCoverImageUrl,
-            };
-          })
+              game.achievementCount
+            ),
+            // Spread composed assets last to ensure all image URLs are properly set
+            ...composedAssets,
+            title: composedAssets?.title || game.title,
+            platform: game.platform ?? null,
+            // Preserve custom image URLs from game if they exist
+            customIconUrl: game.customIconUrl,
+            customLogoImageUrl: game.customLogoImageUrl,
+            customHeroImageUrl: game.customHeroImageUrl,
+            customCoverImageUrl: game.customCoverImageUrl,
+          };
+        })
       );
     });
 };
