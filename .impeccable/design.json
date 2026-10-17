@@ -1,0 +1,262 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-17T00:00:00.000Z",
+  "title": "Design System: Chimaera",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Dodger Console Blue",
+        "canonical": "oklch(62% 0.206 255)",
+        "tonalRamp": [
+          "#000a20",
+          "#01244d",
+          "#034081",
+          "#125fb6",
+          "#1980f1",
+          "#65a7fd",
+          "#a7ccfd",
+          "#e4f0fe"
+        ]
+      },
+      "accent-text": {
+        "role": "primary",
+        "displayName": "Lifted Accent Text",
+        "canonical": "oklch(74% 0.140 249)",
+        "tonalRamp": [
+          "#000c1b",
+          "#002647",
+          "#014477",
+          "#1064a7",
+          "#3286d2",
+          "#58aaf9",
+          "#9fceff",
+          "#e2f0ff"
+        ]
+      },
+      "glass-thick": {
+        "role": "neutral",
+        "displayName": "Thick Glass",
+        "canonical": "oklch(19% 0 90)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ]
+      },
+      "danger": {
+        "role": "status",
+        "displayName": "Coral Danger",
+        "canonical": "oklch(71% 0.185 26)",
+        "tonalRamp": [
+          "#1f0001",
+          "#4c0306",
+          "#7f0710",
+          "#b21b21",
+          "#db4843",
+          "#fe736a",
+          "#feb3ab",
+          "#ffe9e6"
+        ]
+      },
+      "good": {
+        "role": "status",
+        "displayName": "Signal Green",
+        "canonical": "oklch(76% 0.208 147)",
+        "tonalRamp": [
+          "#001002",
+          "#022e0c",
+          "#06501b",
+          "#047629",
+          "#029d38",
+          "#1ac64d",
+          "#54ec72",
+          "#cbfecf"
+        ]
+      },
+      "warn": {
+        "role": "status",
+        "displayName": "Amber Warning",
+        "canonical": "oklch(82% 0.152 73)",
+        "tonalRamp": [
+          "#130900",
+          "#352001",
+          "#5b3a02",
+          "#835710",
+          "#ae7516",
+          "#dd9306",
+          "#fdbb60",
+          "#ffebd3"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "section-title": {
+        "displayName": "Section title",
+        "purpose": "Page and section headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default text in muted white."
+      },
+      "button-label": {
+        "displayName": "Button label",
+        "purpose": "All buttons; weight 600 signals an action."
+      },
+      "hint": { "displayName": "Hint", "purpose": "Helper text under fields." },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Chips, counts and metadata."
+      }
+    },
+    "shadows": [
+      {
+        "name": "rim",
+        "value": "inset 0 0 0 0.5px rgb(255 255 255 / 0.1)",
+        "purpose": "Default hairline edge on glass surfaces."
+      },
+      {
+        "name": "lift",
+        "value": "none",
+        "purpose": "Outer elevation; set only by themes such as Glass (0 10px 30px rgb(0 0 0 / 0.28), 0 2px 6px rgb(0 0 0 / 0.18))."
+      },
+      {
+        "name": "primary-highlight",
+        "value": "inset 0 1px 0 rgb(255 255 255 / 0.35), 0 1px 2px rgb(0 0 0 / 0.3)",
+        "purpose": "Lit top edge on accent buttons."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Shared easing for state transitions, 0.18s."
+      },
+      {
+        "name": "modal-in",
+        "value": "cubic-bezier(0.33, 1, 0.68, 1)",
+        "purpose": "Modal scale-and-fade entrance, 0.2s."
+      }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Default Button",
+      "kind": "button",
+      "refersTo": "button-default",
+      "description": "Everyday action on a soft white fill.",
+      "html": "<button class=\"ds-btn\">Open library</button>",
+      "css": ".ds-btn{padding:8px 16px;min-height:40px;border:0;border-radius:999px;background:rgb(255 255 255 / .08);color:rgb(255 255 255 / .92);font:600 14px -apple-system,'Segoe UI',sans-serif;box-shadow:inset 0 0 0 .5px rgb(255 255 255 / .2),inset 0 1px 0 rgb(255 255 255 / .08);cursor:pointer;transition:background-color .18s cubic-bezier(.2,.8,.2,1),transform .18s cubic-bezier(.2,.8,.2,1)}.ds-btn:hover{background:rgb(255 255 255 / .14)}.ds-btn:active{transform:scale(.97)}.ds-btn:focus-visible{outline:2px solid #0a84ff;outline-offset:2px}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single main action in a region.",
+      "html": "<button class=\"ds-btn-primary\">Play</button>",
+      "css": ".ds-btn-primary{padding:8px 16px;min-height:40px;border:0;border-radius:999px;background:linear-gradient(color-mix(in srgb,#0a84ff 80%,#fff),#0a84ff);color:#fff;font:600 14px -apple-system,'Segoe UI',sans-serif;box-shadow:inset 0 1px 0 rgb(255 255 255 / .35),0 1px 2px rgb(0 0 0 / .3);cursor:pointer;transition:transform .18s cubic-bezier(.2,.8,.2,1)}.ds-btn-primary:hover{background:linear-gradient(color-mix(in srgb,#0a84ff 65%,#fff),color-mix(in srgb,#0a84ff 90%,#fff))}.ds-btn-primary:active{transform:scale(.97)}.ds-btn-primary:focus-visible{outline:2px solid #0a84ff;outline-offset:2px}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action beside a primary.",
+      "html": "<button class=\"ds-btn-outline\">Cancel</button>",
+      "css": ".ds-btn-outline{padding:8px 16px;min-height:40px;border:0;border-radius:999px;background:transparent;color:rgb(255 255 255 / .92);font:600 14px -apple-system,'Segoe UI',sans-serif;box-shadow:inset 0 0 0 .5px rgb(255 255 255 / .2);cursor:pointer;transition:background-color .18s cubic-bezier(.2,.8,.2,1)}.ds-btn-outline:hover{background:rgb(255 255 255 / .08)}.ds-btn-outline:focus-visible{outline:2px solid #0a84ff;outline-offset:2px}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "40px field with a hairline rim and an accent focus ring.",
+      "html": "<input class=\"ds-input\" placeholder=\"Search games\" />",
+      "css": ".ds-input{height:40px;width:220px;box-sizing:border-box;padding:8px;border:0;border-radius:10px;background:rgb(255 255 255 / .04);color:rgb(255 255 255 / .92);font:400 14px -apple-system,'Segoe UI',sans-serif;box-shadow:inset 0 0 0 .5px rgb(255 255 255 / .2);outline:none;caret-color:#0a84ff;transition:box-shadow .2s ease}.ds-input:hover{box-shadow:inset 0 0 0 .5px rgb(235 235 245 / .34)}.ds-input:focus{box-shadow:inset 0 0 0 1px #0a84ff,0 0 0 3px color-mix(in srgb,#0a84ff 30%,transparent)}"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Small pill label with a rim and no fill.",
+      "html": "<span class=\"ds-chip\">Action</span>",
+      "css": ".ds-chip{display:inline-block;padding:3px 10px;border-radius:999px;color:rgb(235 235 245 / .62);font:400 12px -apple-system,'Segoe UI',sans-serif;box-shadow:inset 0 0 0 .5px rgb(255 255 255 / .2)}"
+    },
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Thin-glass surface with a hairline rim.",
+      "html": "<div class=\"ds-panel\"><strong>Downloads</strong><p>Nothing queued.</p></div>",
+      "css": ".ds-panel{padding:16px 18px;border-radius:16px;background:#0a0a0a;color:rgb(235 235 245 / .62);font:400 14px -apple-system,'Segoe UI',sans-serif;box-shadow:inset 0 0 0 .5px rgb(255 255 255 / .1)}.ds-panel strong{color:rgb(255 255 255 / .92);font-weight:700}.ds-panel p{margin:8px 0 0}"
+    },
+    {
+      "name": "Modal",
+      "kind": "custom",
+      "refersTo": "modal",
+      "description": "Thick-glass dialog with a hairline-divided header.",
+      "html": "<div class=\"ds-modal\"><div class=\"ds-modal-head\">Edit profile</div><div class=\"ds-modal-body\">Display name and bio.</div></div>",
+      "css": ".ds-modal{min-width:320px;max-width:600px;border-radius:16px;background:#141414;color:rgb(235 235 245 / .62);font:400 14px -apple-system,'Segoe UI',sans-serif;box-shadow:inset 0 0 0 .5px rgb(255 255 255 / .1);overflow:hidden}.ds-modal-head{padding:16px;border-bottom:1px solid rgb(255 255 255 / .1);color:rgb(255 255 255 / .92);font-weight:700}.ds-modal-body{padding:24px 16px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Dark Glass Console",
+    "overview": "Chimaera is a game launcher that behaves like a quiet console. The ground is near-black, panels are tinted glass separated by hairline rims, and a single accent marks what can be acted on. Game artwork supplies the colour; the interface stays out of its way.\n\nThe mood is quiet, precise and Apple-like. Surfaces are rounded at 16px, buttons are soft pills, text is set in the platform's native UI face, and motion is short and eased rather than showy.\n\nEverything routes through runtime tokens so that theme presets and custom themes recolour every component. Treat a hard-coded colour as a defect.",
+    "keyCharacteristics": [
+      "Near-black ground (#000000) with a three-step glass ladder (#0a0a0a, #0f0f0f, #141414).",
+      "One accent, Dodger Blue (#0a84ff), that themes can swap wholesale.",
+      "Hairline inset rims (0.5px) instead of outer shadows by default.",
+      "Pill buttons, 16px surfaces, 10px fields.",
+      "Native UI type, 14px body, weight 600 for actions.",
+      "Motion on one shared easing curve, 0.18s to 0.2s."
+    ],
+    "rules": [
+      {
+        "name": "The Token-Only Rule",
+        "body": "Every colour comes from a CSS custom property. Presets and custom themes only work because components never hard-code a hex.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Voice Rule",
+        "body": "The accent marks the single most important action or focus in a region. Everything else is white at a stated opacity.",
+        "section": "colors"
+      },
+      {
+        "name": "The White-Alpha Rule",
+        "body": "Fills, rims and dividers are white at fixed alphas (0.04, 0.08, 0.1, 0.14, 0.2). Do not introduce grey hexes between them.",
+        "section": "colors"
+      },
+      {
+        "name": "The Weight-Over-Size Rule",
+        "body": "Steps in importance use weight (400, 600, 700) and text opacity before they use a bigger font size.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-Until-Themed Rule",
+        "body": "Surfaces carry no outer shadow at rest. Shadows and blur come from the active theme through --lift and --blur, never from a component.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do take every colour from a token (--accent, --glass-*, --text, --muted, --line) so presets and custom themes recolour the whole app.",
+      "Do keep buttons as 40px pills with weight 600 labels.",
+      "Do define edges with 0.5px inset rims at white 10% or 20%.",
+      "Do use the 8px spacing unit and the 16px surface radius.",
+      "Do keep the 2px accent focus outline visible on every interactive element.",
+      "Do run state transitions on --ease (cubic-bezier(0.2, 0.8, 0.2, 1)) in 0.18s to 0.2s.",
+      "Do honour prefers-reduced-motion and prefers-reduced-transparency."
+    ],
+    "donts": [
+      "Don't hard-code a hex colour in a component; add or use a token.",
+      "Don't add an outer drop shadow or backdrop blur to a component; the theme owns --lift and --blur.",
+      "Don't use the accent on more than one primary action per region.",
+      "Don't introduce a second brand hue; status colours are for state only.",
+      "Don't replace the native UI font stack with a decorative face.",
+      "Don't use 1px solid borders where a 0.5px inset rim fits."
+    ]
+  }
+}
