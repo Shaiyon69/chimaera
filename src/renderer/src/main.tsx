@@ -4,7 +4,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { Provider } from "react-redux";
 import LanguageDetector from "i18next-browser-languagedetector";
-import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
+import { HashRouter, Route, Routes } from "react-router-dom";
 
 import "@fontsource/noto-sans/400.css";
 import "@fontsource/noto-sans/500.css";
@@ -31,6 +31,7 @@ import { ErrorBoundary } from "./components/error-boundary/error-boundary";
 import { levelDBService } from "./services/leveldb.service";
 import GameDetails from "./pages/game-details/game-details";
 import Settings from "./pages/settings/settings";
+import Friends from "./pages/friends/friends";
 import Profile from "./pages/profile/profile";
 import Achievements from "./pages/achievements/achievements";
 const ThemeEditor = lazy(() => import("./pages/theme-editor/theme-editor"));
@@ -38,8 +39,6 @@ import Notifications from "./pages/notifications/notifications";
 import { AchievementNotification } from "./pages/achievements/notification/achievement-notification";
 import { AchievementNotificationOverlay } from "./components/achievements/notification/achievement-notification-overlay";
 import GameLauncher from "./pages/game-launcher/game-launcher";
-import FriendsWindow from "./pages/friends-window/friends-window";
-const AuthWindow = lazy(() => import("./pages/auth-window/auth-window"));
 const RetroAchievementsConnectionWindow = lazy(
   () =>
     import(
@@ -165,10 +164,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                     <Route path="/catalogue" element={null} />
                     <Route path="/library" element={null} />
                     <Route path="/downloads" element={null} />
-                    <Route
-                      path="/friends"
-                      element={<Navigate to="/" replace />}
-                    />
+                    <Route path="/friends" element={<Friends />} />
                     <Route
                       path="/game/:shop/:objectId"
                       element={<GameDetails />}
@@ -185,8 +181,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                     element={<AchievementNotification />}
                   />
                   <Route path="/game-launcher" element={<GameLauncher />} />
-                  <Route path="/friends-window" element={<FriendsWindow />} />
-                  <Route path="/auth-window" element={<AuthWindow />} />
                   <Route
                     path="/retroachievements-connection"
                     element={<RetroAchievementsConnectionWindow />}

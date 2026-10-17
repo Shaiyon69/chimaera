@@ -39,6 +39,7 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
     ref
   ) => {
     const id = useId();
+    const hintId = `${id}-hint`;
     const [isFocused, setIsFocused] = useState(false);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const { t } = useTranslation("forms");
@@ -48,10 +49,17 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
         ? "text"
         : (props.type ?? "text");
     const hintContent = error ? (
-      <small className="text-field-container__error-label">{error}</small>
+      <small id={hintId} className="text-field-container__error-label">
+        {error}
+      </small>
     ) : hint ? (
-      <small>{hint}</small>
+      <small id={hintId}>{hint}</small>
     ) : null;
+    // Ties the visible hint/error to the input for screen readers without
+    // overriding a caller's own aria-describedby.
+    const describedBy = hintContent
+      ? [props["aria-describedby"], hintId].filter(Boolean).join(" ")
+      : props["aria-describedby"];
     const handleFocus: React.FocusEventHandler<HTMLInputElement> = (event) => {
       setIsFocused(true);
       props.onFocus?.(event);
@@ -87,6 +95,7 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
               onFocus={handleFocus}
               onBlur={handleBlur}
               type={inputType}
+              aria-describedby={describedBy || undefined}
             />
             {showPasswordToggleButton && (
               <button

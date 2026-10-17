@@ -1,0 +1,187 @@
+@use "../../scss/globals.scss";
+
+.friends {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: calc(globals.$spacing-unit * 3);
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: calc(globals.$spacing-unit * 3);
+
+  // Narrow windows stack the list above the thread instead of squeezing both.
+  @container #{globals.$app-container} (max-width: 720px) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 40%) minmax(0, 1fr);
+  }
+
+  &__sign-in,
+  &__unlock {
+    display: flex;
+    flex-direction: column;
+    gap: calc(globals.$spacing-unit * 2);
+    width: 100%;
+    max-width: 360px;
+    margin: calc(globals.$spacing-unit * 6) auto;
+    padding: 0 calc(globals.$spacing-unit * 3);
+    box-sizing: border-box;
+  }
+
+  &__title {
+    margin: 0;
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  &__hint {
+    margin: 0;
+    color: globals.$body-color;
+    font-size: globals.$hint-font-size;
+  }
+
+  &__no-account {
+    margin: 0;
+    color: var(--faint);
+    font-size: globals.$small-font-size;
+    text-align: center;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: globals.$spacing-unit;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: globals.$spacing-unit;
+  }
+
+  // More air above a group label than below it, so it binds to its own list.
+  &__heading {
+    margin: calc(globals.$spacing-unit * 2) 0 0;
+    color: globals.$body-color;
+    font-size: globals.$small-font-size;
+    font-weight: 600;
+  }
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: globals.$spacing-unit;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: globals.$spacing-unit;
+  }
+
+  &__select {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    gap: globals.$spacing-unit;
+    min-width: 0;
+    min-height: 40px;
+    padding: 0 globals.$spacing-unit;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: globals.$muted-color;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.18s var(--ease);
+
+    &:hover {
+      background-color: var(--fill);
+    }
+
+    &--active {
+      background-color: var(--fill);
+      box-shadow: inset 0 0 0 0.5px var(--line-strong);
+    }
+  }
+
+  &__name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__sign-out {
+    margin-top: auto;
+    padding-top: calc(globals.$spacing-unit * 2);
+  }
+
+  &__chat {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+  }
+
+  &__thread {
+    display: flex;
+    flex-direction: column;
+    gap: calc(globals.$spacing-unit * 2);
+    height: 100%;
+    min-height: 0;
+  }
+
+  &__messages {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: globals.$spacing-unit;
+    min-height: 0;
+    overflow-y: auto;
+    user-select: text;
+  }
+
+  &__bubble {
+    align-self: flex-start;
+    max-width: min(70%, 60ch);
+    padding: globals.$spacing-unit calc(globals.$spacing-unit * 1.5);
+    border-radius: var(--radius);
+    background-color: var(--fill);
+    color: globals.$muted-color;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+
+    &--mine {
+      align-self: flex-end;
+      background-color: color-mix(in srgb, var(--accent) 22%, transparent);
+      color: var(--text);
+    }
+  }
+
+  &__bubble-unreadable {
+    color: var(--faint);
+    font-style: italic;
+  }
+
+  &__composer {
+    display: flex;
+    gap: globals.$spacing-unit;
+
+    > :first-child {
+      flex: 1;
+    }
+  }
+
+  &__error {
+    margin: 0;
+    color: globals.$danger-color;
+  }
+
+  &__empty {
+    margin: 0;
+    color: globals.$body-color;
+  }
+}

@@ -32,7 +32,7 @@ export const routes = [
     path: "/friends",
     nameKey: "friends",
     render: () => <PeopleIcon />,
-    requiresAuth: true,
+    requiresAuth: false,
   },
   {
     path: "/settings",
