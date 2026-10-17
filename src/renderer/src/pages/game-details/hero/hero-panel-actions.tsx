@@ -439,6 +439,16 @@ export function HeroPanelActions() {
     return (
       <div className="hero-panel-actions__container">
         {gameActionButton()}
+        {bloodborne && bloodborneConfigured && !isGameRunning && (
+          <Button
+            onClick={() => window.electron.openBloodborneLauncher()}
+            theme="outline"
+            disabled={deleting}
+            className="hero-panel-actions__action"
+          >
+            {t("bloodborne_launcher")}
+          </Button>
+        )}
         <div className="hero-panel-actions__separator" />
         <Button
           onClick={toggleGameFavorite}

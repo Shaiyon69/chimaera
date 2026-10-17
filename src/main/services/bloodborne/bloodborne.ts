@@ -249,6 +249,18 @@ export const bloodborneAchievements = (): SteamAchievement[] => {
   }));
 };
 
+export const openBloodborneLauncher = () => {
+  const proc = spawn(launcherExe(), [], {
+    cwd: downloadedPortDir(),
+    detached: true,
+    stdio: "ignore",
+  });
+  proc.once("error", (error) => {
+    fail([`could not start the Bloodborne launcher: ${error.message}`]);
+  });
+  proc.unref();
+};
+
 export const launchBloodborne = async (shop: GameShop, objectId: string) => {
   // The setup modal offers the port download when it is missing.
   if (!getBloodborneSetup().portInstalled) {
@@ -281,15 +293,7 @@ export const launchBloodborne = async (shop: GameShop, objectId: string) => {
   // The launcher hides the game's stdout, where the port prints trophy unlocks.
   // Without a saved eboot path, fall back to the launcher so the user can set it up.
   if (!env.BB_GAME_DIR || !record) {
-    const proc = spawn(launcherExe(), [], {
-      cwd: downloadedPortDir(),
-      detached: true,
-      stdio: "ignore",
-    });
-    proc.once("error", (error) => {
-      fail([`could not start the Bloodborne launcher: ${error.message}`]);
-    });
-    proc.unref();
+    openBloodborneLauncher();
     return null;
   }
 

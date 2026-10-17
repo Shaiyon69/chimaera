@@ -292,6 +292,7 @@
     "accuracy": "{{accuracy}}% accuracy",
     "add_to_library": "Add to library",
     "bloodborne_install": "Install",
+    "bloodborne_launcher": "Launcher",
     "already_in_library": "Already in library",
     "remove_from_library": "Remove from library",
     "no_downloads": "No downloads available",

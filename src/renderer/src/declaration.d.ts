@@ -879,6 +879,7 @@ declare global {
       cb: (shop: GameShop, objectId: string) => void
     ) => () => Electron.IpcRenderer;
     getBloodborneSetup: () => Promise<BloodborneSetup>;
+    openBloodborneLauncher: () => Promise<void>;
     downloadBloodbornePort: () => Promise<void>;
     onBloodbornePortProgress: (
       cb: (progress: {

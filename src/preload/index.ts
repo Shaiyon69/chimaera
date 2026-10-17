@@ -1029,6 +1029,7 @@ contextBridge.exposeInMainWorld("electron", {
       ipcRenderer.removeListener("on-game-executable-not-found", listener);
   },
   getBloodborneSetup: () => ipcRenderer.invoke("getBloodborneSetup"),
+  openBloodborneLauncher: () => ipcRenderer.invoke("openBloodborneLauncher"),
   downloadBloodbornePort: () => ipcRenderer.invoke("downloadBloodbornePort"),
   onBloodbornePortProgress: (
     cb: (progress: {
