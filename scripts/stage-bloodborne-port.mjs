@@ -8,9 +8,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const REPO = "https://github.com/Shaiyon69/bloodborne_pc_windows_port.git";
+const REPO = "https://github.com/Mrsuss60/bloodborne_pc_windows_port.git";
 // Pinned so a package build is reproducible; bump deliberately.
-const COMMIT = "fc026c3bb6d5befb5d773f6b4339377cc7202e35";
+const COMMIT = "2ab6fe7ad41d4269c3699328d05f8de2b0c3bf10";
 
 // run.bat needs Python 3; ship the embeddable build so players need not install it.
 const PYTHON_URL =
@@ -108,8 +108,8 @@ run(path.join(process.env.SystemRoot ?? "C:\\Windows", "System32", "tar.exe"), [
 for (const f of fs.readdirSync(pyDir))
   if (/^python\d+\._pth$/i.test(f)) fs.rmSync(path.join(pyDir, f));
 
-// The port is not bundled in the installer; the app downloads this zip on demand.
-// Upload it to the release named in bloodborne-port-installer.ts, then paste the sha256 there.
+// The port is not bundled in the installer; the app downloads upstream's release zip on demand.
+// This repacks the staged copy for local testing only.
 const portZip = path.join(root, ".cache", "bloodborne-port.zip");
 fs.rmSync(portZip, { force: true });
 run(path.join(process.env.SystemRoot ?? "C:\Windows", "System32", "tar.exe"), [

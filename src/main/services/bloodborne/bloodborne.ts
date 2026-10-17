@@ -1,5 +1,5 @@
-import { app, dialog, shell } from "electron";
-import { execFile, spawn } from "node:child_process";
+import { app } from "electron";
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import type {
@@ -9,247 +9,25 @@ import type {
   SteamAchievement,
 } from "@types";
 import { gamesSublevel, levelKeys } from "@main/level";
-import { getDownloadsPath } from "@main/events/helpers/get-downloads-path";
 import { logger } from "../logger";
-import { SevenZip } from "../7zip";
-import { SystemPath } from "../system-path";
 import { downloadedPortDir } from "./bloodborne-port-installer";
 import { WindowManager } from "../window-manager";
+import { isPortDir } from "./bloodborne-core";
 import {
-  buildLaunchEnv,
-  findGameDir,
-  FPS_CHOICES,
-  POPULAR_PATCHES,
-  RES_CHOICES,
-  UPSCALER_CHOICES,
-  WINDOW_MODES,
-  gameDirCandidates,
-  isModFolder,
-  isPortDir,
-  isSafeModName,
-  listMods,
-  parseCaps,
-  preflight,
-  readLauncherSettings,
-  resolveGameDir,
-  resolvePortDir,
-  toLauncherSettingsJson,
-  toModsConfig,
-  type BbSettings,
-  type ModEntry,
-} from "./bloodborne-core";
+  launchEnvFromSettings,
+  parseTrophyId,
+  trophyAchievementName,
+} from "./bloodborne-trophies-core";
+import { mergeAchievements } from "../achievements/merge-achievements";
+import { createInterface } from "node:readline";
 
-/** Port shipped with the app (older builds) or the repo-root copy in dev; else the in-app download. */
-const bundledPortDir = () => {
-  const shipped = app.isPackaged
-    ? path.join(process.resourcesPath, "bloodborne-port")
-    : path.join(__dirname, "..", "..", "bloodborne-port");
-  return isPortDir(shipped) ? shipped : downloadedPortDir();
-};
+/** The port's own GUI launcher: it holds the game folder, graphics, keybinds and mods. */
+const launcherExe = () =>
+  path.join(downloadedPortDir(), "BloodborneLauncher.exe");
 
-/** Port beside the chosen game folder (an existing install), else the bundled one. */
-const portDir = () =>
-  resolvePortDir(bundledPortDir(), resolveGameDir(loadSettings().eboot));
-
-/** Writable: the bundle can sit in a read-only install dir. */
-const dataDir = () => path.join(SystemPath.getPath("userData"), "bloodborne");
-
-const driveRoots = () =>
-  "CDEFGHIJKLMNOPQRSTUVWXYZ"
-    .split("")
-    .map((l) => `${l}:\\`)
-    .filter((d) => fs.existsSync(d));
-
-const settingsFile = () => path.join(dataDir(), "launcher_settings.json");
-
-const loadSettings = (): BbSettings => {
-  try {
-    return readLauncherSettings(
-      JSON.parse(fs.readFileSync(settingsFile(), "utf-8"))
-    );
-  } catch {
-    return readLauncherSettings(null);
-  }
-};
-
-/** Setup is done once the saved game folder still holds eboot.bin. */
-const isConfigured = () =>
-  fs.existsSync(settingsFile()) &&
-  resolveGameDir(loadSettings().eboot) !== null;
-
-export const saveBloodborneSetup = (settings: BbSettings) => {
-  const gameDir = resolveGameDir(settings.eboot);
-  if (!gameDir) throw new Error("eboot.bin not found in the selected folder");
-  fs.mkdirSync(dataDir(), { recursive: true });
-  fs.writeFileSync(
-    settingsFile(),
-    JSON.stringify(
-      toLauncherSettingsJson({ ...settings, eboot: gameDir }),
-      null,
-      2
-    )
-  );
-};
-
-/** Clearing the executable path undoes setup, so Install asks for the game folder again. */
-export const resetBloodborneSetup = () =>
-  fs.rmSync(settingsFile(), { force: true });
-
-const modsDir = () => path.join(dataDir(), "mods");
-const modsConfigFile = () => path.join(dataDir(), "mods.json");
-
-const readModsConfig = () => {
-  try {
-    return JSON.parse(fs.readFileSync(modsConfigFile(), "utf-8"));
-  } catch {
-    return null;
-  }
-};
-
-export const getBloodborneMods = () => ({
-  enabled: loadSettings().mods,
-  mods: listMods(modsDir(), readModsConfig()),
+export const getBloodborneSetup = () => ({
+  portInstalled: isPortDir(downloadedPortDir()) && fs.existsSync(launcherExe()),
 });
-
-export const saveBloodborneMods = (state: {
-  enabled: boolean;
-  mods: ModEntry[];
-}) => {
-  fs.mkdirSync(dataDir(), { recursive: true });
-  fs.writeFileSync(
-    modsConfigFile(),
-    JSON.stringify(toModsConfig(state.mods), null, 2)
-  );
-  // The master switch lives in launcher_settings.json (BB_MODS_ENABLED).
-  if (fs.existsSync(settingsFile()))
-    fs.writeFileSync(
-      settingsFile(),
-      JSON.stringify(
-        toLauncherSettingsJson({ ...loadSettings(), mods: state.enabled }),
-        null,
-        2
-      )
-    );
-};
-
-/** Copies a mod folder, or extracts an archive, into the mods folder. Null when cancelled. */
-export const addBloodborneMod = async (
-  kind: "folder" | "archive"
-): Promise<string | null> => {
-  const { canceled, filePaths } = await dialog.showOpenDialog({
-    title:
-      kind === "folder"
-        ? "Select a Bloodborne mod folder"
-        : "Select a Bloodborne mod archive",
-    properties: [kind === "folder" ? "openDirectory" : "openFile"],
-    filters:
-      kind === "archive"
-        ? [{ name: "Archives", extensions: ["zip", "7z", "rar"] }]
-        : undefined,
-  });
-  const source = filePaths[0];
-  if (canceled || !source) return null;
-
-  const name = path.basename(
-    source,
-    kind === "folder" ? "" : path.extname(source)
-  );
-  const dest = path.join(modsDir(), name);
-  if (!isSafeModName(name)) throw new Error("invalid mod name");
-  if (fs.existsSync(dest)) throw new Error("mod already added");
-
-  try {
-    if (kind === "folder")
-      await fs.promises.cp(source, dest, { recursive: true });
-    else await SevenZip.extractFile({ filePath: source, outputPath: dest });
-    if (!isModFolder(dest)) throw new Error("not a Bloodborne mod");
-  } catch (error) {
-    await fs.promises.rm(dest, { recursive: true, force: true });
-    throw error;
-  }
-  return name;
-};
-
-export const removeBloodborneMod = async (name: string) => {
-  if (!isSafeModName(name)) throw new Error("invalid mod name");
-  await fs.promises.rm(path.join(modsDir(), name), {
-    recursive: true,
-    force: true,
-  });
-};
-
-export const openBloodborneModsFolder = async () => {
-  fs.mkdirSync(modsDir(), { recursive: true });
-  await shell.openPath(modsDir());
-};
-
-export const selectBloodborneGameDir = async (): Promise<string | null> => {
-  const { canceled, filePaths } = await dialog.showOpenDialog({
-    title: "Select your Bloodborne CUSA03173 folder (contains eboot.bin)",
-    properties: ["openDirectory"],
-  });
-  return canceled ? null : resolveGameDir(filePaths[0] ?? "");
-};
-
-const detectUpscalers = (): Promise<Record<string, boolean>> => {
-  const exe = path.join(portDir(), "out", "bb-gpu-capabilities.exe");
-  if (!fs.existsSync(exe)) return Promise.resolve({});
-  return new Promise((resolve) =>
-    execFile(
-      exe,
-      ["--upscalers"],
-      { timeout: 20000, windowsHide: true },
-      (err, stdout) => resolve(err ? {} : parseCaps(stdout))
-    )
-  );
-};
-
-/** The port's own launcher_settings.json beside the game folder, used to seed first-time setup. */
-const importPortSettings = (gameDir: string | null): BbSettings | null => {
-  if (!gameDir) return null;
-  try {
-    return readLauncherSettings(
-      JSON.parse(
-        fs.readFileSync(
-          path.join(path.dirname(gameDir), "launcher_settings.json"),
-          "utf-8"
-        )
-      )
-    );
-  } catch {
-    return null;
-  }
-};
-
-export const getBloodborneSetup = async () => {
-  const configured = isConfigured();
-  const downloads = await getDownloadsPath().catch(() => null);
-  const detected = findGameDir(
-    gameDirCandidates(
-      bundledPortDir(),
-      downloads ? [downloads] : [],
-      driveRoots()
-    )
-  );
-  const settings =
-    (!configured && importPortSettings(detected)) || loadSettings();
-  return {
-    configured,
-    portInstalled: isPortDir(portDir()),
-    settings: {
-      ...settings,
-      eboot: resolveGameDir(settings.eboot) ?? detected ?? "",
-    },
-    upscalerSupport: await detectUpscalers(),
-    choices: {
-      fps: FPS_CHOICES,
-      res: RES_CHOICES,
-      windowMode: WINDOW_MODES,
-      upscalers: UPSCALER_CHOICES,
-      patches: POPULAR_PATCHES,
-    },
-  };
-};
 
 const fail = (problems: string[]) => {
   logger.error("Bloodborne launch failed", { problems });
@@ -347,7 +125,7 @@ export const bloodborneShopDetails = (): ShopDetails => {
   } as ShopDetails;
 };
 
-// [displayName, description, hidden]; no trophy hooks in the port, so these only display.
+// [displayName, description, hidden], in PS4 trophy id order; the port reports unlocks on stdout.
 const TROPHIES: [string, string, boolean][] = [
   ["Bloodborne", "All trophies acquired. Hats off!", false],
   ["Yharnam Sunrise", "You lived through the hunt, and saw another day.", true],
@@ -462,7 +240,7 @@ const TROPHIES: [string, string, boolean][] = [
 export const bloodborneAchievements = (): SteamAchievement[] => {
   const icon = art("icon.png") ?? art("cover.png") ?? "";
   return TROPHIES.map(([displayName, description, hidden]) => ({
-    name: displayName.toUpperCase().replace(/[^A-Z0-9]+/g, "_"),
+    name: trophyAchievementName(displayName),
     displayName,
     description,
     icon,
@@ -471,18 +249,9 @@ export const bloodborneAchievements = (): SteamAchievement[] => {
   }));
 };
 
-// A second run.bat would rewrite out/ under the running game and kill it.
-let launching = false;
-
 export const launchBloodborne = async (shop: GameShop, objectId: string) => {
-  if (launching) {
-    logger.warn("Bloodborne is already running");
-    return null;
-  }
-  const port = portDir();
-
   // The setup modal offers the port download when it is missing.
-  if (!isPortDir(port) || !isConfigured()) {
+  if (!getBloodborneSetup().portInstalled) {
     WindowManager.sendToAppWindows(
       "on-bloodborne-setup-required",
       shop,
@@ -491,56 +260,73 @@ export const launchBloodborne = async (shop: GameShop, objectId: string) => {
     return null;
   }
 
-  const settings = loadSettings();
-  const gameDir = resolveGameDir(settings.eboot);
-  const problems = preflight(port, gameDir);
-  if (problems.length || !gameDir) return fail(problems);
-
-  const data = dataDir();
-  fs.mkdirSync(data, { recursive: true });
-  const env = buildLaunchEnv(settings, gameDir, process.env);
-  env.BB_DATA_DIR = data;
-  // run.bat falls back to a system Python when none is bundled.
-  const python = path.join(bundledPortDir(), "python", "python.exe");
-  if (fs.existsSync(python)) env.PYTHON = python;
-
-  // ".\" because NoDefaultCurrentDirectoryInExePath=1 stops cmd finding run.bat in cwd.
-  const log = fs.createWriteStream(path.join(data, "launcher.log"));
-  const proc = spawn("cmd.exe", ["/d", "/c", ".\\run.bat"], {
-    cwd: port,
-    env,
-    // Not detached: without a console the port's bbport.exe crashes at boot (exit 139)
-    // and Python children each open their own window.
-    windowsHide: true,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  launching = true;
-  proc.stdout?.pipe(log, { end: false });
-  proc.stderr?.pipe(log, { end: false });
-  proc.once("error", (error) => {
-    logger.error("Bloodborne spawn failed", error);
-    launching = false;
-    log.end();
-  });
-  proc.once("close", (code) => {
-    launching = false;
-    log.write(`[EXIT] code ${code}\n`);
-    log.end();
-  });
-  proc.unref();
-
-  // Lets the process watcher track playtime; run.bat itself exits only with the game.
+  // Lets the process watcher track playtime from the game itself, not the launcher window.
   const key = levelKeys.game(shop, objectId);
   const record = await gamesSublevel.get(key).catch(() => null);
   if (record) {
     await gamesSublevel.put(key, {
       ...record,
-      executablePath: path.join(port, "run.bat"),
+      executablePath: launcherExe(),
       executablePathUpdatedAt: new Date(),
-      trackingExecutablePaths: [path.join(port, "out", "bbport.exe")],
+      trackingExecutablePaths: [
+        path.join(downloadedPortDir(), "out", "bbport.exe"),
+      ],
       trackingExecutablePathsUpdatedAt: new Date(),
     });
   }
 
+  const settings = readLauncherSettings();
+  const env = launchEnvFromSettings(settings);
+
+  // The launcher hides the game's stdout, where the port prints trophy unlocks.
+  // Without a saved eboot path, fall back to the launcher so the user can set it up.
+  if (!env.BB_GAME_DIR || !record) {
+    const proc = spawn(launcherExe(), [], {
+      cwd: downloadedPortDir(),
+      detached: true,
+      stdio: "ignore",
+    });
+    proc.once("error", (error) => {
+      fail([`could not start the Bloodborne launcher: ${error.message}`]);
+    });
+    proc.unref();
+    return null;
+  }
+
+  const proc = spawn("cmd.exe", ["/c", "run.bat"], {
+    cwd: downloadedPortDir(),
+    env: { ...process.env, ...env, BB_DATA_DIR: downloadedPortDir() },
+    stdio: ["ignore", "pipe", "ignore"],
+    windowsHide: true,
+  });
+  proc.once("error", (error) => {
+    fail([`could not start the Bloodborne port: ${error.message}`]);
+  });
+
+  createInterface({ input: proc.stdout }).on("line", (line) => {
+    const id = parseTrophyId(line);
+    const trophy = id === null ? undefined : TROPHIES[id];
+    if (!trophy) return;
+
+    mergeAchievements(
+      record,
+      [{ name: trophyAchievementName(trophy[0]), unlockTime: Date.now() }],
+      true
+    ).catch((err) => logger.error("Bloodborne trophy merge failed", err));
+  });
+
   return null;
+};
+
+const readLauncherSettings = (): { eboot?: string; fps?: string } => {
+  try {
+    return JSON.parse(
+      fs.readFileSync(
+        path.join(downloadedPortDir(), "bblauncher_settings.json"),
+        "utf-8"
+      )
+    );
+  } catch {
+    return {};
+  }
 };

@@ -17,12 +17,18 @@ export const getUnlockedAchievements = async (
   shop: GameShop,
   useCachedData: boolean
 ): Promise<UserAchievement[]> => {
-  // No trophy hooks in the port: show the list locked, skip remote sync.
+  // Unlocks come from the port's stdout; skip remote sync.
   if (shop === "custom" && objectId === BLOODBORNE_OBJECT_ID) {
+    const unlocks = new Map(
+      (
+        AchievementMemoryStore.get(shop, objectId)?.unlockedAchievements ?? []
+      ).map((u) => [u.name.toUpperCase(), u.unlockTime])
+    );
+
     return bloodborneAchievements().map((achievement) => ({
       ...achievement,
-      unlocked: false,
-      unlockTime: null,
+      unlocked: unlocks.has(achievement.name),
+      unlockTime: unlocks.get(achievement.name) ?? null,
     }));
   }
 

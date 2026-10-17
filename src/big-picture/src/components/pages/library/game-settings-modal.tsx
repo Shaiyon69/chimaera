@@ -1,7 +1,5 @@
 import type { LibraryGame } from "@types";
-import { hasCloudSaveExecutableSelection } from "@shared";
 import { GameSettingsModal } from "../game";
-import { BigPictureCloudSaveProvider } from "../game/cloud-save-v2";
 import { useGameSettingsModalState } from "../game/game-settings-modal/use-game-settings-modal-state";
 import { useGameDetails } from "../../../hooks";
 
@@ -20,47 +18,28 @@ export function LibraryGameSettingsModal({
   const shop = game?.shop ?? "steam";
   const {
     game: detailedGame,
-    isGameRunning,
     updateGame,
     refreshGameDetails,
   } = useGameDetails(objectId, shop);
   const modalGame = detailedGame ?? game;
-  const { launchSettings, customizationSettings, cloudSettings } =
-    useGameSettingsModalState({
-      game: modalGame,
-      visible,
-      updateGame,
-      refreshGameDetails,
-    });
+  const { launchSettings, customizationSettings } = useGameSettingsModalState({
+    game: modalGame,
+    visible,
+    updateGame,
+    refreshGameDetails,
+  });
 
-  if (
-    !visible ||
-    !modalGame ||
-    !launchSettings ||
-    !customizationSettings ||
-    !cloudSettings
-  ) {
+  if (!visible || !modalGame || !launchSettings || !customizationSettings) {
     return null;
   }
 
   return (
-    <BigPictureCloudSaveProvider
-      objectId={modalGame.objectId}
-      shop={modalGame.shop}
-      platform={modalGame.platform}
-      hasExecutablePath={hasCloudSaveExecutableSelection(modalGame)}
-      isGameRunning={isGameRunning}
-      enableGamePageSync={false}
-      onSelectExecutable={() => undefined}
-    >
-      <GameSettingsModal
-        visible={visible}
-        game={modalGame}
-        launchSettings={launchSettings}
-        customizationSettings={customizationSettings}
-        cloudSettings={cloudSettings}
-        onClose={onClose}
-      />
-    </BigPictureCloudSaveProvider>
+    <GameSettingsModal
+      visible={visible}
+      game={modalGame}
+      launchSettings={launchSettings}
+      customizationSettings={customizationSettings}
+      onClose={onClose}
+    />
   );
 }
