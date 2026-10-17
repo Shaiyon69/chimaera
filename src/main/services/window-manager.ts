@@ -4,13 +4,6 @@ import { db, gamesSublevel, levelKeys } from "@main/level";
 import icon from "@resources/icon.png?asset";
 import trayIconDark from "@resources/tray-icon-dark.png?asset";
 import trayIcon from "@resources/tray-icon.png?asset";
-import {
-  AUTH_WINDOW_CONTENT_HEIGHT,
-  AUTH_WINDOW_CONTENT_WIDTH,
-  AuthPage,
-  CUSTOM_WINDOW_BORDER_WIDTH,
-  CUSTOM_WINDOW_TITLE_BAR_HEIGHT,
-} from "@shared";
 import type {
   AchievementCustomNotificationPosition,
   AchievementNotificationInfo,
@@ -23,7 +16,6 @@ import {
   MenuItem,
   MenuItemConstructorOptions,
   Tray,
-  WebContentsView,
   app,
   nativeImage,
   nativeTheme,
@@ -34,7 +26,6 @@ import { t } from "i18next";
 import { orderBy } from "lodash-es";
 import path from "node:path";
 import UserAgent from "user-agents";
-import { HydraApi } from "./hydra-api";
 import { logger } from "./logger";
 import {
   addSteamGridDbCacheControl,
@@ -56,8 +47,6 @@ export class WindowManager {
   private static gameLauncherWindowInstance: Electron.BrowserWindow | null =
     null;
   private static bigPicture: Electron.BrowserWindow | null = null;
-  private static friendsWindow: Electron.BrowserWindow | null = null;
-  private static authWindow: Electron.BrowserWindow | null = null;
   private static retroAchievementsConnectionWindow: Electron.BrowserWindow | null =
     null;
   private static deferredMainMaximize = false;
@@ -187,7 +176,7 @@ export class WindowManager {
   }
 
   public static sendToAppWindows(channel: string, ...args: unknown[]) {
-    const windows = [this.mainWindow, this.bigPicture, this.friendsWindow];
+    const windows = [this.mainWindow, this.bigPicture];
 
     for (const window of windows) {
       if (!window || window.isDestroyed()) continue;
@@ -359,6 +348,11 @@ export class WindowManager {
 
         if (
           !isArtworkRendererRequest ||
+          // Only artwork <img>/canvas fetches need forced CORS headers; forcing
+          // them onto every renderer fetch (API calls included) corrupts
+          // responses that already carry correct ones, as Supabase's does.
+          (details.resourceType !== "image" &&
+            details.resourceType !== "media") ||
           details.url.includes("featurebase") ||
           details.url.includes("chatwoot") ||
           details.url.includes("workwonders")
@@ -532,63 +526,6 @@ export class WindowManager {
     });
   }
 
-  public static openFriendsWindow() {
-    if (this.friendsWindow) {
-      if (this.friendsWindow.isMinimized()) {
-        this.friendsWindow.restore();
-      }
-      this.friendsWindow.focus();
-      return;
-    }
-
-    this.friendsWindow = new BrowserWindow({
-      width: 420,
-      height: 780,
-      minWidth: 420,
-      maxWidth: 420,
-      minHeight: 560,
-      maximizable: false,
-      backgroundColor: "#0c0c0c",
-      // No native frame/controls — the renderer draws its own minimize and
-      // close buttons in the title bar (see friends-window.tsx).
-      frame: false,
-      icon,
-      webPreferences: {
-        preload: path.join(__dirname, "../preload/index.mjs"),
-        sandbox: false,
-      },
-      show: false,
-    });
-
-    this.friendsWindow.removeMenu();
-
-    this.loadWindowURL(this.friendsWindow, "friends-window");
-
-    this.friendsWindow.once("ready-to-show", () => {
-      this.friendsWindow?.show();
-      if (!app.isPackaged || isStaging) {
-        this.friendsWindow?.webContents.openDevTools();
-      }
-    });
-
-    this.friendsWindow.on("closed", () => {
-      this.friendsWindow = null;
-    });
-  }
-
-  public static minimizeFriendsWindow() {
-    if (this.friendsWindow && !this.friendsWindow.isDestroyed()) {
-      this.friendsWindow.minimize();
-    }
-  }
-
-  public static closeFriendsWindow() {
-    if (this.friendsWindow && !this.friendsWindow.isDestroyed()) {
-      this.friendsWindow.close();
-    }
-    this.friendsWindow = null;
-  }
-
   public static minimizeMainWindow() {
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
       this.mainWindow.minimize();
@@ -628,157 +565,6 @@ export class WindowManager {
   public static focusMainWindowAndNavigate(path: string) {
     this.focusMainWindow();
     this.mainWindow?.webContents.send("on-navigate", path);
-  }
-
-  public static openAddFriendModalInMainWindow() {
-    this.focusMainWindow();
-    this.mainWindow?.webContents.send("on-open-add-friend-modal");
-  }
-
-  private static bindAuthNavigation(
-    contents: Electron.WebContents,
-    closeWindow: () => void
-  ) {
-    contents.on("will-navigate", (_event, url) => {
-      if (url.startsWith("hydralauncher://auth")) {
-        closeWindow();
-
-        HydraApi.handleExternalAuth(url);
-        return;
-      }
-
-      if (url.startsWith("hydralauncher://update-account")) {
-        closeWindow();
-
-        WindowManager.sendToAppWindows("on-account-updated");
-      }
-    });
-  }
-
-  public static openAuthWindow(page: AuthPage, searchParams: URLSearchParams) {
-    const parentWindow =
-      this.bigPicture && !this.bigPicture.isDestroyed()
-        ? this.bigPicture
-        : this.mainWindow;
-
-    if (!parentWindow || parentWindow.isDestroyed()) return;
-
-    const authUrl = `${import.meta.env.MAIN_VITE_AUTH_URL}${page}?${searchParams.toString()}`;
-
-    if (process.platform === "linux") {
-      this.openLinuxAuthWindow(parentWindow, authUrl);
-      return;
-    }
-
-    const authWindow = new BrowserWindow({
-      width: AUTH_WINDOW_CONTENT_WIDTH,
-      height: AUTH_WINDOW_CONTENT_HEIGHT,
-      backgroundColor: "#0c0c0c",
-      parent: parentWindow,
-      modal: true,
-      show: false,
-      maximizable: false,
-      resizable: false,
-      minimizable: false,
-      webPreferences: {
-        sandbox: false,
-        nodeIntegrationInSubFrames: true,
-      },
-    });
-
-    authWindow.removeMenu();
-
-    if (!app.isPackaged) authWindow.webContents.openDevTools();
-
-    authWindow.loadURL(authUrl);
-
-    authWindow.once("ready-to-show", () => {
-      authWindow.show();
-    });
-
-    authWindow.once("closed", () => {
-      if (!parentWindow.isDestroyed()) {
-        parentWindow.focus();
-      }
-    });
-
-    this.bindAuthNavigation(authWindow.webContents, () => authWindow.close());
-  }
-
-  private static openLinuxAuthWindow(
-    parentWindow: Electron.BrowserWindow,
-    authUrl: string
-  ) {
-    const authWindow = new BrowserWindow({
-      width: AUTH_WINDOW_CONTENT_WIDTH + CUSTOM_WINDOW_BORDER_WIDTH * 2,
-      height:
-        AUTH_WINDOW_CONTENT_HEIGHT +
-        CUSTOM_WINDOW_TITLE_BAR_HEIGHT +
-        CUSTOM_WINDOW_BORDER_WIDTH * 2,
-      parent: parentWindow,
-      modal: true,
-      show: false,
-      maximizable: false,
-      resizable: false,
-      frame: false,
-      icon,
-      backgroundColor: "#0c0c0c",
-      webPreferences: {
-        preload: path.join(__dirname, "../preload/index.mjs"),
-        sandbox: false,
-      },
-    });
-
-    this.authWindow = authWindow;
-
-    authWindow.removeMenu();
-
-    const authView = new WebContentsView({
-      webPreferences: {
-        sandbox: false,
-        nodeIntegrationInSubFrames: true,
-      },
-    });
-
-    authWindow.contentView.addChildView(authView);
-    authView.setBounds({
-      x: CUSTOM_WINDOW_BORDER_WIDTH,
-      y: CUSTOM_WINDOW_BORDER_WIDTH + CUSTOM_WINDOW_TITLE_BAR_HEIGHT,
-      width: AUTH_WINDOW_CONTENT_WIDTH,
-      height: AUTH_WINDOW_CONTENT_HEIGHT,
-    });
-
-    this.loadWindowURL(authWindow, "auth-window");
-    authView.webContents.loadURL(authUrl);
-
-    if (!app.isPackaged) authView.webContents.openDevTools();
-
-    authWindow.once("ready-to-show", () => {
-      authWindow.show();
-    });
-
-    authWindow.once("closed", () => {
-      this.authWindow = null;
-      if (!parentWindow.isDestroyed()) {
-        parentWindow.focus();
-      }
-    });
-
-    this.bindAuthNavigation(authView.webContents, () => {
-      if (!authWindow.isDestroyed()) authWindow.close();
-    });
-  }
-
-  public static minimizeAuthWindow() {
-    if (this.authWindow && !this.authWindow.isDestroyed()) {
-      this.authWindow.minimize();
-    }
-  }
-
-  public static closeAuthWindow() {
-    if (this.authWindow && !this.authWindow.isDestroyed()) {
-      this.authWindow.close();
-    }
   }
 
   public static openRetroAchievementsConnectionWindow() {
@@ -908,14 +694,16 @@ export class WindowManager {
 
       editorWindow.once("ready-to-show", () => {
         editorWindow.show();
-        this.mainWindow?.webContents.openDevTools();
+        // Dev-only: this used to open on the main window unconditionally, giving
+        // every packaged build a one-click DevTools console via the theme editor.
         if (!app.isPackaged || isStaging) {
+          this.mainWindow?.webContents.openDevTools();
           editorWindow.webContents.openDevTools();
         }
       });
 
       editorWindow.webContents.on("before-input-event", (_event, input) => {
-        if (input.key === "F12") {
+        if (input.key === "F12" && (!app.isPackaged || isStaging)) {
           this.mainWindow?.webContents.toggleDevTools();
         }
       });
