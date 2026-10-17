@@ -15,30 +15,29 @@ import {
   AllDebridClient,
   DownloadManager,
   HydraApi,
-  uploadGamesBatch,
   startMainLoop,
   Ludusavi,
   Lock,
   DeckyPlugin,
   DownloadSourcesChecker,
   DownloadOrchestrator,
-  SSEClient,
   Wine,
   WindowManager,
   logger,
-  migrateCloudSaveAutomaticSyncDefaults,
-  groupedSouvenirWorker,
 } from "@main/services";
 import { migrateDownloadSources } from "./helpers/migrate-download-sources";
 import { seedDefaultDownloadSource } from "./helpers/seed-default-download-source";
 import { getDirSize } from "./services/download/helpers";
 import { GofileApi } from "./services/hosters";
 import { clearLegacyAchievementPersistence } from "./level/clear-legacy-achievements";
-import { startSteamSyncOnStartup } from "./services/steam-integration/steam-startup-sync";
-import { migrateEmulatorCloudSaveDefaults } from "./services/cloud-save/automatic-sync-emulator-migration";
+import { migrateGamesToSqlite } from "./level/sqlite/migrate-games-to-sqlite";
+import { importHydraBackupOnce } from "./services/hydra-backup/hydra-backup-import";
+import { loadPersistedUnlockedAchievements } from "./services/achievements/unlocked-achievement-persistence";
 import { watchSteamLibraries } from "./services/steam-integration/steam-install-watcher";
 import { migrateGameVisibilityFields } from "./services/library-sync/game-visibility-migration";
 import { UmuUpdater } from "./services/umu-updater";
+import { autoUpdateOptiscaler } from "./services/optiscaler/game-install";
+import { AchievementWatcherManager } from "./services/achievements/achievement-watcher-manager";
 
 const hasMissingSeedFiles = async (download: Download): Promise<boolean> => {
   if (!download.folderName) return false;
@@ -64,10 +63,13 @@ const hasMissingSeedFiles = async (download: Download): Promise<boolean> => {
 
 export const loadState = async () => {
   await Lock.acquireLock();
+  const migratedGames = await migrateGamesToSqlite();
+  if (migratedGames) logger.info(`Moved ${migratedGames} games to SQLite`);
   await clearLegacyAchievementPersistence();
-  await migrateCloudSaveAutomaticSyncDefaults();
-  await migrateEmulatorCloudSaveDefaults();
   await migrateGameVisibilityFields();
+  await loadPersistedUnlockedAchievements();
+  const imported = await importHydraBackupOnce();
+  if (imported) logger.info("Imported Hydra backup", imported);
 
   const userPreferences = await db.get<string, UserPreferences | null>(
     levelKeys.userPreferences,
@@ -117,23 +119,21 @@ export const loadState = async () => {
 
   void watchSteamLibraries();
 
-  await HydraApi.setupApi().then(async () => {
-    uploadGamesBatch();
-    void migrateDownloadSources().then(seedDefaultDownloadSource);
+  void autoUpdateOptiscaler().catch((err) =>
+    logger.warn("OptiScaler auto-update failed", err)
+  );
 
-    const { syncDownloadSourcesFromApi } = await import("./services/user");
-    void syncDownloadSourcesFromApi();
+  // Enables the live watcher and its unlock toasts; nothing else calls this.
+  void AchievementWatcherManager.preSearchAchievements();
+
+  // Anonymous API: download sources and the catalogue; no account sync.
+  await HydraApi.setupApi().then(() => {
+    void migrateDownloadSources().then(seedDefaultDownloadSource);
 
     // Check for new download options on startup (if enabled)
     (async () => {
       await DownloadSourcesChecker.checkForChanges();
     })();
-
-    if (HydraApi.isLoggedIn()) {
-      SSEClient.connect();
-      void groupedSouvenirWorker.trigger();
-      void startSteamSyncOnStartup();
-    }
   });
 
   const downloadToResume =

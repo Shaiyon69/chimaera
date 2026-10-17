@@ -46,7 +46,7 @@ const newestCachedTag = (family: Fsr4Family): string | null => {
     fs
       .readdirSync(dir)
       .filter((t) => t.startsWith(TAG_PREFIX) && hasFamily(t, family))
-      .sort()
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
       .pop() ?? null
   );
 };
@@ -69,9 +69,19 @@ const download = async (url: string, dest: string) => {
 };
 
 /** Fetches the newest FSR4 DLL release for a GPU family into the cache; falls back to the newest cached one when offline. */
-export const ensureFsr4Dlls = async (
-  family: Fsr4Family
-): Promise<string | null> => {
+const inflight = new Map<Fsr4Family, Promise<string | null>>();
+
+export const ensureFsr4Dlls = (family: Fsr4Family): Promise<string | null> => {
+  // Status, settings and install all call this; one download must serve them all.
+  let p = inflight.get(family);
+  if (!p) {
+    p = fetchFsr4Dlls(family).finally(() => inflight.delete(family));
+    inflight.set(family, p);
+  }
+  return p;
+};
+
+const fetchFsr4Dlls = async (family: Fsr4Family): Promise<string | null> => {
   const archiveName = ARCHIVES[family];
   try {
     const { data } = await axios.get(API, {
@@ -119,16 +129,24 @@ export const ensureFsr4Dlls = async (
     if (!extracted.success) throw new Error(`Failed to extract ${archiveName}`);
     fs.rmSync(archive, { force: true });
 
-    for (const variant of ["exact", "lossy"] as const) {
-      const rel = `${family}/${variant}/${DLL}`;
-      const file = path.join(tmp, ...rel.split("/"));
-      if (!fs.existsSync(file) || sha256(file) !== sums.get(rel))
-        throw new Error(`Bad or missing ${rel} in ${archiveName}`);
-    }
+    // Archives hold either <family>/<variant>/ or <variant>/ at the root.
+    const found = (["exact", "lossy"] as const).map((variant) => {
+      const hashKey = `${family}/${variant}/${DLL}`;
+      const file = [
+        path.join(tmp, family, variant, DLL),
+        path.join(tmp, variant, DLL),
+      ].find((f) => fs.existsSync(f));
+      if (!file || sha256(file) !== sums.get(hashKey))
+        throw new Error(`Bad or missing ${hashKey} in ${archiveName}`);
+      return { variant, file };
+    });
 
-    fs.mkdirSync(dest, { recursive: true });
     fs.rmSync(path.join(dest, family), { recursive: true, force: true });
-    fs.renameSync(path.join(tmp, family), path.join(dest, family));
+    for (const { variant, file } of found) {
+      const target = dllPath(tag, family, variant);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.renameSync(file, target);
+    }
     fs.rmSync(tmp, { recursive: true, force: true });
     return tag;
   } catch (err) {

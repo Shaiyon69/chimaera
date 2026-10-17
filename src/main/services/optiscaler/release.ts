@@ -39,7 +39,44 @@ export const fetchLatestTag = async (
 };
 
 /** Release tag plus extracted payload folder. Downloads when not cached; falls back to the newest cached release offline. */
-export const fetchLatest = async (
+export const fetchLatest = (
+  nightly: boolean
+): Promise<{ tag: string; payload: string }> => {
+  // Status refreshes fire on every proxy change; unauthenticated GitHub allows 60 calls/h.
+  const fresh = resolved.get(nightly);
+  if (
+    fresh &&
+    Date.now() - fresh.at < LATEST_TAG_TTL_MS &&
+    findPayload(fresh.payload)
+  )
+    return Promise.resolve(fresh.result);
+
+  // Status warm-up and install can overlap; share one download/extract.
+  let p = inflight.get(nightly);
+  if (!p) {
+    p = downloadLatest(nightly)
+      .then((result) => {
+        resolved.set(nightly, {
+          at: Date.now(),
+          payload: result.payload,
+          result,
+        });
+        return result;
+      })
+      .finally(() => inflight.delete(nightly));
+    inflight.set(nightly, p);
+  }
+  return p;
+};
+
+const resolved = new Map<
+  boolean,
+  { at: number; payload: string; result: { tag: string; payload: string } }
+>();
+
+const inflight = new Map<boolean, Promise<{ tag: string; payload: string }>>();
+
+const downloadLatest = async (
   nightly: boolean
 ): Promise<{ tag: string; payload: string }> => {
   const cache = cacheDir();
@@ -82,8 +119,7 @@ export const fetchLatest = async (
       ? fs
           .readdirSync(cache)
           .filter((d) => d.startsWith("OptiScaler_"))
-          .sort()
-          .reverse()
+          .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
       : [];
     for (const d of tags) {
       const payload = findPayload(path.join(cache, d));

@@ -179,7 +179,7 @@ interface PublishAchievementUnlockNotificationsOptions {
   userPreferences: UserPreferences;
 }
 
-const publishAchievementUnlockNotifications = ({
+export const publishAchievementUnlockNotifications = ({
   game,
   newAchievements,
   unlockedAchievements,

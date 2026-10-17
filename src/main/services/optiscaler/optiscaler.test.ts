@@ -177,3 +177,19 @@ test("classifyGpus picks the best card", () => {
   );
   assert.equal(classifyGpus([]), "desktop");
 });
+
+test("a foreign optiscaler_manager.json is not ours and blocks install", () => {
+  const game = tmp();
+  const payload = tmp();
+  fs.writeFileSync(path.join(payload, "OptiScaler.dll"), "x");
+  const foreign = JSON.stringify({ profile: "bbport", proxy: "", files: [] });
+  fs.writeFileSync(path.join(game, "optiscaler_manager.json"), foreign);
+  assert.equal(readMarker(game), null);
+  assert.throws(() =>
+    install({ payload, exeDir: game, proxy: "dxgi.dll", tag: "v1" })
+  );
+  assert.equal(
+    fs.readFileSync(path.join(game, "optiscaler_manager.json"), "utf-8"),
+    foreign
+  );
+});

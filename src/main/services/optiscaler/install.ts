@@ -24,7 +24,11 @@ export interface Marker {
 
 export const readMarker = (exeDir: string): Marker | null => {
   try {
-    return JSON.parse(fs.readFileSync(path.join(exeDir, MARKER), "utf-8"));
+    const m: Marker = JSON.parse(
+      fs.readFileSync(path.join(exeDir, MARKER), "utf-8")
+    );
+    // Other tools (the Bloodborne port) write a marker of the same name.
+    return PROXIES.includes(m.proxy) ? m : null;
   } catch {
     return null;
   }
@@ -89,6 +93,8 @@ export const install = (opts: {
   const { payload, exeDir, proxy, tag, fsr4Dll, api = "unknown" } = opts;
   const fsr4Mode = opts.fsr4Mode ?? (fsr4Dll ? "dll" : null);
   const old = readMarker(exeDir);
+  if (!old && fs.existsSync(path.join(exeDir, MARKER)))
+    throw new Error("Another tool's optiscaler_manager.json is in this folder");
   if (old) uninstall(exeDir, true); // restore originals first so backups stay the true originals
 
   const backup = path.join(exeDir, BACKUP);

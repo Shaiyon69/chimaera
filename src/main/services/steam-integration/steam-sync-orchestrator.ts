@@ -1,4 +1,6 @@
-import { db, levelKeys } from "@main/level";
+import { db, gamesSublevel, levelKeys } from "@main/level";
+import type { SteamAchievement, UserPreferences } from "@types";
+import { publishAchievementUnlockNotifications } from "../achievements/merge-achievements";
 import { isSteamReconnectRequired } from "@shared";
 import { updateGameRecord } from "../game-record-updater";
 import { HydraApi } from "../hydra-api";
@@ -684,6 +686,38 @@ class SteamSyncOrchestrator {
     );
   }
 
+  private async notifyNewUnlocks(
+    steamAppId: string,
+    newAchievements: UnlockedAchievement[],
+    previous: UnlockedAchievement[],
+    merged: UnlockedAchievement[],
+    achievementsData: SteamAchievement[]
+  ) {
+    if (!newAchievements.length || !achievementsData.length) return;
+
+    try {
+      const localGame = await gamesSublevel.get(
+        levelKeys.game("steam", steamAppId)
+      );
+      const userPreferences = await db.get<string, UserPreferences | null>(
+        levelKeys.userPreferences,
+        { valueEncoding: "json" }
+      );
+      if (!localGame || localGame.isDeleted) return;
+
+      publishAchievementUnlockNotifications({
+        game: localGame,
+        newAchievements,
+        unlockedAchievements: previous,
+        achievementsData,
+        mergedLocalAchievements: merged,
+        userPreferences: userPreferences ?? ({} as UserPreferences),
+      });
+    } catch (err) {
+      steamSyncLogger.log("Failed to notify Steam unlocks", steamAppId, err);
+    }
+  }
+
   private async fetchAchievements(
     token: SteamWebApiToken,
     communitySession: SteamCommunitySession,
@@ -790,6 +824,16 @@ class SteamSyncOrchestrator {
             `Achievements for ${game.steamAppId} ${game.name}: ${unlockedAchievements.length} unlocked / ${schemaCount}`
           );
 
+          // A first sync has no baseline; toasting then would announce the whole history.
+          const newUnlocks = current
+            ? unlockedAchievements.filter(
+                (u) =>
+                  !current.unlockedAchievements.some(
+                    (c) => c.name.toUpperCase() === u.name.toUpperCase()
+                  )
+              )
+            : [];
+
           AchievementMemoryStore.set(
             "steam",
             game.steamAppId,
@@ -798,6 +842,14 @@ class SteamSyncOrchestrator {
               catalogue,
               unlockedAchievements
             )
+          );
+
+          await this.notifyNewUnlocks(
+            game.steamAppId,
+            newUnlocks,
+            current?.unlockedAchievements ?? [],
+            unlockedAchievements,
+            catalogue
           );
 
           await this.persistLocalAchievementCounts(

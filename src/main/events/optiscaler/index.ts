@@ -1,11 +1,9 @@
 import path from "node:path";
 import fs from "node:fs";
 import { registerEvent } from "../register-event";
-import { db, gamesSublevel, levelKeys } from "@main/level";
-import type { GameShop, UserPreferences } from "@types";
+import type { GameShop } from "@types";
 import { fetchLatest, fetchLatestTag } from "@main/services/optiscaler/release";
 import {
-  install,
   uninstall,
   readMarker,
   PROXIES,
@@ -22,46 +20,13 @@ import {
   ensureFsr4Dlls,
 } from "@main/services/optiscaler/fsr4-dll";
 import {
-  classifyGpus,
-  detectGpuNames,
-  type Fsr4Gpu,
-} from "@main/services/optiscaler/gpu";
-
-const getContext = async (shop: GameShop, objectId: string) => {
-  const game = await gamesSublevel.get(levelKeys.game(shop, objectId));
-  if (!game?.executablePath) throw new Error("Game has no executable path");
-  const exeDir = path.dirname(game.executablePath);
-  return { exePath: game.executablePath, exeDir };
-};
-
-const getPrefs = () =>
-  db.get<string, UserPreferences | null>(levelKeys.userPreferences, {
-    valueEncoding: "json",
-  });
-
-const detectGpu = async () => classifyGpus(await detectGpuNames());
-
-/** Manual override from settings, else the detected GPU. */
-const resolveFsr4Gpu = async (
-  prefs: UserPreferences | null
-): Promise<Fsr4Gpu> => {
-  const chosen = prefs?.optiscalerFsr4Gpu;
-  return chosen && chosen !== "auto" ? chosen : detectGpu();
-};
-
-/** User-chosen FSR4 DLL if it still exists, else the auto-downloaded one. Native GPUs need none. */
-const resolveFsr4Dll = (
-  prefs: UserPreferences | null,
-  gpu: Fsr4Gpu
-): string | null => {
-  if (gpu === "native") return null;
-  const variant = prefs?.optiscalerFsr4Variant === "lossy" ? "lossy" : "exact";
-  const chosen =
-    variant === "lossy"
-      ? prefs?.optiscalerFsr4LossyPath
-      : (prefs?.optiscalerFsr4ExactPath ?? prefs?.optiscalerFsr4DllPath);
-  return chosen && fs.existsSync(chosen) ? chosen : cachedFsr4Dll(gpu, variant);
-};
+  detectGpu,
+  getContext,
+  getPrefs,
+  installForGame,
+  resolveFsr4Dll,
+  resolveFsr4Gpu,
+} from "@main/services/optiscaler/game-install";
 
 const getStatus = async (
   _event: Electron.IpcMainInvokeEvent,
@@ -75,6 +40,7 @@ const getStatus = async (
   const gpu = await resolveFsr4Gpu(prefs);
   // Warm the cache so the first install already has the DLLs.
   if (gpu !== "native") void ensureFsr4Dlls(gpu);
+  void fetchLatest(!!prefs?.optiscalerNightly).catch(() => {});
   const latestTag = await fetchLatestTag(!!prefs?.optiscalerNightly);
   return {
     installed: !!marker,
@@ -97,30 +63,12 @@ const getStatus = async (
   };
 };
 
-const installOptiscaler = async (
+const installOptiscaler = (
   _event: Electron.IpcMainInvokeEvent,
   shop: GameShop,
   objectId: string,
   proxy: string
-) => {
-  if (!PROXIES.includes(proxy)) throw new Error(`Invalid proxy: ${proxy}`);
-  const { exePath, exeDir } = await getContext(shop, objectId);
-  const prefs = await getPrefs();
-  const { tag, payload } = await fetchLatest(!!prefs?.optiscalerNightly);
-  const gpu = await resolveFsr4Gpu(prefs);
-  if (gpu !== "native") await ensureFsr4Dlls(gpu);
-  const fsr4Dll = resolveFsr4Dll(prefs, gpu);
-  install({
-    payload,
-    exeDir,
-    proxy,
-    tag,
-    fsr4Dll,
-    fsr4Mode: gpu === "native" ? "native" : fsr4Dll ? "dll" : null,
-    api: detectApi(exePath),
-  });
-  return { version: tag };
-};
+) => installForGame(shop, objectId, proxy);
 
 const uninstallOptiscaler = async (
   _event: Electron.IpcMainInvokeEvent,
