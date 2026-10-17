@@ -112,7 +112,7 @@ for (const f of fs.readdirSync(pyDir))
 // This repacks the staged copy for local testing only.
 const portZip = path.join(root, ".cache", "bloodborne-port.zip");
 fs.rmSync(portZip, { force: true });
-run(path.join(process.env.SystemRoot ?? "C:\Windows", "System32", "tar.exe"), [
+run(path.join(process.env.SystemRoot ?? "C:\\Windows", "System32", "tar.exe"), [
   "-a",
   "-cf",
   portZip,
