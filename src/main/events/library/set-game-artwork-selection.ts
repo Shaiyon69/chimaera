@@ -2,11 +2,11 @@ import fs from "node:fs";
 
 import { registerEvent } from "../register-event";
 import {
-  db,
   gamesArtworkSelectionSublevel,
   gamesSublevel,
   levelKeys,
   markArtworkSelectionSynced,
+  batchWithGames,
 } from "@main/level";
 import {
   WindowManager,
@@ -125,7 +125,7 @@ const setGameArtworkSelection = async (
       }
     : null;
 
-  const batch = db.batch();
+  const batch = batchWithGames();
   if (manualAssetClear.updatedGame) {
     batch.put(gameKey, manualAssetClear.updatedGame, {
       sublevel: gamesSublevel,

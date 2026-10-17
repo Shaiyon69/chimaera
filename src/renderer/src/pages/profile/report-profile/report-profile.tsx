@@ -8,7 +8,7 @@ import * as yup from "yup";
 import { userProfileContext } from "@renderer/context";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useToast, useUserDetails } from "@renderer/hooks";
-import { AuthPage } from "@shared";
+
 import "./report-profile.scss";
 
 const reportReasons = ["hate", "sexual_content", "violence", "spam", "other"];
@@ -68,7 +68,6 @@ export function ReportProfile() {
   const onSubmit = useCallback(
     async (values: FormValues) => {
       if (!userDetails) {
-        window.electron.openAuthWindow(AuthPage.SignIn);
         return;
       }
 
@@ -89,7 +88,6 @@ export function ReportProfile() {
 
   const handleReportClick = () => {
     if (!userDetails) {
-      window.electron.openAuthWindow(AuthPage.SignIn);
       return;
     }
 

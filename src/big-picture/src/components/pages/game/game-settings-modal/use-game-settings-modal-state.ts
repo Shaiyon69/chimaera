@@ -17,7 +17,6 @@ import {
   executeSteamShortcutAction as runSharedSteamShortcutAction,
   type ClassicsDiscUpdatePayload,
 } from "../shared-actions";
-import type { GameCloudSettingsProps } from "./cloud-tab";
 import type { GameCustomizationSettingsProps } from "./customization-tab";
 import type { GameLaunchSettingsProps } from "./launch-tab";
 
@@ -33,7 +32,6 @@ interface UseGameSettingsModalStateParams {
 interface UseGameSettingsModalStateResult {
   launchSettings: GameLaunchSettingsProps | null;
   customizationSettings: GameCustomizationSettingsProps | null;
-  cloudSettings: GameCloudSettingsProps | null;
 }
 
 type CustomAssetType = "icon" | "logo" | "hero" | "grid";
@@ -59,9 +57,6 @@ export function useGameSettingsModalState({
   const [steamShortcutExists, setSteamShortcutExists] = useState(false);
   const [creatingSteamShortcut, setCreatingSteamShortcut] = useState(false);
   const [updatingGameTitle, setUpdatingGameTitle] = useState(false);
-  const [automaticCloudSync, setAutomaticCloudSync] = useState(
-    () => game?.automaticCloudSync ?? false
-  );
   const [execPickerInitialPath, setExecPickerInitialPath] = useState("");
   const [discPickerFilters, setDiscPickerFilters] = useState<FileFilter[]>([]);
   const launchOptionsDebounceRef = useRef<number | null>(null);
@@ -75,25 +70,6 @@ export function useGameSettingsModalState({
       null
     );
   }, [game?.discs, game?.selectedDiscPath]);
-
-  useEffect(() => {
-    setAutomaticCloudSync(game?.automaticCloudSync ?? false);
-  }, [game?.automaticCloudSync]);
-
-  useEffect(
-    () =>
-      globalThis.window.electron.onCloudSaveAutomaticSyncModeChanged(
-        (event) => {
-          if (
-            event.gameId.objectId === game?.objectId &&
-            event.gameId.shop === game?.shop
-          ) {
-            setAutomaticCloudSync(event.mode === "legacy");
-          }
-        }
-      ),
-    [game?.objectId, game?.shop]
-  );
 
   const getDownloadsPath = useCallback(async () => {
     const userPreferences = await globalThis.window.electron
@@ -715,24 +691,6 @@ export function useGameSettingsModalState({
     [game, showErrorToast, t, updateGame]
   );
 
-  const handleToggleAutomaticCloudSync = useCallback(
-    async (checked: boolean) => {
-      if (!game) return;
-      setAutomaticCloudSync(checked);
-      try {
-        await globalThis.window.electron.toggleAutomaticCloudSync(
-          game.shop,
-          game.objectId,
-          checked
-        );
-        void updateGame();
-      } catch {
-        setAutomaticCloudSync(!checked);
-      }
-    },
-    [game, updateGame]
-  );
-
   useEffect(
     () => () => {
       if (launchOptionsDebounceRef.current !== null) {
@@ -821,19 +779,8 @@ export function useGameSettingsModalState({
     updatingGameTitle,
   ]);
 
-  const cloudSettings = useMemo(() => {
-    if (!game) return null;
-
-    return {
-      game,
-      automaticCloudSync,
-      onToggleAutomaticCloudSync: handleToggleAutomaticCloudSync,
-    } satisfies GameCloudSettingsProps;
-  }, [automaticCloudSync, game, handleToggleAutomaticCloudSync]);
-
   return {
     launchSettings,
     customizationSettings,
-    cloudSettings,
   };
 }

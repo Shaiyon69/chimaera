@@ -188,3 +188,29 @@ describe("withSteamAchievementCatalogue", () => {
     });
   });
 });
+
+describe("AchievementMemoryStore persistence", () => {
+  afterEach(() => {
+    AchievementMemoryStore.persistWith(null);
+    AchievementMemoryStore.clear();
+  });
+
+  it("persists only when the unlocked list changes", () => {
+    const writes: string[] = [];
+    AchievementMemoryStore.persistWith((shop, objectId, unlocked) =>
+      writes.push(`${shop}:${objectId}:${unlocked.map((u) => u.name)}`)
+    );
+
+    AchievementMemoryStore.set("steam", "1", entry("A"));
+    AchievementMemoryStore.set("steam", "1", {
+      ...entry("A"),
+      language: "en",
+    });
+    AchievementMemoryStore.set("steam", "1", {
+      achievements: [],
+      unlockedAchievements: [],
+    });
+
+    assert.deepEqual(writes, ["steam:1:A", "steam:1:"]);
+  });
+});

@@ -11,7 +11,7 @@ import {
   SquaresFourIcon,
   StarIcon,
 } from "@phosphor-icons/react";
-import { AuthPage, getDisplayedPlayTimeInMilliseconds } from "@shared";
+import { getDisplayedPlayTimeInMilliseconds } from "@shared";
 import {
   type FocusEvent,
   forwardRef,
@@ -793,7 +793,6 @@ function SidebarProfile({
   }, [onNotificationsOpenChange]);
   const handleProfileClick = useCallback(() => {
     if (!userDetails?.id) {
-      void globalThis.window.electron.openAuthWindow(AuthPage.SignIn);
       return;
     }
 

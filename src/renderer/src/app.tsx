@@ -42,19 +42,14 @@ import {
 } from "@renderer/features";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useSubscription } from "./hooks/use-subscription";
 import { ArchiveDeletionModal } from "./pages/downloads/archive-deletion-error-modal";
 import { BloodborneSetupModal } from "./components/bloodborne-setup-modal/bloodborne-setup-modal";
-import { CloudSubscriptionModal } from "./pages/shared-modals/hydra-cloud/cloud-subscription-modal";
-import { AddFriendModal } from "./pages/profile/profile-content/add-friend-modal";
 import { ClassicsScanModal } from "./pages/settings/emulation/classics-scan-modal";
 import { RetroArchScanModal } from "./pages/settings/emulation/retroarch-scan-modal";
-import { CloudGiftNotificationModal } from "./pages/shared-modals/cloud-gift-notification-modal";
 import Home from "./pages/home/home";
 import Library from "./pages/library/library";
 import Catalogue from "./pages/catalogue/catalogue";
 import Downloads from "./pages/downloads/downloads";
-import FriendsWindow from "./pages/friends-window/friends-window";
 
 import type { DownloadProgress, UserPreferences } from "@types";
 import "./app.scss";
@@ -84,14 +79,12 @@ const MemoHome = memo(Home);
 const MemoLibrary = memo(Library);
 const MemoCatalogue = memo(Catalogue);
 const MemoDownloads = memo(Downloads);
-const MemoFriendsWindow = memo(FriendsWindow);
 
 const KEPT_ALIVE_PAGES: Record<string, () => React.ReactElement> = {
   "/": () => <MemoHome />,
   "/library": () => <MemoLibrary />,
   "/catalogue": () => <MemoCatalogue />,
   "/downloads": () => <MemoDownloads />,
-  "/friends": () => <MemoFriendsWindow embedded />,
 };
 
 export function App() {
@@ -114,14 +107,9 @@ export function App() {
 
   const {
     userDetails: currentUser,
-    hasActiveSubscription,
     fetchUserDetails,
     updateUserDetails,
-    clearUserDetails,
   } = useUserDetails();
-
-  const { hideHydraCloudModal, isHydraCloudModalVisible, hydraCloudFeature } =
-    useSubscription();
 
   const dispatch = useAppDispatch();
 
@@ -153,12 +141,11 @@ export function App() {
 
   const toast = useAppSelector((state) => state.toast);
 
-  const { showSuccessToast, showErrorToast } = useToast();
+  const { showErrorToast } = useToast();
 
   const [showArchiveDeletionModal, setShowArchiveDeletionModal] =
     useState(false);
   const [archivePaths, setArchivePaths] = useState<string[]>([]);
-  const [showAddFriendModal, setShowAddFriendModal] = useState(false);
 
   // Preferences changes arrive through onUserPreferencesUpdated, so read once.
   useEffect(() => {
@@ -392,15 +379,6 @@ export function App() {
     setupExternalResources();
   }, [setupExternalResources]);
 
-  const onSignIn = useCallback(() => {
-    fetchUserDetails().then((response) => {
-      if (response) {
-        updateUserDetails(response);
-        showSuccessToast(t("successfully_signed_in"));
-      }
-    });
-  }, [fetchUserDetails, t, showSuccessToast, updateUserDetails]);
-
   useEffect(() => {
     const unsubscribe = window.electron.onGamesRunning((gamesRunning) => {
       if (gamesRunning.length) {
@@ -520,14 +498,12 @@ export function App() {
 
   useEffect(() => {
     const listeners = [
-      window.electron.onSignIn(onSignIn),
       window.electron.onLibraryBatchComplete(() => {
         updateLibrary();
       }),
       window.electron.onDownloadsUpdated(() => {
         updateLibrary();
       }),
-      window.electron.onSignOut(() => clearUserDetails()),
       window.electron.onExtractionProgress((shop, objectId, progress) => {
         dispatch(setExtractionProgress({ shop, objectId, progress }));
       }),
@@ -597,7 +573,7 @@ export function App() {
     return () => {
       listeners.forEach((unsubscribe) => unsubscribe());
     };
-  }, [onSignIn, updateLibrary, clearUserDetails, dispatch, showErrorToast, t]);
+  }, [updateLibrary, dispatch, showErrorToast, t]);
 
   useEffect(() => {
     const asyncScrollAndNotify = async () => {
@@ -650,14 +626,6 @@ export function App() {
 
     return () => unsubscribe();
   }, [navigate]);
-
-  useEffect(() => {
-    const unsubscribe = globalThis.electron.onOpenAddFriendModal(() => {
-      setShowAddFriendModal(true);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   const playAudio = useCallback(async () => {
     const soundUrl = await getAchievementSoundUrl();
@@ -716,12 +684,7 @@ export function App() {
       {(window.electron.platform === "win32" ||
         window.electron.platform === "linux") && (
         <div className="title-bar">
-          <h4>
-            Chimaera
-            {hasActiveSubscription && (
-              <span className="title-bar__cloud-text"> Cloud</span>
-            )}
-          </h4>
+          <h4>Chimaera</h4>
 
           <button
             type="button"
@@ -745,25 +708,12 @@ export function App() {
         duration={toast.duration}
       />
 
-      <CloudSubscriptionModal
-        visible={isHydraCloudModalVisible}
-        onClose={hideHydraCloudModal}
-        feature={hydraCloudFeature || undefined}
-      />
-
-      <CloudGiftNotificationModal />
-
       <BloodborneSetupModal />
 
       <ArchiveDeletionModal
         visible={showArchiveDeletionModal}
         archivePaths={archivePaths}
         onClose={() => setShowArchiveDeletionModal(false)}
-      />
-
-      <AddFriendModal
-        visible={showAddFriendModal}
-        onClose={() => setShowAddFriendModal(false)}
       />
 
       <ClassicsScanModal />

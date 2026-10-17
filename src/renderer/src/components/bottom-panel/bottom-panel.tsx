@@ -33,7 +33,6 @@ export function BottomPanel() {
   const extraction = useAppSelector((state) => state.download.extraction);
 
   const [version, setVersion] = useState("");
-  const [sessionHash, setSessionHash] = useState<null | string>("");
   const [commonRedistStatus, setCommonRedistStatus] = useState<string | null>(
     null
   );
@@ -64,10 +63,6 @@ export function BottomPanel() {
 
     return () => unlisten();
   }, [t, showSuccessToast]);
-
-  useEffect(() => {
-    window.electron.getSessionHash().then((result) => setSessionHash(result));
-  }, [userDetails?.id]);
 
   const status = useMemo(() => {
     if (commonRedistStatus) {
@@ -236,9 +231,7 @@ export function BottomPanel() {
           data-open-workwonders-changelog-mini
           className="bottom-panel__version-button"
         >
-          <small>
-            {sessionHash ? `${sessionHash} -` : ""} v{version}
-          </small>
+          <small>v{version}</small>
         </button>
       </div>
     </footer>

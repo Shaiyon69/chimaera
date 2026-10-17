@@ -1,9 +1,9 @@
 import { chunk } from "lodash-es";
 import {
-  db,
   downloadsSublevel,
   gamesArtworkSelectionSublevel,
   gamesSublevel,
+  batchWithGames,
 } from "@main/level";
 import { updateGameExecutablePath } from "@main/helpers/update-executable-path";
 import { steamSyncLogger } from "../logger";
@@ -22,7 +22,7 @@ export const clearImportedSteamGames = async (steamOnlyObjectIds: string[]) => {
     const downloads = await downloadsSublevel.getMany(
       candidatesChunk.map(([key]) => key)
     );
-    const batch = db.batch();
+    const batch = batchWithGames();
 
     candidatesChunk.forEach(([key, game], index) => {
       if (downloads[index]) return;

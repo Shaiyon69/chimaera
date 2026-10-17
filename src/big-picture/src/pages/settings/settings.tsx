@@ -15,7 +15,6 @@ import {
 } from "../../services";
 import { GamepadButtonType } from "../../types";
 import { useVirtualKeyboardStore } from "../../stores";
-import { AccountPrivacySettingsSection } from "./account-privacy";
 import { BigPictureSettingsSection } from "./big-picture";
 import { CompatibilitySettingsSection } from "./compatibility";
 import { ContentSettingsSection } from "./content";
@@ -31,7 +30,6 @@ import { SETTINGS_PAGE_REGION_ID } from "./navigation";
 import { NotificationsSettingsSection } from "./notifications";
 import { useUserDetails } from "../../hooks";
 import {
-  ACCOUNT_PRIVACY_PRIVACY_SELECT_ID,
   COMPATIBILITY_COMMON_REDIST_BUTTON_ID,
   COMPATIBILITY_PROTON_OPTION_AUTO_FOCUS_ID,
   CONTENT_ITEM_FOCUS_IDS,
@@ -55,7 +53,6 @@ const ALL_SETTINGS_TABS = [
   { id: "emulation", label: "Emulation" },
   { id: "integrations", label: "Integrations" },
   { id: "compatibility", label: "Compatibility" },
-  { id: "account-privacy", label: "Account and Privacy" },
 ] as const;
 
 const SETTINGS_PAGE_FADE_TRANSITION = {
@@ -102,7 +99,6 @@ const SETTINGS_TAB_CONTENT: Record<
   emulation: EmulationSettingsSection,
   integrations: IntegrationsSettingsSection,
   compatibility: CompatibilitySettingsSection,
-  "account-privacy": AccountPrivacySettingsSection,
 };
 
 function SettingsTabPanel({
@@ -171,12 +167,8 @@ export default function Settings() {
   );
 
   const visibleTabs = useMemo(() => {
-    return ALL_SETTINGS_TABS.filter((tab) => {
-      if (tab.id !== "account-privacy") return true;
-
-      return Boolean(userDetails);
-    });
-  }, [userDetails]);
+    return [...ALL_SETTINGS_TABS];
+  }, []);
 
   const selectedTabIndex = visibleTabs.findIndex(
     (tab) => tab.id === selectedTab
@@ -330,13 +322,6 @@ export default function Settings() {
               ? COMPATIBILITY_COMMON_REDIST_BUTTON_ID
               : COMPATIBILITY_PROTON_OPTION_AUTO_FOCUS_ID,
         };
-      case "account-privacy":
-        return userDetails
-          ? {
-              type: "item",
-              itemId: ACCOUNT_PRIVACY_PRIVACY_SELECT_ID,
-            }
-          : null;
       default:
         return null;
     }

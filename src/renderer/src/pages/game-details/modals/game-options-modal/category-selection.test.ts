@@ -43,9 +43,6 @@ describe("game options category selection", () => {
   it("preserves a manually selected category when availability changes", () => {
     assert.equal(
       getAvailableGameSettingsCategory("assets", {
-        cloudSaveAccessAction: "open",
-        showCloudSaveV2Settings: true,
-        showLegacyCloudSaveSettings: false,
         showDownloadSettings: true,
         showOptiscalerSettings: true,
       }),
@@ -53,61 +50,16 @@ describe("game options category selection", () => {
     );
   });
 
-  it("falls back when the selected cloud category is unavailable", () => {
-    assert.equal(
-      getAvailableGameSettingsCategory("hydra_cloud", {
-        cloudSaveAccessAction: "open",
-        showCloudSaveV2Settings: false,
-        showLegacyCloudSaveSettings: true,
-        showDownloadSettings: true,
-        showOptiscalerSettings: true,
-      }),
-      "general"
-    );
-    assert.equal(
-      getAvailableGameSettingsCategory("hydra_cloud_legacy", {
-        cloudSaveAccessAction: "open",
-        showCloudSaveV2Settings: true,
-        showLegacyCloudSaveSettings: false,
-        showDownloadSettings: true,
-        showOptiscalerSettings: true,
-      }),
-      "general"
-    );
-  });
-
-  it("falls back when cloud access is lost", () => {
-    assert.equal(
-      getAvailableGameSettingsCategory("hydra_cloud", {
-        cloudSaveAccessAction: "paywall",
-        showCloudSaveV2Settings: true,
-        showLegacyCloudSaveSettings: true,
-        showDownloadSettings: true,
-        showOptiscalerSettings: true,
-      }),
-      "general"
-    );
-  });
-
-  it("falls back when downloads are unavailable", () => {
+  it("falls back when the selected category is unavailable", () => {
     assert.equal(
       getAvailableGameSettingsCategory("downloads", {
-        cloudSaveAccessAction: "open",
-        showCloudSaveV2Settings: true,
-        showLegacyCloudSaveSettings: true,
         showDownloadSettings: false,
         showOptiscalerSettings: true,
       }),
       "general"
     );
-  });
-
-  it("falls back when OptiScaler is unavailable", () => {
     assert.equal(
       getAvailableGameSettingsCategory("optiscaler", {
-        cloudSaveAccessAction: "open",
-        showCloudSaveV2Settings: true,
-        showLegacyCloudSaveSettings: true,
         showDownloadSettings: true,
         showOptiscalerSettings: false,
       }),

@@ -2,7 +2,7 @@ import { findGameExecutableInFolder } from "@main/helpers/find-game-executable";
 import { updateGameExecutablePath } from "@main/helpers/update-executable-path";
 import { gamesSublevel, levelKeys } from "@main/level";
 import type { Game } from "@types";
-import { runAutomaticCloudSaveSync } from "../cloud-save";
+
 import { clearMissingExecutables } from "../clear-missing-executables";
 import { trackAchievementBatchGame } from "../achievements/achievement-batch-games";
 import { updateGameRecord } from "../game-record-updater";
@@ -74,17 +74,6 @@ const linkExecutable = async (candidate: Game, executablePath: string) => {
   if (!didLink || !updatedGame) return false;
 
   trackAchievementBatchGame(gameKey);
-
-  void runAutomaticCloudSaveSync(
-    candidate.objectId,
-    candidate.shop,
-    "environment-changed"
-  ).catch((error) => {
-    steamSyncLogger.error(
-      `Failed to sync cloud saves after linking Steam executable ${candidate.objectId}`,
-      error
-    );
-  });
 
   return true;
 };

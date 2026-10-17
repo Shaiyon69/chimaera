@@ -3,9 +3,9 @@ export type GameSettingsCategoryId =
   | "locations"
   | "assets"
   | "mods"
+  | "controls"
+  | "save_backups"
   | "optiscaler"
-  | "hydra_cloud"
-  | "hydra_cloud_legacy"
   | "compatibility"
   | "downloads"
   | "danger_zone";

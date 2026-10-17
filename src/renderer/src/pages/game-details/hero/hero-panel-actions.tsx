@@ -150,7 +150,7 @@ export function HeroPanelActions() {
     const refresh = () =>
       window.electron
         .getBloodborneSetup()
-        .then((setup) => setBloodborneConfigured(setup.configured));
+        .then((setup) => setBloodborneConfigured(setup.portInstalled));
     void refresh();
     window.addEventListener(BLOODBORNE_CONFIGURED_EVENT, refresh);
     return () =>

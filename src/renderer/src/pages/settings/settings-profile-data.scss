@@ -1,0 +1,29 @@
+.settings-profile-data {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__avatar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  &__top {
+    margin: 0;
+    padding-left: 20px;
+  }
+}

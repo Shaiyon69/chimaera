@@ -37,15 +37,6 @@ export const levelKeys = {
   ps1MemoryCardSaves: "ps1MemoryCardSaves",
   ps1MemoryCardSave: (cardFilePath: string, identifier: string) =>
     `${cardFilePath}::${identifier}`,
-  cloudSaveLocalHashCache: "cloud-save-local-hash-cache",
-  cloudSavePrefixGenerations: "cloud-save-prefix-generations",
-  cloudSaveSyncAnchors: "cloud-save-sync-anchors",
-  cloudSaveAutomaticSyncSettings: "cloud-save-automatic-sync-settings",
-  cloudSaveV2DefaultMigration: "cloud-save-v2-default-migration",
   gameVisibilityRenameMigration: "game-visibility-rename-migration",
-  cloudSaveCustomPaths: "cloud-save-custom-paths",
-  cloudSaveEmulatorDestinations: "cloud-save-emulator-destinations",
-  cloudSaveRetroArchBindings: "cloud-save-retroarch-bindings",
-  cloudSavePendingDeletions: "cloud-save-pending-deletions",
   steamSyncRun: "steamSyncRun",
 };

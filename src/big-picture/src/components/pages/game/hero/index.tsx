@@ -7,7 +7,6 @@ import {
   XCircleIcon,
 } from "@phosphor-icons/react";
 import type { LibraryGame, ShopDetailsWithAssets } from "@types";
-import { isCloudSaveV2Eligible } from "@shared";
 import { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -31,12 +30,10 @@ import {
 import {
   GAME_HERO_ACTIONS_REGION_ID,
   GAME_HERO_DOWNLOAD_OPTIONS_ID,
-  GAME_HERO_OPEN_CLOUD_SAVE_ID,
   GAME_HERO_OPEN_SETTINGS_ID,
   GAME_HERO_PRIMARY_ACTION_ID,
   GAME_HERO_TOGGLE_FAVORITE_ID,
 } from "../navigation";
-import { BigPictureCloudSaveHeroButton } from "../cloud-save-v2";
 import { useHeroBackgroundLayers } from "../../library/hero/use-hero-background-layers";
 import cn from "classnames";
 
@@ -59,12 +56,10 @@ export interface HeroProps {
 }
 
 function getFavoriteLeftTargetId(
-  shouldShowCloudSaveButton: boolean,
   shouldShowFavoriteButton: boolean,
   shouldShowCatalogActions: boolean,
   hasPrimaryAction: boolean
 ): string {
-  if (shouldShowCloudSaveButton) return GAME_HERO_OPEN_CLOUD_SAVE_ID;
   if (shouldShowFavoriteButton) return GAME_HERO_OPEN_SETTINGS_ID;
   if (shouldShowCatalogActions && hasPrimaryAction)
     return GAME_HERO_DOWNLOAD_OPTIONS_ID;
@@ -138,14 +133,11 @@ export function Hero({
     canAddToLibrary;
   const shouldShowCatalogActions = !game && canAddToLibrary;
   const shouldShowFavoriteButton = Boolean(game);
-  const shouldShowCloudSaveButton =
-    !!game && isCloudSaveV2Eligible(game.shop, game.platform);
   const lastActionRightTarget = useMemo<FocusOverrideTarget>(
     () => sidebarEntryTarget ?? { type: "block" },
     [sidebarEntryTarget]
   );
   const favoriteLeftTargetId = getFavoriteLeftTargetId(
-    shouldShowCloudSaveButton,
     shouldShowFavoriteButton,
     shouldShowCatalogActions,
     hasPrimaryAction
@@ -157,19 +149,6 @@ export function Hero({
       itemId: favoriteLeftTargetId,
     },
     right: lastActionRightTarget,
-    down: heroDownNavigationTarget,
-  };
-  const cloudSaveNavigationOverrides: FocusOverrides = {
-    left: {
-      type: "item",
-      itemId: GAME_HERO_OPEN_SETTINGS_ID,
-    },
-    right: shouldShowFavoriteButton
-      ? {
-          type: "item",
-          itemId: GAME_HERO_TOGGLE_FAVORITE_ID,
-        }
-      : lastActionRightTarget,
     down: heroDownNavigationTarget,
   };
 
@@ -216,17 +195,12 @@ export function Hero({
           type: "item",
           itemId: settingsLeftTargetId,
         },
-        right: shouldShowCloudSaveButton
+        right: shouldShowFavoriteButton
           ? {
               type: "item" as const,
-              itemId: GAME_HERO_OPEN_CLOUD_SAVE_ID,
+              itemId: GAME_HERO_TOGGLE_FAVORITE_ID,
             }
-          : shouldShowFavoriteButton
-            ? {
-                type: "item" as const,
-                itemId: GAME_HERO_TOGGLE_FAVORITE_ID,
-              }
-            : lastActionRightTarget,
+          : lastActionRightTarget,
         down: heroDownNavigationTarget,
       };
 
@@ -371,7 +345,6 @@ export function Hero({
       onOpenSettings,
       onPlay,
       shouldShowCatalogActions,
-      shouldShowCloudSaveButton,
       shouldShowFavoriteButton,
       lastActionRightTarget,
       t,
@@ -437,12 +410,6 @@ export function Hero({
           )}
 
           {settingsButton}
-
-          {shouldShowCloudSaveButton && (
-            <BigPictureCloudSaveHeroButton
-              focusNavigationOverrides={cloudSaveNavigationOverrides}
-            />
-          )}
 
           {shouldShowFavoriteButton && (
             <Button

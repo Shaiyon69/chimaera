@@ -1,4 +1,4 @@
-import { db, gamesSublevel, levelKeys } from "@main/level";
+import { db, gamesSublevel, levelKeys, batchWithGames } from "@main/level";
 
 import {
   migrateGameVisibilityWithStore,
@@ -16,7 +16,7 @@ const store: GameVisibilityMigrationStore = {
     (await migrationSublevel.get(migrationCompletedKey)) === true,
   getGames: () => gamesSublevel.iterator().all(),
   commit: async (games) => {
-    const batch = db.batch();
+    const batch = batchWithGames();
     for (const [key, game] of games) {
       batch.put(key, game, { sublevel: gamesSublevel });
     }

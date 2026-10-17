@@ -7,7 +7,6 @@ import {
   type SkuRegion,
 } from "@renderer/helpers";
 import type { GameShop, ShopAssets } from "@types";
-import { hasCloudSaveExecutableSelection } from "@shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
@@ -50,7 +49,6 @@ import {
   SupportedLanguages,
 } from "../../components/pages/game";
 import { useGameSettingsModalState } from "../../components/pages/game/game-settings-modal/use-game-settings-modal-state";
-import { BigPictureCloudSaveProvider } from "../../components/pages/game/cloud-save-v2";
 import {
   useBigPictureToast,
   useGameDetails,
@@ -590,13 +588,12 @@ export default function Game() {
     updateGame,
     refreshGameDetails,
   } = useGameDetails(objectId!, shop!);
-  const { launchSettings, customizationSettings, cloudSettings } =
-    useGameSettingsModalState({
-      game,
-      visible: isGameSettingsModalOpen,
-      updateGame,
-      refreshGameDetails,
-    });
+  const { launchSettings, customizationSettings } = useGameSettingsModalState({
+    game,
+    visible: isGameSettingsModalOpen,
+    updateGame,
+    refreshGameDetails,
+  });
   const canAddToLibrary = shop !== "custom";
   const resolvedGameTitle =
     preferredAssets.title || game?.title || "Download Game";
@@ -1445,44 +1442,32 @@ export default function Game() {
   return (
     <VerticalFocusGroup regionId={GAME_PAGE_REGION_ID} asChild>
       <div ref={pageRef} className="game-page">
-        <BigPictureCloudSaveProvider
-          objectId={objectId!}
-          shop={shop!}
-          platform={game?.platform}
-          hasExecutablePath={
-            game ? hasCloudSaveExecutableSelection(game) : false
-          }
+        <Hero
+          shopDetails={shopDetails}
+          game={game}
           isGameRunning={isGameRunning}
-          onSelectExecutable={() => setIsGameSettingsModalOpen(true)}
-        >
-          <Hero
-            shopDetails={shopDetails}
+          isFavorite={game?.favorite ?? false}
+          toggleFavorite={toggleFavorite}
+          onPlay={handlePlayGame}
+          onDownload={handleOpenDownloadModal}
+          onAddToLibrary={handleAddToLibrary}
+          onOpenDownloadOptions={handleOpenDownloadModal}
+          onOpenSettings={() => setIsGameSettingsModalOpen(true)}
+          onClose={closeGame}
+          isAddingToLibrary={isAddingToLibrary}
+          canAddToLibrary={canAddToLibrary}
+          downNavigationTarget={contentBelowHeroTarget}
+          sidebarEntryTarget={sidebarEntryTarget}
+        />
+        {game && launchSettings && customizationSettings && (
+          <GameSettingsModal
+            visible={isGameSettingsModalOpen}
             game={game}
-            isGameRunning={isGameRunning}
-            isFavorite={game?.favorite ?? false}
-            toggleFavorite={toggleFavorite}
-            onPlay={handlePlayGame}
-            onDownload={handleOpenDownloadModal}
-            onAddToLibrary={handleAddToLibrary}
-            onOpenDownloadOptions={handleOpenDownloadModal}
-            onOpenSettings={() => setIsGameSettingsModalOpen(true)}
-            onClose={closeGame}
-            isAddingToLibrary={isAddingToLibrary}
-            canAddToLibrary={canAddToLibrary}
-            downNavigationTarget={contentBelowHeroTarget}
-            sidebarEntryTarget={sidebarEntryTarget}
+            launchSettings={launchSettings}
+            customizationSettings={customizationSettings}
+            onClose={() => setIsGameSettingsModalOpen(false)}
           />
-          {game && launchSettings && customizationSettings && cloudSettings && (
-            <GameSettingsModal
-              visible={isGameSettingsModalOpen}
-              game={game}
-              launchSettings={launchSettings}
-              customizationSettings={customizationSettings}
-              cloudSettings={cloudSettings}
-              onClose={() => setIsGameSettingsModalOpen(false)}
-            />
-          )}
-        </BigPictureCloudSaveProvider>
+        )}
 
         <section className="game-page__content">
           <PlaytimeBar

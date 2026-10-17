@@ -29,8 +29,5 @@ import "./export-ps2-save";
 import "./scan-ps1-memcards";
 import "./ps1-memcard-saves";
 import "./export-ps1-save";
-import "./upload-emulation-save";
-import "./restore-emulation-save";
 import "./inspect-memcard";
-import "./emulation-saves";
 import "./list-local-emulation-saves";

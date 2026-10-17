@@ -11,8 +11,7 @@ import {
 import retroAchievementsLogo from "@renderer/assets/icons/retroachievements.png";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@renderer/components";
-import { useDate, useUserDetails } from "@renderer/hooks";
+import { useDate } from "@renderer/hooks";
 import cn from "classnames";
 import { buildSouvenirNotificationTarget } from "@shared";
 
@@ -69,8 +68,6 @@ interface NotificationItemProps {
   badges: Badge[];
   onDismiss: (id: string) => void;
   onMarkAsRead: (id: string) => void;
-  onAcceptFriendRequest?: (senderId: string) => void;
-  onRefuseFriendRequest?: (senderId: string) => void;
 }
 
 export function NotificationItem({
@@ -78,13 +75,10 @@ export function NotificationItem({
   badges,
   onDismiss,
   onMarkAsRead,
-  onAcceptFriendRequest,
-  onRefuseFriendRequest,
 }: Readonly<NotificationItemProps>) {
   const { t } = useTranslation("notifications_page");
   const { formatDistance } = useDate();
   const navigate = useNavigate();
-  const { updateFriendRequestState } = useUserDetails();
 
   const badge = useMemo(() => {
     if (notification.type !== "BADGE_RECEIVED") return null;
@@ -107,32 +101,6 @@ export function NotificationItem({
     const target = getNotificationTarget(notification);
     if (target) navigate(target);
   }, [notification, onMarkAsRead, navigate]);
-
-  const handleAccept = useCallback(
-    async (e: React.MouseEvent) => {
-      e.stopPropagation();
-      const senderId = notification.variables.senderId;
-      if (senderId) {
-        await updateFriendRequestState(senderId, "ACCEPTED");
-        onAcceptFriendRequest?.(senderId);
-        onDismiss(notification.id);
-      }
-    },
-    [notification, updateFriendRequestState, onAcceptFriendRequest, onDismiss]
-  );
-
-  const handleRefuse = useCallback(
-    async (e: React.MouseEvent) => {
-      e.stopPropagation();
-      const senderId = notification.variables.senderId;
-      if (senderId) {
-        await updateFriendRequestState(senderId, "REFUSED");
-        onRefuseFriendRequest?.(senderId);
-        onDismiss(notification.id);
-      }
-    },
-    [notification, updateFriendRequestState, onRefuseFriendRequest, onDismiss]
-  );
 
   const handleDismiss = useCallback(
     (e: React.MouseEvent) => {
@@ -293,9 +261,7 @@ export function NotificationItem({
     <button
       type="button"
       className={cn("notification-item", {
-        "notification-item--unread":
-          !notification.isRead ||
-          notification.type === "FRIEND_REQUEST_RECEIVED",
+        "notification-item--unread": !notification.isRead,
       })}
       onClick={handleClick}
     >
@@ -320,28 +286,14 @@ export function NotificationItem({
         </span>
       </div>
 
-      {content.showActions &&
-        notification.type === "FRIEND_REQUEST_RECEIVED" && (
-          <div className="notification-item__actions">
-            <Button theme="primary" onClick={handleAccept}>
-              {t("accept")}
-            </Button>
-            <Button theme="outline" onClick={handleRefuse}>
-              {t("refuse")}
-            </Button>
-          </div>
-        )}
-
-      {notification.type !== "FRIEND_REQUEST_RECEIVED" && (
-        <button
-          type="button"
-          className="notification-item__dismiss"
-          onClick={handleDismiss}
-          title={t("dismiss")}
-        >
-          <XIcon size={16} />
-        </button>
-      )}
+      <button
+        type="button"
+        className="notification-item__dismiss"
+        onClick={handleDismiss}
+        title={t("dismiss")}
+      >
+        <XIcon size={16} />
+      </button>
     </button>
   );
 }

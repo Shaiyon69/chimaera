@@ -9,11 +9,9 @@ import {
 import { useTranslation } from "react-i18next";
 import { isBloodborne } from "@shared";
 import { Modal } from "@renderer/components";
-import { BLOODBORNE_CONFIGURED_EVENT } from "@renderer/components/bloodborne-setup-modal/events";
 import {
   formatBytes,
   GAMEMODE_SITE_URL,
-  getCloudSaveAccessAction,
   getGameExecutableFilters,
   MANGOHUD_SITE_URL,
 } from "@shared";
@@ -21,12 +19,11 @@ import {
 import type {
   CreateSteamShortcutOptions,
   Game,
-  LegacySaveExportProgress,
   LibraryGame,
   ProtonVersion,
   ShortcutLocation,
 } from "@types";
-import { cloudSyncContext, gameDetailsContext } from "@renderer/context";
+import { gameDetailsContext } from "@renderer/context";
 import { DeleteGameModal } from "@renderer/pages/downloads/delete-game-modal";
 import {
   useAppSelector,
@@ -37,20 +34,17 @@ import {
   useToast,
   useUserDetails,
 } from "@renderer/hooks";
-import { useSubscription } from "@renderer/hooks/use-subscription";
 import { RemoveGameFromLibraryModal } from "./remove-from-library-modal";
 import { ResetAchievementsModal } from "./reset-achievements-modal";
 import { ChangeGamePlaytimeModal } from "./change-game-playtime-modal";
 import { ResetPlaytimeModal } from "./reset-playtime-modal";
 import {
   AlertIcon,
-  CloudIcon,
   DownloadIcon,
   FileDirectoryIcon,
   GearIcon,
   HistoryIcon,
   ImageIcon,
-  PackageIcon,
   ZapIcon,
 } from "@primer/octicons-react";
 import { Wrench } from "lucide-react";
@@ -65,17 +59,10 @@ import { GeneralSettingsSection } from "./game-options-modal/general-section";
 import { CompatibilitySettingsSection } from "./game-options-modal/compatibility-section";
 import { DownloadsSettingsSection } from "./game-options-modal/downloads-section";
 import { DangerZoneSection } from "./game-options-modal/danger-zone-section";
-import { HydraCloudLegacySettingsSection } from "./game-options-modal/hydra-cloud-section";
-import { HydraCloudV2SettingsSection } from "./game-options-modal/hydra-cloud-v2-section";
 import type { GameSettingsCategoryId } from "./game-options-modal/types";
 import { CreateSteamShortcutModal } from "./create-steam-shortcut-modal";
-import {
-  getCloudSaveVisibility,
-  isLegacyCloudSaveSettingsAvailable,
-} from "../cloud-save-visibility";
 import { OptiscalerSection } from "./game-options-modal/optiscaler-section";
-import { BloodborneModsSection } from "./game-options-modal/bloodborne-mods-section";
-import { LegacySavesSection } from "./game-options-modal/legacy-saves-section";
+import { LocalSaveBackupsSection } from "./game-options-modal/local-save-backups-section";
 import {
   getAvailableGameSettingsCategory,
   shouldInitializeGameSettingsCategory,
@@ -130,9 +117,6 @@ export function GameOptionsModal({
   const [showChangePlaytimeModal, setShowChangePlaytimeModal] = useState(false);
   const [showResetPlaytimeModal, setShowResetPlaytimeModal] = useState(false);
   const [isDeletingAchievements, setIsDeletingAchievements] = useState(false);
-  const [automaticCloudSync, setAutomaticCloudSync] = useState(
-    game.automaticCloudSync ?? false
-  );
   const [creatingSteamShortcut, setCreatingSteamShortcut] = useState(false);
   const [saveFolderPath, setSaveFolderPath] = useState<string | null>(null);
   const [loadingSaveFolder, setLoadingSaveFolder] = useState(false);
@@ -161,105 +145,13 @@ export function GameOptionsModal({
   >(null);
   const [showSteamShortcutModal, setShowSteamShortcutModal] = useState(false);
   const [steamShortcutExists, setSteamShortcutExists] = useState(false);
-  const [downloadingLegacySaveArtifactId, setDownloadingLegacySaveArtifactId] =
-    useState<string | null>(null);
-  const [legacySaveDownloadProgress, setLegacySaveDownloadProgress] =
-    useState<LegacySaveExportProgress | null>(null);
-  const legacySaveExportInProgressRef = useRef(false);
-  const cancelLegacySaveExport = useCallback(() => {
-    if (!legacySaveExportInProgressRef.current) return;
-
-    void globalThis.window.electron
-      .cancelGameArtifactExport()
-      .catch((error) =>
-        logger.error("Failed to cancel legacy save export", error)
-      );
-  }, []);
-
-  const handleLegacySaveDownload = useCallback(
-    async (artifactId: string, suggestedName: string) => {
-      if (legacySaveExportInProgressRef.current) return;
-
-      legacySaveExportInProgressRef.current = true;
-      setDownloadingLegacySaveArtifactId(artifactId);
-      setLegacySaveDownloadProgress(null);
-
-      try {
-        const result = await globalThis.window.electron.exportGameArtifact(
-          artifactId,
-          suggestedName,
-          setLegacySaveDownloadProgress
-        );
-
-        if (result.status === "saved") {
-          showSuccessToast(t("legacy_save_download_success"));
-        } else if (result.status === "busy") {
-          showErrorToast(t("legacy_save_download_in_progress"));
-        }
-      } catch {
-        showErrorToast(t("legacy_save_download_failed"));
-      } finally {
-        legacySaveExportInProgressRef.current = false;
-        setDownloadingLegacySaveArtifactId(null);
-        setLegacySaveDownloadProgress(null);
-      }
-    },
-    [showErrorToast, showSuccessToast, t]
-  );
-
-  useEffect(() => {
-    if (!visible) cancelLegacySaveExport();
-  }, [cancelLegacySaveExport, visible]);
-
-  useEffect(
-    () => () => {
-      cancelLegacySaveExport();
-    },
-    [cancelLegacySaveExport]
-  );
-
-  useEffect(() => {
-    setAutomaticCloudSync(game.automaticCloudSync ?? false);
-  }, [game.automaticCloudSync]);
-
-  useEffect(
-    () =>
-      globalThis.window.electron.onCloudSaveAutomaticSyncModeChanged(
-        (event) => {
-          if (
-            event.gameId.objectId === game.objectId &&
-            event.gameId.shop === game.shop
-          ) {
-            setAutomaticCloudSync(event.mode === "legacy");
-          }
-        }
-      ),
-    [game.objectId, game.shop]
-  );
-
   const {
     removeGameInstaller,
     removeGameFromLibrary,
     isGameDeleting,
     cancelDownload,
   } = useDownload();
-  const { userDetails, hasActiveSubscription } = useUserDetails();
-  const { artifacts } = useContext(cloudSyncContext);
-  const { showHydraCloudModal } = useSubscription();
-  const cloudSaveAccessAction = getCloudSaveAccessAction(
-    Boolean(userDetails),
-    hasActiveSubscription
-  );
-  const cloudSaveSettings = getCloudSaveVisibility(
-    game.shop,
-    game.platform
-  ).settings;
-  const { showV2: showCloudSaveV2Settings, legacyPurpose } = cloudSaveSettings;
-  const showLegacyCloudSaveSettings = isLegacyCloudSaveSettingsAvailable(
-    cloudSaveSettings,
-    hasActiveSubscription,
-    artifacts.length
-  );
+  const { userDetails } = useUserDetails();
   const userPreferences = useAppSelector(
     (state) => state.userPreferences.value
   );
@@ -624,8 +516,6 @@ export function GameOptionsModal({
       game.objectId,
       null
     );
-    // Lets the Bloodborne hero button fall back to Install.
-    window.dispatchEvent(new Event(BLOODBORNE_CONFIGURED_EVENT));
     updateGame();
   };
 
@@ -874,7 +764,9 @@ export function GameOptionsModal({
 
   const isLaunchbox = game.shop === "launchbox";
   const showOptiscalerSettings =
-    !!game.executablePath && globalThis.window.electron.platform === "win32";
+    !!game.executablePath &&
+    globalThis.window.electron.platform === "win32" &&
+    !isBloodborne(game.title); // the port is Vulkan with built-in FSR4
   const showDownloadSettings = game.shop !== "custom";
   const shouldShowWinePrefixConfiguration =
     globalThis.window.electron.platform === "linux";
@@ -914,38 +806,12 @@ export function GameOptionsModal({
             },
           ]
         : []),
-      ...(isBloodborne(game.title)
+      ...(game.shop !== "launchbox"
         ? [
             {
-              id: "mods" as const,
-              label: t("settings_category_mods"),
-              icon: <PackageIcon size={16} />,
-            },
-          ]
-        : []),
-      ...(showCloudSaveV2Settings && cloudSaveAccessAction !== "sign-in"
-        ? [
-            {
-              id: "hydra_cloud" as const,
-              label: t("settings_category_hydra_cloud"),
-              icon: <CloudIcon size={16} />,
-            },
-          ]
-        : []),
-      ...(showLegacyCloudSaveSettings && cloudSaveAccessAction !== "sign-in"
-        ? [
-            {
-              id: "hydra_cloud_legacy" as const,
-              label:
-                legacyPurpose === "active" && !showCloudSaveV2Settings
-                  ? t("settings_category_hydra_cloud")
-                  : t("settings_category_legacy_saves"),
-              icon:
-                legacyPurpose === "active" ? (
-                  <CloudIcon size={16} />
-                ) : (
-                  <HistoryIcon size={16} />
-                ),
+              id: "save_backups" as const,
+              label: t("settings_category_save_backups"),
+              icon: <HistoryIcon size={16} />,
             },
           ]
         : []),
@@ -974,12 +840,8 @@ export function GameOptionsModal({
       },
     ],
     [
-      cloudSaveAccessAction,
       game.title,
       isLaunchbox,
-      legacyPurpose,
-      showCloudSaveV2Settings,
-      showLegacyCloudSaveSettings,
       showDownloadSettings,
       showOptiscalerSettings,
       shouldShowWinePrefixConfiguration,
@@ -999,76 +861,24 @@ export function GameOptionsModal({
 
     const category = initialCategory ?? "general";
     const availableCategory = getAvailableGameSettingsCategory(category, {
-      cloudSaveAccessAction,
-      showCloudSaveV2Settings,
-      showLegacyCloudSaveSettings,
       showDownloadSettings,
       showOptiscalerSettings,
     });
 
     setSelectedCategory(availableCategory);
-
-    const isRequestedCloudCategoryAvailable =
-      (category === "hydra_cloud" && showCloudSaveV2Settings) ||
-      (category === "hydra_cloud_legacy" && showLegacyCloudSaveSettings);
-
-    if (
-      isRequestedCloudCategoryAvailable &&
-      cloudSaveAccessAction === "paywall"
-    ) {
-      showHydraCloudModal("backup");
-    }
-  }, [
-    cloudSaveAccessAction,
-    initialCategory,
-    showDownloadSettings,
-    showOptiscalerSettings,
-    showCloudSaveV2Settings,
-    showLegacyCloudSaveSettings,
-    showHydraCloudModal,
-    visible,
-  ]);
+  }, [initialCategory, showDownloadSettings, showOptiscalerSettings, visible]);
 
   useEffect(() => {
     if (!visible) return;
 
     setSelectedCategory((currentCategory) =>
       getAvailableGameSettingsCategory(currentCategory, {
-        cloudSaveAccessAction,
-        showCloudSaveV2Settings,
-        showLegacyCloudSaveSettings,
         showDownloadSettings,
         showOptiscalerSettings,
       })
     );
-  }, [
-    cloudSaveAccessAction,
-    showCloudSaveV2Settings,
-    showLegacyCloudSaveSettings,
-    showDownloadSettings,
-    showOptiscalerSettings,
-    visible,
-  ]);
+  }, [showDownloadSettings, showOptiscalerSettings, visible]);
 
-  const handleSelectCategory = (category: typeof selectedCategory) => {
-    if (
-      (category === "hydra_cloud" && !showCloudSaveV2Settings) ||
-      (category === "hydra_cloud_legacy" && !showLegacyCloudSaveSettings)
-    ) {
-      return;
-    }
-
-    if (
-      (category === "hydra_cloud" || category === "hydra_cloud_legacy") &&
-      cloudSaveAccessAction !== "open"
-    ) {
-      if (cloudSaveAccessAction === "paywall") {
-        showHydraCloudModal("backup");
-      }
-      return;
-    }
-    setSelectedCategory(category);
-  };
   const shouldShowCreateStartMenuShortcut =
     globalThis.window.electron.platform === "win32";
 
@@ -1112,25 +922,6 @@ export function GameOptionsModal({
       showSuccessToast(t("reset_playtime_success"));
     } catch {
       showErrorToast(t("reset_playtime_error"));
-    }
-  };
-
-  const handleToggleAutomaticCloudSync = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const enabled = event.target.checked;
-    setAutomaticCloudSync(enabled);
-
-    try {
-      await globalThis.window.electron.toggleAutomaticCloudSync(
-        game.shop,
-        game.objectId,
-        enabled
-      );
-    } catch {
-      setAutomaticCloudSync(!enabled);
-    } finally {
-      await updateGame();
     }
   };
 
@@ -1265,7 +1056,6 @@ export function GameOptionsModal({
         visible={visible}
         title={game.title}
         onClose={onClose}
-        onCloseStart={cancelLegacySaveExport}
         large={true}
         noContentPadding
       >
@@ -1273,7 +1063,7 @@ export function GameOptionsModal({
           <GameOptionsSidebar
             categories={categories}
             selectedCategory={selectedCategory}
-            onSelectCategory={handleSelectCategory}
+            onSelectCategory={setSelectedCategory}
           />
           <div
             className={`game-options-modal__panel${
@@ -1293,7 +1083,12 @@ export function GameOptionsModal({
             {selectedCategory === "optiscaler" && showOptiscalerSettings && (
               <OptiscalerSection game={game} />
             )}
-            {selectedCategory === "mods" && <BloodborneModsSection />}
+            {selectedCategory === "save_backups" && (
+              <LocalSaveBackupsSection
+                shop={game.shop}
+                objectId={game.objectId}
+              />
+            )}
             {selectedCategory === "locations" && (
               <GeneralSettingsSection
                 {...baseGeneralSettingsProps}
@@ -1312,31 +1107,6 @@ export function GameOptionsModal({
                 onGameUpdated={updateGame}
               />
             )}
-            {selectedCategory === "hydra_cloud" && showCloudSaveV2Settings && (
-              <HydraCloudV2SettingsSection
-                onSelectExecutable={() =>
-                  setSelectedCategory(isLaunchbox ? "general" : "locations")
-                }
-              />
-            )}
-            {selectedCategory === "hydra_cloud_legacy" &&
-              showLegacyCloudSaveSettings &&
-              legacyPurpose === "active" && (
-                <HydraCloudLegacySettingsSection
-                  game={game}
-                  automaticCloudSync={automaticCloudSync}
-                  onToggleAutomaticCloudSync={handleToggleAutomaticCloudSync}
-                />
-              )}
-            {selectedCategory === "hydra_cloud_legacy" &&
-              showLegacyCloudSaveSettings &&
-              legacyPurpose === "archive" && (
-                <LegacySavesSection
-                  downloadingArtifactId={downloadingLegacySaveArtifactId}
-                  downloadProgress={legacySaveDownloadProgress}
-                  onDownload={handleLegacySaveDownload}
-                />
-              )}
             {selectedCategory === "compatibility" &&
               shouldShowWinePrefixConfiguration && (
                 <CompatibilitySettingsSection

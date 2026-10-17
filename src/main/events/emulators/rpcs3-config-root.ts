@@ -6,7 +6,7 @@ import {
 import {
   resolveRpcs3ConfigRootStatus,
   validateRpcs3ConfigRoot,
-} from "@main/services/cloud-save/rpcs3-config-root";
+} from "@main/services/emulators/rpcs3-config-root";
 
 const getRpcs3ConfigRootStatus = async () => {
   const config = await getEmulatorConfig("ps3");

@@ -1,3 +1,4 @@
+import { cachedImage } from "@shared";
 import { buildGameDetailsPath } from "@renderer/helpers";
 import { Link } from "@renderer/components";
 import { useCallback, useContext } from "react";
@@ -52,7 +53,7 @@ export function RecentGamesBox() {
               className="recent-games__list-item"
             >
               <img
-                src={game.iconUrl!}
+                src={cachedImage(game.iconUrl!)}
                 alt={game.title}
                 className="recent-games__game-image"
               />

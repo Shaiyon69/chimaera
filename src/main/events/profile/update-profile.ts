@@ -1,45 +1,30 @@
 import { registerEvent } from "../register-event";
 import { HydraApi, WindowManager } from "@main/services";
+import { SystemPath } from "@main/services/system-path";
 import fs from "node:fs";
 import path from "node:path";
 import type { UpdateProfileRequest, UserProfile } from "@types";
 import { omit } from "lodash-es";
-import axios from "axios";
 import { fileTypeFromFile } from "file-type";
 
 export const patchUserProfile = async (updateProfile: UpdateProfileRequest) => {
   return HydraApi.patch<UserProfile>("/profile", updateProfile);
 };
 
+/** Keeps the picked image in app data (no Hydra upload) and returns its `local:` URL. */
 const uploadImage = async (
   type: "profile-image" | "background-image",
   imagePath: string
 ) => {
-  const stat = fs.statSync(imagePath);
-  const fileBuffer = fs.readFileSync(imagePath);
-  const fileSizeInBytes = stat.size;
-
-  const response = await HydraApi.post<{ presignedUrl: string }>(
-    `/presigned-urls/${type}`,
-    {
-      imageExt: path.extname(imagePath).slice(1),
-      imageLength: fileSizeInBytes,
-    }
-  );
-
   const mimeType = await fileTypeFromFile(imagePath);
-
-  await axios.put(response.presignedUrl, fileBuffer, {
-    headers: {
-      "Content-Type": mimeType?.mime,
-    },
-  });
-
-  if (type === "background-image") {
-    return response["backgroundImageUrl"];
-  }
-
-  return response["profileImageUrl"];
+  if (!mimeType?.mime.startsWith("image/"))
+    throw new Error("profile/not-an-image");
+  const dir = path.join(SystemPath.getPath("userData"), "local-profile");
+  fs.mkdirSync(dir, { recursive: true });
+  // A new name each time, so the renderer does not show a cached old picture.
+  const target = path.join(dir, `${type}-${Date.now()}.${mimeType.ext}`);
+  await fs.promises.copyFile(imagePath, target);
+  return `local:${target}`;
 };
 
 const updateProfile = async (

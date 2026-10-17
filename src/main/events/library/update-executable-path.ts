@@ -8,12 +8,7 @@ import {
   updateGameTrackingExecutablePaths,
 } from "@main/helpers/update-executable-path";
 import { logger } from "@main/services";
-import { runAutomaticCloudSaveSync } from "@main/services/cloud-save";
 import { AchievementWatcherManager } from "@main/services/achievements/achievement-watcher-manager";
-import {
-  BLOODBORNE_OBJECT_ID,
-  resetBloodborneSetup,
-} from "@main/services/bloodborne/bloodborne";
 import type { GameShop } from "@types";
 
 const updateExecutablePath = async (
@@ -30,9 +25,6 @@ const updateExecutablePath = async (
 
   const game = await gamesSublevel.get(gameKey);
   if (!game) return;
-  if (!parsedPath && objectId === BLOODBORNE_OBJECT_ID) resetBloodborneSetup();
-  const environmentChanged =
-    parsedPath !== null && game.executablePath !== parsedPath;
 
   // Update immediately without size so UI responds fast
   await gamesSublevel.put(gameKey, {
@@ -41,10 +33,6 @@ const updateExecutablePath = async (
     automaticCloudSync:
       executablePath === null ? false : game.automaticCloudSync,
   });
-
-  if (environmentChanged) {
-    void runAutomaticCloudSaveSync(objectId, shop, "environment-changed");
-  }
 
   if (parsedPath) {
     void AchievementWatcherManager.syncGameAchievementFiles(shop, objectId);

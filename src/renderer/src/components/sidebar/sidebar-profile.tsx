@@ -1,27 +1,18 @@
 import { useNavigate } from "react-router-dom";
-import {
-  BellIcon,
-  ChevronDownIcon,
-  PeopleIcon,
-  PersonIcon,
-  SignOutIcon,
-} from "@primer/octicons-react";
-import { useAppSelector, useToast, useUserDetails } from "@renderer/hooks";
+import { BellIcon, ChevronDownIcon, PersonIcon } from "@primer/octicons-react";
+import { useAppSelector, useUserDetails } from "@renderer/hooks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import SteamLogo from "@renderer/assets/steam-logo.svg?react";
 import { Avatar } from "../avatar/avatar";
-import { ConfirmationModal } from "../confirmation-modal/confirmation-modal";
-import { AuthPage } from "@shared";
+
 import { platformToSystem } from "@renderer/helpers";
 import { logger } from "@renderer/logger";
 import type {
   NotificationCountResponse,
   NotificationsChangedDetail,
-  ProfileFriends,
 } from "@types";
-import { useDispatch } from "react-redux";
-import { setFriendRequestCount } from "@renderer/features/user-details-slice";
+
 import "./sidebar-profile.scss";
 
 const CLASSIC_DISC_OVERLAY = (
@@ -105,12 +96,10 @@ function ClassicGameDisc({ iconUrl }: Readonly<ClassicGameDiscProps>) {
 
 export function SidebarProfile() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
   const { t } = useTranslation(["sidebar", "user_profile"]);
 
-  const { userDetails, signOut } = useUserDetails();
-  const { showSuccessToast } = useToast();
+  const { userDetails } = useUserDetails();
 
   const { gameRunning } = useAppSelector((state) => state.gameRunning);
   const library = useAppSelector((state) => state.library.value);
@@ -127,11 +116,8 @@ export function SidebarProfile() {
   }, [gameRunning, library]);
 
   const [notificationCount, setNotificationCount] = useState(0);
-  const [onlineFriendsCount, setOnlineFriendsCount] = useState(0);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isDropdownClosing, setIsDropdownClosing] = useState(false);
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const [showSignOutModal, setShowSignOutModal] = useState(false);
 
   const apiNotificationCountRef = useRef(0);
   const hasFetchedInitialCount = useRef(false);
@@ -216,61 +202,6 @@ export function SidebarProfile() {
     return () => unsubscribe();
   }, [fetchLocalNotificationCount]);
 
-  const updateOnlineFriendsCount = useCallback(async () => {
-    if (!userDetails) {
-      setOnlineFriendsCount(0);
-      return;
-    }
-    try {
-      const response =
-        await globalThis.window.electron.hydraApi.get<ProfileFriends>(
-          "/profile/friends",
-          { params: { take: 5, skip: 0 } }
-        );
-      setOnlineFriendsCount(response.onlineFriends);
-    } catch {
-      // ignore transient errors
-    }
-  }, [userDetails]);
-
-  useEffect(() => {
-    updateOnlineFriendsCount();
-
-    const unsubscribeFriends = globalThis.window.electron.onFriendsUpdated(
-      () => {
-        updateOnlineFriendsCount();
-      }
-    );
-
-    let interval: ReturnType<typeof setInterval> | null = null;
-    const unsubscribePresence =
-      typeof globalThis.window.electron.onFriendPresence === "function"
-        ? globalThis.window.electron.onFriendPresence(() => {
-            updateOnlineFriendsCount();
-          })
-        : () => {
-            if (interval) clearInterval(interval);
-          };
-
-    if (typeof globalThis.window.electron.onFriendPresence !== "function") {
-      interval = setInterval(updateOnlineFriendsCount, 30_000);
-    }
-
-    return () => {
-      unsubscribeFriends();
-      unsubscribePresence();
-    };
-  }, [updateOnlineFriendsCount]);
-
-  useEffect(() => {
-    const unsubscribe = globalThis.window.electron.onSyncFriendRequests(
-      (result) => {
-        dispatch(setFriendRequestCount(result.friendRequestCount));
-      }
-    );
-    return () => unsubscribe();
-  }, [dispatch]);
-
   useEffect(() => {
     if (!dropdownOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
@@ -295,7 +226,6 @@ export function SidebarProfile() {
 
   const handleProfileClick = () => {
     if (userDetails === null) {
-      window.electron.openAuthWindow(AuthPage.SignIn);
       return;
     }
     if (dropdownOpen) {
@@ -314,28 +244,6 @@ export function SidebarProfile() {
   const handleNotificationsClick = () => {
     closeDropdown();
     navigate("/notifications");
-  };
-
-  const handleFriendsClick = () => {
-    closeDropdown();
-    globalThis.window.electron.openFriendsWindow();
-  };
-
-  const handleSignOutClick = () => {
-    closeDropdown();
-    setShowSignOutModal(true);
-  };
-
-  const handleSignOut = async () => {
-    setIsSigningOut(true);
-    try {
-      await signOut();
-      showSuccessToast(t("user_profile:successfully_signed_out"));
-    } finally {
-      setIsSigningOut(false);
-      setShowSignOutModal(false);
-    }
-    navigate("/");
   };
 
   const gameRunningDetails = () => {
@@ -427,46 +335,8 @@ export function SidebarProfile() {
               </small>
             )}
           </button>
-
-          <button
-            type="button"
-            className="sidebar-profile__dropdown-item"
-            onClick={handleFriendsClick}
-          >
-            <PeopleIcon size={16} />
-            <span>{t("friends")}</span>
-            {onlineFriendsCount > 0 && (
-              <small className="sidebar-profile__dropdown-badge sidebar-profile__dropdown-badge--online">
-                {onlineFriendsCount}
-              </small>
-            )}
-          </button>
-
-          <div className="sidebar-profile__dropdown-separator" />
-
-          <button
-            type="button"
-            className="sidebar-profile__dropdown-item sidebar-profile__dropdown-item--danger"
-            onClick={handleSignOutClick}
-            disabled={isSigningOut}
-          >
-            <SignOutIcon size={16} />
-            <span>{t("user_profile:sign_out")}</span>
-          </button>
         </div>
       )}
-
-      <ConfirmationModal
-        visible={showSignOutModal}
-        title={t("user_profile:sign_out_modal_title")}
-        descriptionText={t("user_profile:sign_out_modal_text")}
-        confirmButtonLabel={t("user_profile:sign_out")}
-        cancelButtonLabel={t("user_profile:cancel")}
-        confirmButtonTheme="danger"
-        buttonsIsDisabled={isSigningOut}
-        onConfirm={() => void handleSignOut()}
-        onClose={() => setShowSignOutModal(false)}
-      />
     </div>
   );
 }

@@ -12,7 +12,7 @@ import {
 } from "@main/services/steam-integration/steam-imported-games";
 import { clearImportedSteamGames } from "@main/services/steam-integration/clear-imported-steam-games";
 import { AchievementMemoryStore } from "@main/services/achievements/achievement-memory-store";
-import { db, gamesSublevel } from "@main/level";
+import { gamesSublevel, batchWithGames } from "@main/level";
 import type { Game } from "@types";
 import { chunk } from "lodash-es";
 
@@ -21,7 +21,7 @@ const DISCONNECT_WRITE_CHUNK_SIZE = 250;
 
 const writeGames = async (updates: [string, Game][]) => {
   for (const updatesChunk of chunk(updates, DISCONNECT_WRITE_CHUNK_SIZE)) {
-    const batch = db.batch();
+    const batch = batchWithGames();
 
     for (const [key, game] of updatesChunk) {
       batch.put(key, game, { sublevel: gamesSublevel });

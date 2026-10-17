@@ -21,7 +21,6 @@ import {
   Lock,
   PowerSaveBlockerManager,
   DownloadOrchestrator,
-  SSEClient,
   emulators,
 } from "@main/services";
 import resources from "@locales";
@@ -32,9 +31,13 @@ import { launchGame, openClassicsGame } from "./helpers";
 import { refreshPortableShortcutLauncher } from "./helpers/shortcut-launch";
 import { sweepTempFiles } from "./helpers/sweep-temp-files";
 import { checkSignature } from "./services/update-signature-core";
-import { installBloodbornePortIfRequested } from "./services/bloodborne/bloodborne-port-installer";
+import { syncBloodbornePort } from "./services/bloodborne/bloodborne-port-installer";
 import { lookupCachedPlatform } from "./events/library/get-library";
 import { loadState } from "./main";
+import {
+  handleCachedImageRequest,
+  pruneImageCache,
+} from "./services/image-cache";
 import {
   closeSteamOpenIdWindow,
   notifySteamConnectError,
@@ -131,6 +134,10 @@ protocol.registerSchemesAsPrivileged([
     scheme: "gradient",
     privileges: { supportFetchAPI: true, corsEnabled: true },
   },
+  {
+    scheme: "cached-image",
+    privileges: { supportFetchAPI: true, corsEnabled: true, stream: true },
+  },
 ]);
 
 if (process.defaultApp) {
@@ -146,7 +153,7 @@ if (process.defaultApp) {
 const initializeApp = async () => {
   refreshPortableShortcutLauncher();
   void sweepTempFiles();
-  void installBloodbornePortIfRequested();
+  void syncBloodbornePort();
   electronApp.setAppUserModelId("io.github.shaiyon69.chimaera");
 
   // macOS has one global menu bar that removeMenu() can't hide; keep Edit so copy/paste shortcuts work.
@@ -166,6 +173,11 @@ const initializeApp = async () => {
     const filePath = request.url.slice("local:".length);
     return net.fetch(url.pathToFileURL(decodeURI(filePath)).toString());
   });
+
+  protocol.handle("cached-image", handleCachedImageRequest);
+  void pruneImageCache().catch((error) =>
+    logger.warn("Image cache prune failed", error)
+  );
 
   protocol.handle("gradient", (request) => {
     const gradientCss = decodeURIComponent(
@@ -238,9 +250,8 @@ const initializeApp = async () => {
     logger.error("Failed to load app state during startup", error);
   }
 
-  // Suspend can outlive the 60s stall watchdog; reconnect right away instead
+  // Suspend can outlive the download stall watchdog; resume right away instead
   powerMonitor.on("resume", () => {
-    SSEClient.reconnectNow();
     DownloadOrchestrator.onNetworkStatusChanged({
       online: true,
       switched: true,

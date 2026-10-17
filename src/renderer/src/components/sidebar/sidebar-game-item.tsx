@@ -1,3 +1,4 @@
+import { cachedImage } from "@shared";
 import SteamLogo from "@renderer/assets/steam-logo.svg?react";
 import { LibraryGame } from "@types";
 import cn from "classnames";
@@ -60,9 +61,11 @@ export function SidebarGameItem({
   };
 
   const isCustomGame = game.shop === "custom";
-  const sidebarIcon = isCustomGame
-    ? game.libraryImageUrl || game.iconUrl
-    : game.customIconUrl || game.iconUrl;
+  const sidebarIcon = cachedImage(
+    isCustomGame
+      ? game.libraryImageUrl || game.iconUrl
+      : game.customIconUrl || game.iconUrl
+  );
 
   // Determine fallback icon based on game type
   const getFallbackIcon = () => {

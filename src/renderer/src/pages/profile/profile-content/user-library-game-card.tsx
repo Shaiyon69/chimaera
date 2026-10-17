@@ -1,5 +1,4 @@
 import { UserGame } from "@types";
-import HydraIcon from "@renderer/assets/icons/hydra.svg?react";
 import { useFormat } from "@renderer/hooks";
 import { useNavigate } from "react-router-dom";
 import { useCallback, useContext } from "react";
@@ -20,13 +19,11 @@ import "./user-library-game-card.scss";
 
 interface UserLibraryGameCardProps {
   game: UserGame;
-  statIndex: number;
   onContextMenu: (game: UserGame, position: { x: number; y: number }) => void;
 }
 
 export function UserLibraryGameCard({
   game,
-  statIndex,
   onContextMenu,
 }: UserLibraryGameCardProps) {
   const { userProfile, isMe } = useContext(userProfileContext);
@@ -41,19 +38,11 @@ export function UserLibraryGameCard({
     game.unlockedAchievementCount
   );
 
-  const hasAchievementProgress =
-    Boolean(userProfile?.hasActiveSubscription) &&
-    (game.achievementCount ?? 0) > 0;
-
-  const getStatsItemCount = useCallback(() => {
-    let statsCount = 1;
-    if (game.achievementsPointsEarnedSum > 0) statsCount++;
-    return statsCount;
-  }, [game]);
+  const hasAchievementProgress = (game.achievementCount ?? 0) > 0;
 
   const buildUserGameDetailsPath = useCallback(
     (game: UserGame) => {
-      if (!userProfile?.hasActiveSubscription || game.achievementCount === 0) {
+      if (game.achievementCount === 0) {
         return buildGameDetailsPath({
           ...game,
           objectId: game.objectId,
@@ -70,14 +59,6 @@ export function UserLibraryGameCard({
     },
     [userProfile]
   );
-
-  const formatAchievementPoints = (number: number) => {
-    if (number < 100_000) return numberFormatter.format(number);
-
-    if (number < 1_000_000) return `${(number / 1000).toFixed(1)}K`;
-
-    return `${(number / 1_000_000).toFixed(1)}M`;
-  };
 
   const formatPlayTime = useCallback(
     (playTimeInSeconds = 0, isShort = false) => {
@@ -163,32 +144,13 @@ export function UserLibraryGameCard({
               <div className="user-library-game__stats">
                 <div className="user-library-game__stats-header">
                   <div className="user-library-game__stats-content">
-                    <div
-                      className="user-library-game__stats-item"
-                      style={{
-                        transform: `translateY(${-100 * (statIndex % getStatsItemCount())}%)`,
-                      }}
-                    >
+                    <div className="user-library-game__stats-item">
                       {!isCompleted && <TrophyIcon size={13} />}
                       <span>
                         {game.unlockedAchievementCount} /{" "}
                         {game.achievementCount}
                       </span>
                     </div>
-
-                    {game.achievementsPointsEarnedSum > 0 && (
-                      <div
-                        className="user-library-game__stats-item"
-                        style={{
-                          transform: `translateY(${-100 * (statIndex % getStatsItemCount())}%)`,
-                        }}
-                      >
-                        <HydraIcon width={16} height={16} />
-                        {formatAchievementPoints(
-                          game.achievementsPointsEarnedSum
-                        )}
-                      </div>
-                    )}
                   </div>
 
                   <span

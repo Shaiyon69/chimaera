@@ -44,7 +44,6 @@ import { ConfirmationModal } from "../../../modals";
 import { useGamepad, useNavigationScreenActions } from "../../../../hooks";
 import { formatRelativeDate } from "../../../../helpers";
 import {
-  AuthPage,
   getPrimarySouvenirAchievement,
   getSouvenirVisualVariant,
 } from "@shared";
@@ -1016,12 +1015,7 @@ export function SouvenirLightbox({
                               setIsDeleteConfirmationVisible(true)
                             }
                             onRequestReport={() => {
-                              if (!canLike) {
-                                void globalThis.window.electron.openAuthWindow(
-                                  AuthPage.SignIn
-                                );
-                                return;
-                              }
+                              if (!canLike) return;
 
                               setIsReportModalVisible(true);
                             }}

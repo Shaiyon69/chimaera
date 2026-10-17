@@ -18,7 +18,6 @@ import {
   SETTINGS_HEADER_RETURN_TARGET,
   getEmulationRomFolderRemoveFocusId,
 } from "../settings-navigation";
-import { CloudSavesSection } from "./cloud-saves-section";
 import {
   DetailBackButton,
   DetailHeroBP,
@@ -54,7 +53,6 @@ export function EmulationDetail({
   const { t, i18n } = useTranslation("settings");
   const { showSuccessToast, showErrorToast } = useBigPictureToast();
   const [isBusy, setIsBusy] = useState(false);
-  const [cloudRefreshKey, setCloudRefreshKey] = useState(0);
   const [folderToRemove, setFolderToRemove] = useState<RomFolder | null>(null);
   const [removeEmulatorOpen, setRemoveEmulatorOpen] = useState(false);
   const [executableExists, setExecutableExists] = useState(true);
@@ -384,7 +382,6 @@ export function EmulationDetail({
           config={config}
           upTargetId={lastRomFolderFocusId}
           downTargetId={EMULATION_DETAIL_RESCAN_BUTTON_ID}
-          onUploaded={() => setCloudRefreshKey((current) => current + 1)}
         />
       )}
 
@@ -404,16 +401,6 @@ export function EmulationDetail({
           void handleRescan();
         }}
       />
-
-      {hasMemoryCardsSection ||
-      config.system === "psp" ||
-      config.system === "dolphin" ? (
-        <CloudSavesSection
-          config={config}
-          refreshKey={cloudRefreshKey}
-          upTargetId={EMULATION_DETAIL_RESCAN_BUTTON_ID}
-        />
-      ) : null}
 
       <DetailModalsBP
         emulatorName={binaryName}

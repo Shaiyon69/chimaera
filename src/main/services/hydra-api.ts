@@ -1,16 +1,13 @@
 import axios, { AxiosError, AxiosInstance } from "axios";
 import { WindowManager } from "./window-manager";
-import url from "url";
-import { uploadGamesBatch } from "./library-sync";
-import { clearGamesRemoteIds } from "./library-sync/clear-games-remote-id";
 import { networkLogger as logger } from "./logger";
 import { UserNotLoggedInError, SubscriptionRequiredError } from "@shared";
 import { appVersion } from "@main/constants";
 import { getUserData } from "./user/get-user-data";
 import { db } from "@main/level";
 import { levelKeys } from "@main/level/sublevels";
-import type { Auth, User } from "@types";
-import { SSEClient } from "./sse";
+import type { Auth } from "@types";
+import { LocalApi, PASS_THROUGH } from "./local-api/local-api";
 import {
   sanitizeNetworkLogPayload,
   summarizeNetworkLogPayload,
@@ -86,83 +83,6 @@ export class HydraApi {
       void import("./achievements/grouped-souvenir-worker").then(
         ({ groupedSouvenirWorker }) => groupedSouvenirWorker.trigger()
       );
-    }
-  }
-
-  static async handleExternalAuth(uri: string) {
-    const { payload } = url.parse(uri, true).query;
-
-    const decodedBase64 = atob(payload as string);
-    const jsonData = JSON.parse(decodedBase64);
-
-    const { accessToken, expiresIn, refreshToken, workwondersJwt } = jsonData;
-
-    const now = new Date();
-
-    const tokenExpirationTimestamp =
-      now.getTime() +
-      this.secondsToMilliseconds(expiresIn) -
-      this.EXPIRATION_OFFSET_IN_MS;
-
-    await clearGamesRemoteIds();
-
-    this.userAuth = {
-      authToken: accessToken,
-      refreshToken: refreshToken,
-      expirationTimestamp: tokenExpirationTimestamp,
-      subscription: null,
-    };
-
-    const { AchievementWatcherManager } = await import(
-      "./achievements/achievement-watcher-manager"
-    );
-    AchievementWatcherManager.resetSessionState();
-
-    logger.log(
-      "Sign in received. Token expiration timestamp:",
-      tokenExpirationTimestamp
-    );
-
-    db.put<string, Auth>(
-      levelKeys.auth,
-      {
-        accessToken,
-        refreshToken,
-        tokenExpirationTimestamp,
-        workwondersJwt,
-      },
-      { valueEncoding: "json" }
-    );
-
-    await getUserData().then((userDetails) => {
-      if (userDetails?.subscription) {
-        this.updateUserSubscription({
-          expiresAt: userDetails.subscription.expiresAt
-            ? new Date(userDetails.subscription.expiresAt)
-            : null,
-        });
-      }
-    });
-
-    const { groupedSouvenirWorker } = await import(
-      "./achievements/grouped-souvenir-worker"
-    );
-    void groupedSouvenirWorker.trigger();
-
-    const { startSteamSyncOnStartup } = await import(
-      "./steam-integration/steam-startup-sync"
-    );
-    void startSteamSyncOnStartup();
-
-    if (WindowManager.mainWindow) {
-      WindowManager.mainWindow.webContents.send("on-signin");
-      void uploadGamesBatch();
-
-      SSEClient.close();
-      SSEClient.connect();
-
-      const { syncDownloadSourcesFromApi } = await import("./user");
-      syncDownloadSourcesFromApi();
     }
   }
 
@@ -273,25 +193,12 @@ export class HydraApi {
       );
     }
 
-    const result = await db.getMany<string>([levelKeys.auth, levelKeys.user], {
-      valueEncoding: "json",
-    });
-
-    const userAuth = result.at(0) as Auth | undefined;
-    const user = result.at(1) as User | undefined;
-
-    this.userAuth = {
-      authToken: userAuth?.accessToken ?? "",
-      refreshToken: userAuth?.refreshToken ?? "",
-      expirationTimestamp: userAuth?.tokenExpirationTimestamp ?? 0,
-      subscription: user?.subscription
-        ? { expiresAt: user.subscription?.expiresAt }
-        : null,
-    };
-
-    const updatedUserData = await getUserData();
-
-    this.updateUserSubscription(updatedUserData?.subscription);
+    // No Hydra account: requests are anonymous and the user is the local profile.
+    await db.batch([
+      { type: "del", key: levelKeys.auth },
+      { type: "del", key: levelKeys.user },
+    ]);
+    await getUserData();
   }
 
   private static sendSignOutEvent() {
@@ -346,11 +253,24 @@ export class HydraApi {
   }
 
   private static getAxiosConfig() {
+    if (LocalApi.enabled || !this.userAuth.authToken) return { headers: {} };
     return {
       headers: {
         Authorization: `Bearer ${this.userAuth.authToken}`,
       },
     };
+  }
+
+  /** In local mode: the local answer, or PASS_THROUGH for public data. */
+  private static local(
+    method: string,
+    url: string,
+    data?: unknown,
+    params?: unknown
+  ): Promise<unknown> {
+    return LocalApi.enabled
+      ? LocalApi.handle(method, url, data, params)
+      : Promise.resolve(PASS_THROUGH);
   }
 
   private static readonly handleUnauthorizedError = async (err) => {
@@ -395,7 +315,6 @@ export class HydraApi {
         },
       ]);
 
-      SSEClient.close();
       this.sendSignOutEvent();
     }
 
@@ -436,6 +355,8 @@ export class HydraApi {
     params?: any,
     options?: HydraApiOptions
   ) {
+    const local = await this.local("get", url, undefined, params);
+    if (local !== PASS_THROUGH) return local as T;
     await this.validateOptions(options);
 
     const headers = {
@@ -464,6 +385,9 @@ export class HydraApi {
     params?: any,
     options?: HydraApiOptions
   ) {
+    const local = await this.local("get", url, undefined, params);
+    if (local !== PASS_THROUGH)
+      return { status: 200, data: local as T, headers: {} as never };
     await this.validateOptions(options);
 
     const headers = {
@@ -495,6 +419,8 @@ export class HydraApi {
     data?: any,
     options?: HydraApiOptions
   ) {
+    const local = await this.local("post", url, data);
+    if (local !== PASS_THROUGH) return local as T;
     await this.validateOptions(options);
 
     return this.instance
@@ -511,6 +437,8 @@ export class HydraApi {
     data?: unknown,
     options?: HydraApiOptions
   ) {
+    const local = await this.local("post", url, data);
+    if (local !== PASS_THROUGH) return { status: 200, data: local as T };
     await this.validateOptions(options);
 
     return this.instance
@@ -533,6 +461,8 @@ export class HydraApi {
     data?: any,
     options?: HydraApiOptions
   ) {
+    const local = await this.local("put", url, data);
+    if (local !== PASS_THROUGH) return local as T;
     await this.validateOptions(options);
 
     return this.instance
@@ -549,6 +479,8 @@ export class HydraApi {
     data?: any,
     options?: HydraApiOptions
   ) {
+    const local = await this.local("patch", url, data);
+    if (local !== PASS_THROUGH) return local as T;
     await this.validateOptions(options);
 
     return this.instance
@@ -561,6 +493,8 @@ export class HydraApi {
   }
 
   static async delete<T = any>(url: string, options?: HydraApiOptions) {
+    const local = await this.local("delete", url);
+    if (local !== PASS_THROUGH) return local as T;
     await this.validateOptions(options);
 
     return this.instance

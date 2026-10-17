@@ -1,5 +1,5 @@
 import { LibraryGame } from "@types";
-import { getDisplayedPlayTimeInMilliseconds } from "@shared";
+import { cachedImage, getDisplayedPlayTimeInMilliseconds } from "@shared";
 import cn from "classnames";
 import {
   useGameCard,
@@ -90,7 +90,12 @@ export const LibraryGameCard = memo(function LibraryGameCard({
 
     if (
       trimmedImageUrl.startsWith("http://") ||
-      trimmedImageUrl.startsWith("https://") ||
+      trimmedImageUrl.startsWith("https://")
+    ) {
+      return cachedImage(trimmedImageUrl);
+    }
+
+    if (
       trimmedImageUrl.startsWith("data:") ||
       trimmedImageUrl.startsWith("blob:")
     ) {

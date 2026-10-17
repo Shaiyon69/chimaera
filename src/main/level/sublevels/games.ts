@@ -1,8 +1,13 @@
+import path from "node:path";
 import type { Game } from "@types";
 
-import { db } from "../level";
-import { levelKeys } from "./keys";
+import { levelDatabasePath } from "@main/constants";
+import { GamesStore } from "../sqlite/games-db";
 
-export const gamesSublevel = db.sublevel<string, Game>(levelKeys.games, {
-  valueEncoding: "json",
-});
+/** The library lives in SQLite (`chimaera.sqlite` next to the LevelDB folder). */
+export const gamesSublevel = new GamesStore<Game>(() =>
+  path.join(
+    path.dirname(levelDatabasePath),
+    `${path.basename(levelDatabasePath).replace("hydra-db", "chimaera")}.sqlite`
+  )
+);

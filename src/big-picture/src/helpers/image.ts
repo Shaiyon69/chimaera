@@ -1,3 +1,4 @@
+import { cachedImage } from "@shared";
 import type { LibraryGame } from "@types";
 
 export interface GameCoverImageSource {
@@ -16,7 +17,13 @@ export function resolveImageSource(
 
   if (
     trimmedImageUrl.startsWith("http://") ||
-    trimmedImageUrl.startsWith("https://") ||
+    trimmedImageUrl.startsWith("https://")
+  ) {
+    // Catalogue artwork renders from the local disk cache (main/image-cache).
+    return cachedImage(trimmedImageUrl);
+  }
+
+  if (
     trimmedImageUrl.startsWith("data:") ||
     trimmedImageUrl.startsWith("blob:")
   ) {

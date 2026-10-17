@@ -65,12 +65,6 @@ export function useUserDetails() {
     [setUserDetails]
   );
 
-  const signOut = useCallback(async () => {
-    clearUserDetails();
-
-    return globalThis.window.electron.signOut();
-  }, [clearUserDetails]);
-
   const patchUser = useCallback(
     async (values: UpdateProfileRequest) => {
       const updatedProfile = (await window.electron.updateProfile(
@@ -138,21 +132,13 @@ export function useUserDetails() {
   useEffect(() => {
     if (!IS_DESKTOP) return;
 
-    const unsubscribeAccountUpdated =
-      globalThis.window.electron.onAccountUpdated(() => {
+    const unsubscribeProfileUpdated =
+      globalThis.window.electron.onProfileUpdated(() => {
         void fetchUserDetails();
       });
-    const unsubscribeSignIn = globalThis.window.electron.onSignIn(() => {
-      void fetchUserDetails();
-    });
-    const unsubscribeSignOut = globalThis.window.electron.onSignOut(() => {
-      clearUserDetails();
-    });
 
     return () => {
-      unsubscribeAccountUpdated();
-      unsubscribeSignIn();
-      unsubscribeSignOut();
+      unsubscribeProfileUpdated();
     };
   }, [clearUserDetails, fetchUserDetails]);
 
@@ -165,7 +151,6 @@ export function useUserDetails() {
     userDetails,
     hasActiveSubscription,
     fetchUserDetails,
-    signOut,
     updateUserDetails,
     patchUser,
     sendFriendRequest,

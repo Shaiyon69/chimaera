@@ -1,4 +1,5 @@
 import type { ShopAssets } from "@types";
+import { cachedImage } from "@shared";
 
 import "./game-card.scss";
 
@@ -15,7 +16,7 @@ export function GameCard({ game, ...props }: GameCardProps) {
     <button {...props} type="button" className="game-card">
       <div className="game-card__media">
         <img
-          src={game.libraryImageUrl ?? undefined}
+          src={cachedImage(game.libraryImageUrl ?? undefined)}
           alt=""
           className="game-card__cover"
           loading="lazy"

@@ -6,10 +6,8 @@ import {
   QuestionIcon,
   SyncIcon,
   TrashIcon,
-  UploadIcon,
 } from "@primer/octicons-react";
 import type {
-  EmulationSavePlatform,
   EmulatorConfig,
   EmulatorSystem,
   MemcardExportResult,
@@ -30,21 +28,12 @@ import {
   VerticalFocusGroup,
 } from "../../../components";
 import { ConfirmationModal } from "../../../components/modals";
-import {
-  useBigPictureToast,
-  useNavigation,
-  useUserDetails,
-} from "../../../hooks";
+import { useBigPictureToast, useNavigation } from "../../../hooks";
 import { getSkuRegion, getSkuRegionFlag } from "@renderer/helpers";
-import {
-  resolveCardBackupProgress,
-  useEmulationBackupProgress,
-} from "@renderer/hooks/use-emulation-backup-progress";
 import {
   EMULATION_DETAIL_MEMORY_CARDS_DETECT_BUTTON_ID,
   EMULATION_DETAIL_MEMORY_CARDS_PICK_BUTTON_ID,
   EMULATION_DETAIL_MEMORY_CARDS_REGION_ID,
-  getEmulationMemcardBackupAllFocusId,
   getEmulationMemcardGroupCollapseFocusId,
   getEmulationMemcardMenuFocusId,
   getEmulationMemcardRemoveCardFocusId,
@@ -55,7 +44,6 @@ interface MemoryCardsSectionProps {
   config: EmulatorConfig;
   upTargetId: string;
   downTargetId: string;
-  onUploaded?: () => void;
 }
 
 interface MemoryCardScanSummary {
@@ -362,21 +350,15 @@ export function MemoryCardsSection({
   config,
   upTargetId,
   downTargetId,
-  onUploaded,
 }: Readonly<MemoryCardsSectionProps>) {
   const { t } = useTranslation("settings");
-  const { hasActiveSubscription } = useUserDetails();
   const { showSuccessToast, showErrorToast } = useBigPictureToast();
   const isPs1 = config.system === "ps1";
   const api = isPs1 ? ps1Api : ps2Api;
-  const platform = config.system as EmulationSavePlatform;
 
   const [saves, setSaves] = useState<MemoryCardSaveRecord[]>([]);
   const [scanInput, setScanInput] = useState<MemcardScanInput | null>(null);
   const [exportingKey, setExportingKey] = useState<string | null>(null);
-  const [backingUpKey, setBackingUpKey] = useState<string | null>(null);
-  const { backupProgressByCard, backupCard } =
-    useEmulationBackupProgress(platform);
   const [forgetCardTarget, setForgetCardTarget] = useState<{
     cardFilePath: string;
     cardLabel: string;
@@ -473,42 +455,6 @@ export function MemoryCardsSection({
     [api, showErrorToast, showSuccessToast]
   );
 
-  const handleBackup = useCallback(
-    async (save: MemoryCardSaveRecord) => {
-      setBackingUpKey(saveKey(save));
-      try {
-        await globalThis.window.electron.uploadEmulationSave(
-          platform,
-          save.cardFilePath,
-          save.folderName
-        );
-        showSuccessToast("Cloud backup complete", SETTINGS_TOAST_OPTIONS);
-        onUploaded?.();
-      } catch {
-        showErrorToast("Cloud backup failed", SETTINGS_TOAST_OPTIONS);
-      } finally {
-        setBackingUpKey(null);
-      }
-    },
-    [onUploaded, platform, showErrorToast, showSuccessToast]
-  );
-
-  const handleBackupAll = useCallback(
-    async (cardFilePath: string, recordCount: number) => {
-      const result = await backupCard(cardFilePath, recordCount);
-      if (result) {
-        showSuccessToast("Cloud backup complete", {
-          ...SETTINGS_TOAST_OPTIONS,
-          message: `${result.uploaded}/${result.total} saves uploaded.`,
-        });
-        onUploaded?.();
-      } else {
-        showErrorToast("Cloud backup failed", SETTINGS_TOAST_OPTIONS);
-      }
-    },
-    [onUploaded, backupCard, showErrorToast, showSuccessToast]
-  );
-
   const handleForgetCard = useCallback(async () => {
     if (!forgetCardTarget) return;
     await api.forgetCard(forgetCardTarget.cardFilePath);
@@ -579,8 +525,6 @@ export function MemoryCardsSection({
               const isCollapsed = collapsed.has(cardFilePath);
               const collapseId =
                 getEmulationMemcardGroupCollapseFocusId(cardFilePath);
-              const backupAllId =
-                getEmulationMemcardBackupAllFocusId(cardFilePath);
               const removeCardId =
                 getEmulationMemcardRemoveCardFocusId(cardFilePath);
               const previousGroup = groups[index - 1];
@@ -589,17 +533,6 @@ export function MemoryCardsSection({
               const firstRecordMenuId = firstRecord
                 ? getEmulationMemcardMenuFocusId(saveKey(firstRecord))
                 : null;
-              const {
-                isBackingUp,
-                total: progressTotal,
-                done: progressDone,
-                label: progressLabel,
-                percent: progressPercent,
-              } = resolveCardBackupProgress(
-                backupProgressByCard,
-                cardFilePath,
-                records.length
-              );
               return (
                 <div
                   key={cardFilePath}
@@ -610,15 +543,10 @@ export function MemoryCardsSection({
                       id={collapseId}
                       navigationOverrides={{
                         left: { type: "block" },
-                        right: hasActiveSubscription
-                          ? {
-                              type: "item",
-                              itemId: backupAllId,
-                            }
-                          : {
-                              type: "item",
-                              itemId: removeCardId,
-                            },
+                        right: {
+                          type: "item",
+                          itemId: removeCardId,
+                        },
                         up: previousGroup
                           ? {
                               type: "item",
@@ -685,84 +613,12 @@ export function MemoryCardsSection({
                       </button>
                     </FocusItem>
 
-                    {hasActiveSubscription ? (
-                      <FocusItem
-                        id={backupAllId}
-                        navigationOverrides={{
-                          left: {
-                            type: "item",
-                            itemId: collapseId,
-                          },
-                          right: {
-                            type: "item",
-                            itemId: removeCardId,
-                          },
-                          up: previousGroup
-                            ? {
-                                type: "item",
-                                itemId: getEmulationMemcardBackupAllFocusId(
-                                  previousGroup.cardFilePath
-                                ),
-                              }
-                            : {
-                                type: "item",
-                                itemId:
-                                  EMULATION_DETAIL_MEMORY_CARDS_DETECT_BUTTON_ID,
-                              },
-                          down:
-                            !isCollapsed && firstRecordMenuId
-                              ? {
-                                  type: "item",
-                                  itemId: firstRecordMenuId,
-                                }
-                              : nextGroup
-                                ? {
-                                    type: "item",
-                                    itemId: getEmulationMemcardBackupAllFocusId(
-                                      nextGroup.cardFilePath
-                                    ),
-                                  }
-                                : {
-                                    type: "item",
-                                    itemId: downTargetId,
-                                  },
-                        }}
-                        asChild
-                      >
-                        <button
-                          type="button"
-                          className="emulator-detail__memcard-backup-all"
-                          onClick={() => {
-                            handleBackupAll(cardFilePath, records.length).catch(
-                              () => {}
-                            );
-                          }}
-                          disabled={isBackingUp}
-                        >
-                          <UploadIcon size={13} />
-                          <span>
-                            {isBackingUp
-                              ? `${t("cloud_backing_up")} ${t(
-                                  "setup_scan_count",
-                                  {
-                                    processed: progressDone,
-                                    total: progressTotal,
-                                  }
-                                )}`
-                              : t("cloud_backup_all")}
-                          </span>
-                        </button>
-                      </FocusItem>
-                    ) : null}
-
                     <Button
                       focusId={removeCardId}
                       focusNavigationOverrides={{
                         left: {
                           type: "item",
-                          itemId: hasActiveSubscription
-                            ? backupAllId
-                            : collapseId,
+                          itemId: collapseId,
                         },
                         right: { type: "block" },
                         up: previousGroup
@@ -808,25 +664,6 @@ export function MemoryCardsSection({
                       {t("remove")}
                     </Button>
                   </div>
-
-                  {isBackingUp ? (
-                    <div className="emulator-detail__memcard-backup-progress">
-                      <div className="emulator-detail__memcard-backup-progress-track">
-                        <div
-                          className="emulator-detail__memcard-backup-progress-fill"
-                          style={{ width: `${progressPercent}%` }}
-                        />
-                      </div>
-                      {progressLabel ? (
-                        <span
-                          className="emulator-detail__memcard-backup-progress-label"
-                          title={progressLabel}
-                        >
-                          {progressLabel}
-                        </span>
-                      ) : null}
-                    </div>
-                  ) : null}
 
                   {!isCollapsed ? (
                     <GridFocusGroup className="emulator-detail__memcard-grid">
@@ -954,18 +791,6 @@ export function MemoryCardsSection({
                                         ),
                                   disabled: exportingKey === currentKey,
                                   onSelect: () => handleExport(save),
-                                },
-                                {
-                                  id: "backup",
-                                  icon: <UploadIcon size={16} />,
-                                  label:
-                                    backingUpKey === currentKey
-                                      ? t("cloud_backing_up")
-                                      : t("cloud_backup"),
-                                  disabled:
-                                    !hasActiveSubscription ||
-                                    backingUpKey === currentKey,
-                                  onSelect: () => handleBackup(save),
                                 },
                               ]}
                             />

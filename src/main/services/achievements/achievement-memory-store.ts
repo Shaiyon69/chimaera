@@ -9,6 +9,13 @@ export type AchievementMemoryEntry = {
 
 const entries = new Map<string, AchievementMemoryEntry>();
 
+type PersistUnlocked = (
+  shop: GameShop,
+  objectId: string,
+  unlocked: UnlockedAchievement[]
+) => void;
+let persistUnlocked: PersistUnlocked | null = null;
+
 const gameKey = (shop: GameShop, objectId: string) => `${shop}:${objectId}`;
 
 export const AchievementMemoryStore = {
@@ -21,7 +28,20 @@ export const AchievementMemoryStore = {
     objectId: string,
     achievementEntry: AchievementMemoryEntry
   ) {
+    const previous = entries.get(gameKey(shop, objectId))?.unlockedAchievements;
     entries.set(gameKey(shop, objectId), achievementEntry);
+    if (
+      persistUnlocked &&
+      JSON.stringify(previous ?? []) !==
+        JSON.stringify(achievementEntry.unlockedAchievements)
+    ) {
+      persistUnlocked(shop, objectId, achievementEntry.unlockedAchievements);
+    }
+  },
+
+  /** Unlocks are kept on disk too (the store itself stays free of I/O for tests). */
+  persistWith(fn: PersistUnlocked | null) {
+    persistUnlocked = fn;
   },
 
   delete(shop: GameShop, objectId: string) {

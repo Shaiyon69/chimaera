@@ -4,7 +4,6 @@ import { createGame, trackGamePlaytime } from "./library-sync";
 import type { Game, UserPreferences } from "@types";
 import axios from "axios";
 import { db, gamesSublevel, levelKeys } from "@main/level";
-import { CloudSync } from "./cloud-sync";
 import { logger, networkLogger } from "./logger";
 import { PowerSaveBlockerManager } from "./power-save-blocker";
 import path from "node:path";
@@ -17,6 +16,8 @@ import { emulatorSessions } from "./emulators/emulator-session-tracker";
 import { launchedGamePids } from "./launched-game-pids";
 import { markGameLauncherGameDetected } from "./game-launcher-status";
 import {
+  hasProcessUnderDir,
+  hasWindowsPathMatch,
   isValidProcessWatcherScan,
   startOptionalExecutableCatalogueLoad,
 } from "./process-watcher-scan";
@@ -39,12 +40,6 @@ import {
   shouldScheduleSteamGameExitSync,
 } from "./steam-integration/steam-game-exit-sync";
 import {
-  getCloudSaveAutomaticSyncMode,
-  runAutomaticCloudSavePostExit,
-  shouldRunLegacyAutomaticCloudSave,
-  shouldRunV2AutomaticCloudSave,
-} from "./cloud-save";
-import {
   clearGamesPlaytimeState,
   deleteGamePlaytime,
   gamesPlaytime,
@@ -61,53 +56,6 @@ import { GameExecutables } from "./game-executables";
 
 export { gamesPlaytime };
 export { isGameRunning } from "./game-running-state";
-
-const runAutomaticCloudSaveOnOpen = async (game: Game) => {
-  const mode = await getCloudSaveAutomaticSyncMode(game.objectId, game.shop);
-
-  if (shouldRunLegacyAutomaticCloudSave(mode)) {
-    await CloudSync.uploadSaveGame(
-      game.objectId,
-      game.shop,
-      null,
-      CloudSync.getBackupLabel(true)
-    );
-  }
-};
-
-const runAutomaticCloudSaveOnClose = async (game: Game) => {
-  const mode = await getCloudSaveAutomaticSyncMode(game.objectId, game.shop);
-
-  if (shouldRunLegacyAutomaticCloudSave(mode)) {
-    if (game.remoteId) {
-      await CloudSync.uploadSaveGame(
-        game.objectId,
-        game.shop,
-        null,
-        CloudSync.getBackupLabel(true)
-      );
-    }
-    return;
-  }
-
-  if (shouldRunV2AutomaticCloudSave(mode)) {
-    await runAutomaticCloudSavePostExit(game.objectId, game.shop);
-  }
-};
-
-const handleAutomaticCloudSaveLifecycleError = (
-  phase: "open" | "close",
-  game: Game,
-  error: unknown
-) => {
-  logger.error("[Cloud Save] Automatic lifecycle failed", {
-    phase,
-    shop: game.shop,
-    objectId: game.objectId,
-    errorName: error instanceof Error ? error.name : "UnknownError",
-    errorMessage: error instanceof Error ? error.message : "Unknown error",
-  });
-};
 
 export const getGamesRunning = () => {
   const now = performance.now();
@@ -313,8 +261,16 @@ export const watchProcesses = async () => {
 
     const trackingPaths = game.trackingExecutablePaths?.filter(Boolean) ?? [];
 
+    const isBatch = isWindowsBatchFile(executablePath);
+    // A .bat exits or hands off, so with no exe to follow, watch its folder.
+    const batchDirMatch =
+      platform === "win32" &&
+      isBatch &&
+      !trackingPaths.length &&
+      hasProcessUnderDir(processMap, path.dirname(executablePath));
+
     let matchPaths: string[];
-    if (isWindowsBatchFile(executablePath)) {
+    if (isBatch) {
       matchPaths = trackingPaths.length ? trackingPaths : [executablePath];
     } else {
       matchPaths = [executablePath, ...trackingPaths];
@@ -326,6 +282,8 @@ export const watchProcesses = async () => {
         .toLowerCase();
 
       if (processMap.get(executable)?.has(matchPath)) return true;
+      if (platform === "win32" && hasWindowsPathMatch(processMap, matchPath))
+        return true;
 
       if (platform === "linux") {
         return (
@@ -336,6 +294,8 @@ export const watchProcesses = async () => {
 
       return false;
     });
+
+    if (!matchedPath && batchDirMatch) matchedPath = executablePath;
 
     if (
       !matchedPath &&
@@ -479,10 +439,6 @@ async function onOpenGame(game: Game, matchedPath: string) {
           error: error instanceof Error ? error.message : String(error),
         });
       });
-
-    void runAutomaticCloudSaveOnOpen(game).catch((error: unknown) => {
-      handleAutomaticCloudSaveLifecycleError("open", game, error);
-    });
   } else {
     const payload = { ...game, lastTimePlayed: new Date() };
 
@@ -596,6 +552,19 @@ const onCloseGame = (game: Game) => {
     game.unsyncedDeltaPlayTimeInMilliseconds ?? 0
   );
 
+  // firstTick is performance.now(); convert the session to wall-clock times.
+  const sessionMs = now - gamePlaytime.firstTick;
+  try {
+    gamesSublevel.addPlaySession({
+      gameKey,
+      startedAt: Date.now() - sessionMs,
+      endedAt: Date.now(),
+      durationMs: sessionMs,
+    });
+  } catch (error) {
+    logger.error("Failed to record play session", error);
+  }
+
   logPlaytimeTrace("session-close", game, {
     performanceNow: now,
     delta,
@@ -623,10 +592,6 @@ const onCloseGame = (game: Game) => {
   void persistGamePlaytime(gameKey, updatedGame);
 
   if (game.shop === "custom") return;
-
-  void runAutomaticCloudSaveOnClose(game).catch((error: unknown) => {
-    handleAutomaticCloudSaveLifecycleError("close", game, error);
-  });
 
   if (game.remoteId) {
     logPlaytimeTrace("close-sync-track-request", game, {

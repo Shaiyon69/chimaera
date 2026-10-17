@@ -1,16 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  KebabHorizontalIcon,
-  QuestionIcon,
-  SyncIcon,
-  UploadIcon,
-} from "@primer/octicons-react";
+import { QuestionIcon, SyncIcon } from "@primer/octicons-react";
 
 import { Button, GuideLink } from "@renderer/components";
-import { DropdownMenu } from "@renderer/components/dropdown-menu/dropdown-menu";
 import { getSkuRegion, getSkuRegionFlag } from "@renderer/helpers";
-import { useToast, useUserDetails } from "@renderer/hooks";
 import { formatBytes } from "@shared";
 import type {
   EmulationSavePlatform,
@@ -20,7 +13,6 @@ import type {
 
 interface Props {
   config: EmulatorConfig;
-  onUploaded: () => void;
 }
 
 const saveKey = (save: MemoryCardSaveRecord): string =>
@@ -39,13 +31,8 @@ interface LocalSaveItem {
 const localSaveKey = ({ platform, save }: LocalSaveItem): string =>
   `${platform}::${saveKey(save)}`;
 
-export function LocalEmulatorSavesSection({
-  config,
-  onUploaded,
-}: Readonly<Props>) {
+export function LocalEmulatorSavesSection({ config }: Readonly<Props>) {
   const { t } = useTranslation("settings");
-  const { showSuccessToast, showErrorToast } = useToast();
-  const { hasActiveSubscription } = useUserDetails();
   const platforms = useMemo(
     () => localSavePlatforms(config.system),
     [config.system]
@@ -53,7 +40,6 @@ export function LocalEmulatorSavesSection({
 
   const [saves, setSaves] = useState<LocalSaveItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [backingUpKey, setBackingUpKey] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -74,27 +60,6 @@ export function LocalEmulatorSavesSection({
   useEffect(() => {
     void load();
   }, [load]);
-
-  const handleBackup = useCallback(
-    async ({ platform, save }: LocalSaveItem) => {
-      const key = `${platform}::${saveKey(save)}`;
-      setBackingUpKey(key);
-      try {
-        await window.electron.uploadEmulationSave(
-          platform,
-          save.cardFilePath,
-          save.folderName
-        );
-        showSuccessToast(t("cloud_backup_success"));
-        onUploaded();
-      } catch {
-        showErrorToast(t("cloud_backup_failed"));
-      } finally {
-        setBackingUpKey(null);
-      }
-    },
-    [onUploaded, showErrorToast, showSuccessToast, t]
-  );
 
   return (
     <section className="emulator-detail__section">
@@ -140,7 +105,6 @@ export function LocalEmulatorSavesSection({
             const cover = save.libraryImageUrl ?? save.iconUrl;
             const title = save.title ?? save.folderName;
             const region = save.sku ? getSkuRegion(save.sku) : null;
-            const backingUp = backingUpKey === key;
             const mapped = save.objectId !== null;
             const metadata = [
               platform === "psp" ? null : save.cardLabel,
@@ -193,30 +157,6 @@ export function LocalEmulatorSavesSection({
                     {metadata}
                   </span>
                 </div>
-
-                {hasActiveSubscription && (
-                  <DropdownMenu
-                    align="end"
-                    items={[
-                      {
-                        icon: <UploadIcon size={16} />,
-                        label: backingUp
-                          ? t("cloud_backing_up")
-                          : t("cloud_backup"),
-                        disabled: backingUp || !mapped,
-                        onClick: () => handleBackup(item),
-                      },
-                    ]}
-                  >
-                    <button
-                      type="button"
-                      className="emulator-detail__memcard-menu"
-                      aria-label={title}
-                    >
-                      <KebabHorizontalIcon size={16} />
-                    </button>
-                  </DropdownMenu>
-                )}
               </div>
             );
           })}

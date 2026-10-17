@@ -24,7 +24,7 @@ import {
   SyncIcon,
 } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
-import { AuthPage, removeDiacritics } from "@shared";
+import { removeDiacritics } from "@shared";
 import { GameCollection, LibraryGame } from "@types";
 import {
   Button,
@@ -445,7 +445,6 @@ export default function Library() {
 
   const handleCreateCollectionButtonClick = useCallback(() => {
     if (!userDetails) {
-      window.electron.openAuthWindow(AuthPage.SignIn);
       return;
     }
 

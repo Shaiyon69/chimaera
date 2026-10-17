@@ -24,7 +24,6 @@ import { setHeaderTitle } from "@renderer/features";
 import { useTranslation } from "react-i18next";
 import type { GameShop } from "@types";
 import {
-  AuthPage,
   findSouvenirByNotificationTarget,
   isAchievementSouvenirsEnabled,
   useSouvenirContentWarning,
@@ -32,12 +31,10 @@ import {
 import { LockedProfile } from "./locked-profile";
 import { ReportProfile } from "../report-profile/report-profile";
 import { BadgesBox } from "./badges-box";
-import { FriendsBox, FriendsBoxAddButton } from "./friends-box";
 import { RecentGamesBox } from "./recent-games-box";
 import { UserStatsBox } from "./user-stats-box";
 import { ProfileSection } from "../profile-section/profile-section";
 import { DeleteReviewModal } from "@renderer/pages/game-details/modals/delete-review-modal";
-import { GAME_STATS_ANIMATION_DURATION_IN_MS } from "./profile-animations";
 import { MAX_MINUTES_TO_SHOW_IN_PLAYTIME } from "@renderer/constants";
 import { ProfileTabs, type ProfileTabType } from "./profile-tabs";
 import { LibraryTab } from "./library-tab";
@@ -141,7 +138,6 @@ export function ProfileContent() {
   const disableNsfwAlert = useAppSelector(
     (state) => state.userPreferences.value?.disableNsfwAlert === true
   );
-  const [statsIndex, setStatsIndex] = useState(0);
   const [sortBy, setSortBy] = useState<SortOption>(readStoredProfileSort);
 
   const prefetchedSortBy = useRef(readStoredProfileSort()).current;
@@ -406,7 +402,6 @@ export function ProfileContent() {
 
   const handleVoteReview = async (reviewId: string, isUpvote: boolean) => {
     if (!userDetails) {
-      window.electron.openAuthWindow(AuthPage.SignIn);
       return;
     }
 
@@ -509,17 +504,6 @@ export function ProfileContent() {
     }
   };
 
-  useEffect(() => {
-    const interval = window.setInterval(
-      () => setStatsIndex((index) => index + 1),
-      GAME_STATS_ANIMATION_DURATION_IN_MS
-    );
-
-    return () => {
-      window.clearInterval(interval);
-    };
-  }, []);
-
   const usersAreFriends = useMemo(() => {
     return userProfile?.relation?.status === "ACCEPTED";
   }, [userProfile]);
@@ -564,7 +548,6 @@ export function ProfileContent() {
                   libraryGames={libraryGames}
                   hasMoreLibraryGames={hasMoreLibraryGames}
                   isAwaitingInitialLibrary={isCorrectingPrefetchedSort}
-                  statsIndex={statsIndex}
                   userStats={userStats}
                   onLoadMore={handleLoadMore}
                   isMe={isMe}
@@ -638,16 +621,6 @@ export function ProfileContent() {
             {userProfile?.recentGames.length > 0 && (
               <ProfileSection title={t("activity")} defaultOpen={true}>
                 <RecentGamesBox />
-              </ProfileSection>
-            )}
-            {(userProfile?.friends.length > 0 || isMe) && (
-              <ProfileSection
-                title={t("friends")}
-                count={userStats?.friendsCount || userProfile.friends.length}
-                action={<FriendsBoxAddButton />}
-                defaultOpen={true}
-              >
-                <FriendsBox />
               </ProfileSection>
             )}
             <ReportProfile />

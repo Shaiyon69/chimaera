@@ -29,7 +29,6 @@ import { ConfirmationModal, Link } from "@renderer/components";
 import { buildGameDetailsPath } from "@renderer/helpers";
 import { useDate } from "@renderer/hooks";
 import {
-  AuthPage,
   getPrimarySouvenirAchievement,
   getSouvenirVisualVariant,
 } from "@shared";
@@ -742,7 +741,6 @@ export function SouvenirLightbox({
                       }
                       onRequestReport={() => {
                         if (!canLike) {
-                          window.electron.openAuthWindow(AuthPage.SignIn);
                           return;
                         }
 

@@ -34,7 +34,6 @@ interface LibraryTabProps {
   libraryGames: UserGame[];
   hasMoreLibraryGames: boolean;
   isAwaitingInitialLibrary: boolean;
-  statsIndex: number;
   userStats: { libraryCount: number } | null;
   onLoadMore: () => void;
   isMe: boolean;
@@ -53,7 +52,6 @@ export function LibraryTab({
   libraryGames,
   hasMoreLibraryGames,
   isAwaitingInitialLibrary,
-  statsIndex,
   userStats,
   onLoadMore,
   isMe,
@@ -234,7 +232,6 @@ export function LibraryTab({
                   <li key={game.objectId} style={{ listStyle: "none" }}>
                     <UserLibraryGameCard
                       game={game}
-                      statIndex={statsIndex}
                       onContextMenu={handleOpenContextMenu}
                     />
                   </li>
@@ -274,7 +271,6 @@ export function LibraryTab({
                       >
                         <UserLibraryGameCard
                           game={game}
-                          statIndex={statsIndex}
                           onContextMenu={handleOpenContextMenu}
                         />
                       </li>

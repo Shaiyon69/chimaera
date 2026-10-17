@@ -3,7 +3,7 @@ import {
   SettingsContextConsumer,
   SettingsContextProvider,
 } from "@renderer/context";
-import { SettingsAccount } from "./settings-account";
+import { SettingsProfileData } from "./settings-profile-data";
 import { useUserDetails } from "@renderer/hooks";
 import { Fragment, useMemo } from "react";
 import "./settings.scss";
@@ -56,16 +56,12 @@ export default function Settings() {
         icon: <BellIcon size={16} />,
         group: "general" as const,
       },
-      ...(userDetails
-        ? [
-            {
-              id: "account_privacy" as const,
-              label: `${t("account")} & ${t("privacy")}`,
-              icon: <ShieldCheckIcon size={16} />,
-              group: "general" as const,
-            },
-          ]
-        : []),
+      {
+        id: "account_privacy" as const,
+        label: t("profile_data_title"),
+        icon: <ShieldCheckIcon size={16} />,
+        group: "general" as const,
+      },
       {
         id: "big_picture" as const,
         label: t("big_picture"),
@@ -172,7 +168,7 @@ export default function Settings() {
               return <SettingsContextEmulation />;
             }
 
-            return <SettingsAccount />;
+            return <SettingsProfileData />;
           };
 
           return (

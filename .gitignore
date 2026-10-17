@@ -27,3 +27,14 @@ native/torrent-bridge/vcpkg_installed/
 
 # Staged by yarn stage:bloodborne
 /bloodborne-port/
+# Upstream port source, cloned for reference only
+/bloodborne_pc_windows_port/
+
+# Personal Hydra data export (never commit)
+hydra-backup/
+
+# Impeccable's local edit-tracking cache (session-keyed, local paths only)
+.impeccable/hook.cache.json
+
+# Separate scratch project with its own git history
+/chimaera-next/

@@ -9,19 +9,13 @@ import {
   QuestionIcon,
   SyncIcon,
   TrashIcon,
-  UploadIcon,
 } from "@primer/octicons-react";
 
 import { Button, ConfirmationModal, TextField } from "@renderer/components";
 import { DropdownMenu } from "@renderer/components/dropdown-menu/dropdown-menu";
-import { useToast, useUserDetails } from "@renderer/hooks";
-import {
-  resolveCardBackupProgress,
-  useEmulationBackupProgress,
-} from "@renderer/hooks/use-emulation-backup-progress";
+import { useToast } from "@renderer/hooks";
 import { getSkuRegion, getSkuRegionFlag } from "@renderer/helpers";
 import type {
-  EmulationSavePlatform,
   EmulatorConfig,
   MemcardExportResult,
   MemcardScanInput,
@@ -36,7 +30,6 @@ import {
 interface Props {
   config: EmulatorConfig;
   /** Called after a successful cloud back-up so the Cloud saves list refreshes. */
-  onUploaded?: () => void;
 }
 
 // PS1 (DuckStation) and PS2 (PCSX2) saves share the same UI; only the backing
@@ -101,21 +94,16 @@ const countKey = (isPs1: boolean, count: number): string => {
   return count === 1 ? "memcard_files_count_one" : "memcard_files_count_other";
 };
 
-export function MemoryCardsSection({ config, onUploaded }: Readonly<Props>) {
+export function MemoryCardsSection({ config }: Readonly<Props>) {
   const { t } = useTranslation("settings");
   const { showSuccessToast, showErrorToast } = useToast();
-  const { hasActiveSubscription } = useUserDetails();
 
   const isPs1 = config.system === "ps1";
   const api = isPs1 ? ps1Api : ps2Api;
-  const platform = config.system as EmulationSavePlatform;
 
   const [saves, setSaves] = useState<MemoryCardSaveRecord[]>([]);
   const [scanInput, setScanInput] = useState<MemcardScanInput | null>(null);
   const [exportingKey, setExportingKey] = useState<string | null>(null);
-  const [backingUpKey, setBackingUpKey] = useState<string | null>(null);
-  const { backupProgressByCard, backupCard } =
-    useEmulationBackupProgress(platform);
   const [forgetCardTarget, setForgetCardTarget] = useState<{
     cardFilePath: string;
     cardLabel: string;
@@ -250,44 +238,6 @@ export function MemoryCardsSection({ config, onUploaded }: Readonly<Props>) {
     [api, showSuccessToast, showErrorToast, t]
   );
 
-  const handleBackup = useCallback(
-    async (save: MemoryCardSaveRecord) => {
-      setBackingUpKey(saveKey(save));
-      try {
-        await window.electron.uploadEmulationSave(
-          platform,
-          save.cardFilePath,
-          save.folderName
-        );
-        showSuccessToast(t("cloud_backup_success"));
-        onUploaded?.();
-      } catch {
-        showErrorToast(t("cloud_backup_failed"));
-      } finally {
-        setBackingUpKey(null);
-      }
-    },
-    [platform, showSuccessToast, showErrorToast, t, onUploaded]
-  );
-
-  const handleBackupAll = useCallback(
-    async (cardFilePath: string, recordCount: number) => {
-      const res = await backupCard(cardFilePath, recordCount);
-      if (res) {
-        showSuccessToast(
-          t("cloud_backup_all_done", {
-            uploaded: res.uploaded,
-            total: res.total,
-          })
-        );
-        onUploaded?.();
-      } else {
-        showErrorToast(t("cloud_backup_failed"));
-      }
-    },
-    [backupCard, showSuccessToast, showErrorToast, t, onUploaded]
-  );
-
   const handleForgetCard = useCallback(async () => {
     if (!forgetCardTarget) return;
     await api.forgetCard(forgetCardTarget.cardFilePath);
@@ -360,17 +310,6 @@ export function MemoryCardsSection({ config, onUploaded }: Readonly<Props>) {
                     cardPage * PAGE_SIZE,
                     cardPage * PAGE_SIZE + PAGE_SIZE
                   );
-                  const {
-                    isBackingUp,
-                    total: progressTotal,
-                    done: progressDone,
-                    label: progressLabel,
-                    percent: progressPercent,
-                  } = resolveCardBackupProgress(
-                    backupProgressByCard,
-                    cardFilePath,
-                    records.length
-                  );
                   return (
                     <div
                       key={cardFilePath}
@@ -408,29 +347,6 @@ export function MemoryCardsSection({ config, onUploaded }: Readonly<Props>) {
                             )}
                           </span>
                         </button>
-                        {hasActiveSubscription && (
-                          <button
-                            type="button"
-                            className="emulator-detail__memcard-backup-all"
-                            onClick={() =>
-                              handleBackupAll(cardFilePath, records.length)
-                            }
-                            disabled={isBackingUp}
-                          >
-                            <UploadIcon size={13} />
-                            <span>
-                              {isBackingUp
-                                ? `${t("cloud_backing_up")} ${t(
-                                    "setup_scan_count",
-                                    {
-                                      processed: progressDone,
-                                      total: progressTotal,
-                                    }
-                                  )}`
-                                : t("cloud_backup_all")}
-                            </span>
-                          </button>
-                        )}
                         <button
                           type="button"
                           className="emulator-detail__remove"
@@ -442,24 +358,6 @@ export function MemoryCardsSection({ config, onUploaded }: Readonly<Props>) {
                           <TrashIcon size={16} />
                         </button>
                       </div>
-                      {isBackingUp && (
-                        <div className="emulator-detail__memcard-backup-progress">
-                          <div className="emulator-detail__memcard-backup-progress-track">
-                            <div
-                              className="emulator-detail__memcard-backup-progress-fill"
-                              style={{ width: `${progressPercent}%` }}
-                            />
-                          </div>
-                          {progressLabel && (
-                            <span
-                              className="emulator-detail__memcard-backup-progress-label"
-                              title={progressLabel}
-                            >
-                              {progressLabel}
-                            </span>
-                          )}
-                        </div>
-                      )}
                       {isExpanded && (
                         <>
                           <div className="emulator-detail__memcard-grid">
@@ -528,17 +426,6 @@ export function MemoryCardsSection({ config, onUploaded }: Readonly<Props>) {
                                             ),
                                         disabled: exporting,
                                         onClick: () => handleExport(save),
-                                      },
-                                      {
-                                        icon: <UploadIcon size={16} />,
-                                        label:
-                                          backingUpKey === saveKey(save)
-                                            ? t("cloud_backing_up")
-                                            : t("cloud_backup"),
-                                        disabled:
-                                          backingUpKey === saveKey(save),
-                                        show: hasActiveSubscription,
-                                        onClick: () => handleBackup(save),
                                       },
                                     ]}
                                   >

@@ -16,7 +16,11 @@ import {
 } from "@renderer/helpers";
 import { AchievementProgress, SteamLibraryBadge } from "@renderer/components";
 import { GameVisibilityBadge } from "@renderer/components/game-visibility-badge/game-visibility-badge";
-import { formatBytes, getDisplayedPlayTimeInMilliseconds } from "@shared";
+import {
+  cachedImage,
+  formatBytes,
+  getDisplayedPlayTimeInMilliseconds,
+} from "@shared";
 import {
   ClockIcon,
   AlertFillIcon,
@@ -181,7 +185,7 @@ export const LibraryGameCardLarge = memo(function LibraryGameCardLarge({
   }, [game, isClassics]);
 
   const heroSources = useMemo(
-    () => heroCandidates.map((candidate) => candidate.url),
+    () => heroCandidates.map((candidate) => cachedImage(candidate.url)),
     [heroCandidates]
   );
 
@@ -298,7 +302,7 @@ export const LibraryGameCardLarge = memo(function LibraryGameCardLarge({
     return normalizePathForCss(displayHeroSource);
   }, [renderClassicsBlurred, activeHeroCandidate, displayHeroSource]);
 
-  const logoImage = game.customLogoImageUrl ?? game.logoImageUrl;
+  const logoImage = cachedImage(game.customLogoImageUrl ?? game.logoImageUrl);
 
   const { label: classicsPlatformLabel, icon: classicsEmulatorIcon } =
     resolveClassicsBadge(

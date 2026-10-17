@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { useToast } from "@renderer/hooks";
 import { logger } from "@renderer/logger";
 import {
-  AuthPage,
   buildProfileSouvenirVisibilityPath,
   buildUserSouvenirLikePath,
   buildUserSouvenirReportPath,
@@ -53,7 +52,6 @@ export function useSouvenirActions({
   const likeSouvenir = useCallback(
     async (souvenir: ProfileSouvenir) => {
       if (!canLike) {
-        window.electron.openAuthWindow(AuthPage.SignIn);
         return;
       }
 

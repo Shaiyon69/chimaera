@@ -1,6 +1,7 @@
 import { ImageIcon } from "@primer/octicons-react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
+import { cachedImage } from "@shared";
 
 import {
   isAnimatedCoverCandidate,
@@ -53,8 +54,9 @@ export function VerticalCoverCard({
     coverImageUrl,
     isAnimatedCover && !autoplayAnimatedArtwork && Boolean(coverPoster)
   );
-  const displayCoverUrl =
-    (shouldHoldFrame && coverPoster ? coverPoster : coverImageUrl) ?? undefined;
+  const displayCoverUrl = cachedImage(
+    (shouldHoldFrame && coverPoster ? coverPoster : coverImageUrl) ?? undefined
+  );
 
   useEffect(() => {
     failedImageSourcesRef.current.clear();

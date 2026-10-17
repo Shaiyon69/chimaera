@@ -37,7 +37,6 @@ import { deleteArchiveFile } from "@main/events/library/delete-archive";
 import { publishExtractionCompleteNotification } from "./notifications";
 import { SystemPath } from "./system-path";
 import { WindowManager } from "./window-manager";
-import { runAutomaticCloudSaveSync } from "./cloud-save";
 
 const PROGRESS_THROTTLE_MS = 1000;
 
@@ -501,11 +500,6 @@ export class GameFilesManager {
         const updatedGame = updateGameExecutablePath(game, foundExePath);
 
         await gamesSublevel.put(this.gameKey, { ...updatedGame });
-        void runAutomaticCloudSaveSync(
-          this.objectId,
-          this.shop,
-          "environment-changed"
-        );
 
         void runAchievementMetadataExport(this.gameKey, updatedGame);
 

@@ -16,10 +16,6 @@ import {
   stopEmulatorSouvenirWatcher,
 } from "./emulator-souvenir-watcher";
 import { WindowManager } from "../window-manager";
-import {
-  hasCloudSaveLaunchGuard,
-  runAutomaticCloudSavePostExit,
-} from "../cloud-save";
 import { readEmulatorPlaytimeSeconds } from "./playtime-files";
 import { stopLinuxGameCaptureSession } from "../linux-game-capture-session";
 import {
@@ -243,13 +239,6 @@ const finalizeEmulatorSession = async (gameKey: string): Promise<void> => {
     });
 
   if (game.shop === "launchbox") {
-    if (hasCloudSaveLaunchGuard(game.objectId, game.shop)) {
-      void runAutomaticCloudSavePostExit(game.objectId, game.shop).catch(
-        (error) => {
-          logger.error("Failed to sync emulator save after exit", error);
-        }
-      );
-    }
     syncRetroAchievements({
       objectId: game.objectId,
       shop: game.shop,

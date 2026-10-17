@@ -9,12 +9,12 @@ import { chunk } from "lodash-es";
 import { HydraApi } from "../hydra-api";
 import { saveSteamGridDbArtwork } from "../game-artwork-cloud";
 import {
-  db,
   gamesArtworkSelectionSublevel,
   gamesShopAssetsSublevel,
   gamesSublevel,
   levelKeys,
   markArtworkSelectionSynced,
+  batchWithGames,
 } from "@main/level";
 import {
   CUSTOM_ASSET_FIELD_BY_TYPE,
@@ -341,7 +341,7 @@ const mergeRemoteGamesChunk = async (
       : Promise.resolve([]),
   ]);
 
-  const batch = db.batch();
+  const batch = batchWithGames();
 
   remoteGames.forEach((remoteGame, index) => {
     const gameKey = gameKeys[index];
@@ -390,13 +390,31 @@ const hideGamesRemovedFromSteamImport = async (remoteKeys: Set<string>) => {
   );
 
   for (const updatesChunk of chunk(updates, MERGE_WRITE_CHUNK_SIZE)) {
-    const batch = db.batch();
+    const batch = batchWithGames();
 
     for (const { key, game } of updatesChunk) {
       batch.put(key, game, { sublevel: gamesSublevel });
     }
 
     await batch.write();
+  }
+};
+
+/** Writes profile games (from Hydra or a Hydra backup) into the local library. */
+export const mergeProfileGamesIntoLibrary = async (
+  remoteGames: ProfileGame[],
+  canReconcileCustomArtwork = false,
+  onProgress?: RemoteGamesMergeProgress
+) => {
+  let processed = 0;
+
+  onProgress?.(processed, remoteGames.length);
+
+  for (const remoteChunk of chunk(remoteGames, MERGE_WRITE_CHUNK_SIZE)) {
+    await mergeRemoteGamesChunk(remoteChunk, canReconcileCustomArtwork);
+
+    processed += remoteChunk.length;
+    onProgress?.(processed, remoteGames.length);
   }
 };
 
@@ -407,16 +425,11 @@ export const mergeWithRemoteGames = async (
     const canReconcileCustomArtwork =
       HydraApi.isLoggedIn() && HydraApi.hasActiveSubscription();
     const remoteGames = await fetchRemoteGames();
-    let processed = 0;
-
-    onProgress?.(processed, remoteGames.length);
-
-    for (const remoteChunk of chunk(remoteGames, MERGE_WRITE_CHUNK_SIZE)) {
-      await mergeRemoteGamesChunk(remoteChunk, canReconcileCustomArtwork);
-
-      processed += remoteChunk.length;
-      onProgress?.(processed, remoteGames.length);
-    }
+    await mergeProfileGamesIntoLibrary(
+      remoteGames,
+      canReconcileCustomArtwork,
+      onProgress
+    );
 
     // Keep installations, but hide games removed by destructive Steam cleanup.
     await hideGamesRemovedFromSteamImport(

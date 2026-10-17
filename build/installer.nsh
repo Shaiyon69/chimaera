@@ -16,7 +16,7 @@
 
     ${NSD_CreateCheckbox} 0 0 100% 12u "Include Bloodborne port"
     Pop $BbCheckbox
-    ${NSD_CreateLabel} 12u 14u 100% 24u "Downloads the Bloodborne Windows port (about 500 MB) the first time Chimaera starts. Leave it unticked to download it later from the Bloodborne page."
+    ${NSD_CreateLabel} 12u 14u 100% 24u "Downloads the Bloodborne Windows port (about 250 MB) the first time Chimaera starts. Leave it unticked to download it later from the Bloodborne page."
     Pop $0
 
     nsDialogs::Show

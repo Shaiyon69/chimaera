@@ -11,7 +11,6 @@ import {
   ImageIcon,
   ProhibitIcon,
   SparkleIcon,
-  SignOutIcon,
   TrophyIcon,
   TrashIcon,
   UserCircleIcon,
@@ -200,8 +199,6 @@ type ProfileHeroAction = {
   onClick: () => void;
 };
 
-const hydraIconUrl = new URL("../../assets/hydra-icon.svg", import.meta.url)
-  .href;
 const WEEKLY_BAR_PLACEHOLDER = [
   { day: "monday", label: "M", height: 0.62 },
   { day: "tuesday", label: "T", height: 0.14 },
@@ -654,7 +651,6 @@ interface ProfileHeroProps {
   isPerformingAction: boolean;
   isLoading: boolean;
   firstContentFocusId: string | null;
-  onSignOut: () => void;
 }
 
 function getDownNavigationOverride(itemId: string | null): FocusOverrides {
@@ -677,7 +673,6 @@ function ProfileHero({
   isPerformingAction,
   isLoading,
   firstContentFocusId,
-  onSignOut,
 }: Readonly<ProfileHeroProps>) {
   const heroImageUrl = profileUser?.backgroundImageUrl ?? null;
   const { backgroundLayers, getLayerEventHandlers } =
@@ -808,7 +803,6 @@ function ProfileHero({
           primaryNavigationOverrides={primaryNavigationOverrides}
           secondaryNavigationOverrides={secondaryNavigationOverrides}
           tertiaryNavigationOverrides={tertiaryNavigationOverrides}
-          onSignOut={onSignOut}
         />
 
         {!profileUser && !isLoading ? (
@@ -830,39 +824,18 @@ interface ProfileHeroActionsProps {
   primaryNavigationOverrides: FocusOverrides;
   secondaryNavigationOverrides: FocusOverrides;
   tertiaryNavigationOverrides: FocusOverrides;
-  onSignOut: () => void;
 }
 
 function ProfileHeroActions({
   profileUser,
   externalActions,
   isPerformingAction,
-  signOutNavigationOverrides,
   primaryNavigationOverrides,
   secondaryNavigationOverrides,
   tertiaryNavigationOverrides,
-  onSignOut,
 }: Readonly<ProfileHeroActionsProps>) {
-  const { t } = useTranslation("user_profile");
-
-  if (profileUser?.isOwnProfile) {
-    return (
-      <HorizontalFocusGroup
-        regionId={PROFILE_HERO_ACTIONS_REGION_ID}
-        className="profile-page__actions"
-      >
-        <Button
-          variant="danger"
-          icon={<SignOutIcon size={20} />}
-          focusId={PROFILE_HERO_SIGN_OUT_BUTTON_ID}
-          focusNavigationOverrides={signOutNavigationOverrides}
-          onClick={onSignOut}
-        >
-          {t("sign_out")}
-        </Button>
-      </HorizontalFocusGroup>
-    );
-  }
+  // No account to sign out of: the own profile is local.
+  if (profileUser?.isOwnProfile) return null;
 
   if (externalActions.length === 0) return null;
 
@@ -997,23 +970,17 @@ function ProfileStats({
           </div>
         </article>
 
-        <ProfileStatPair
-          leftIcon={<TrophyIcon size={36} />}
-          leftValue={formatCompactNumber(userStats?.unlockedAchievementSum)}
-          leftLabel="Achievements"
-          rightIcon={
-            <img
-              src={hydraIconUrl}
-              alt=""
-              className="profile-page__stat-hydra-icon"
-              draggable={false}
-            />
-          }
-          rightValue={formatCompactNumber(
-            userStats?.achievementsPointsEarnedSum?.value
-          )}
-          rightLabel="Earned Points"
-        />
+        <article className="profile-page__stat-card">
+          <div className="profile-page__stat-main">
+            <div className="profile-page__stat-value">
+              <TrophyIcon size={36} />
+              <span>
+                {formatCompactNumber(userStats?.unlockedAchievementSum)}
+              </span>
+            </div>
+          </div>
+          <div className="profile-page__stat-label">Achievements</div>
+        </article>
       </div>
     </section>
   );
@@ -2641,7 +2608,6 @@ function ProfileContent({ userId }: Readonly<ProfileContentProps>) {
   const {
     userDetails,
     hasActiveSubscription,
-    signOut,
     sendFriendRequest,
     updateFriendRequestState,
     undoFriendship,
@@ -2686,22 +2652,6 @@ function ProfileContent({ userId }: Readonly<ProfileContentProps>) {
     () => getProfileHeroUser(userDetails, externalProfile, userId),
     [externalProfile, userDetails, userId]
   );
-
-  const [showSignOutModal, setShowSignOutModal] = useState(false);
-  const [isSigningOut, setIsSigningOut] = useState(false);
-
-  const handleSignOut = useCallback(async () => {
-    setIsSigningOut(true);
-
-    try {
-      await signOut();
-    } finally {
-      setIsSigningOut(false);
-      setShowSignOutModal(false);
-    }
-
-    navigate(getBasePath() || "/");
-  }, [navigate, signOut]);
 
   const handleFriendAction = useCallback(
     async (actionUserId: string, action: ProfileFriendAction) => {
@@ -3246,7 +3196,6 @@ function ProfileContent({ userId }: Readonly<ProfileContentProps>) {
           isPerformingAction={isPerformingProfileAction}
           isLoading={isLoading}
           firstContentFocusId={firstContentFocusId}
-          onSignOut={() => setShowSignOutModal(true)}
         />
 
         {profileUser ? (
@@ -3380,18 +3329,6 @@ function ProfileContent({ userId }: Readonly<ProfileContentProps>) {
             }
           }}
           onConfirm={() => void handleSouvenirSyncCleanup()}
-        />
-
-        <ConfirmationModal
-          visible={showSignOutModal}
-          title={t("sign_out_modal_title")}
-          description={t("sign_out_modal_text")}
-          confirmLabel={t("sign_out")}
-          cancelLabel={t("cancel")}
-          loading={isSigningOut}
-          danger
-          onClose={() => setShowSignOutModal(false)}
-          onConfirm={() => handleSignOut().catch(() => {})}
         />
 
         <ConfirmationModal

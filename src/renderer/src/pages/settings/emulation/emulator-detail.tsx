@@ -23,7 +23,6 @@ import {
   RomFoldersSection,
 } from "./emulation-detail-sections";
 import { MemoryCardsSection } from "./memory-cards-section";
-import { CloudSavesSection } from "./cloud-saves-section";
 import { LocalEmulatorSavesSection } from "./local-emulator-saves-section";
 import { RomsDetectedSection } from "./roms-detected-section";
 import { Rpcs3ConfigRootSection } from "./rpcs3-config-root-section";
@@ -72,7 +71,6 @@ export function EmulatorDetail({
   const { scan, start } = useClassicsScan();
 
   const [busy, setBusy] = useState(false);
-  const [cloudNonce, setCloudNonce] = useState(0);
   const [romsNonce, setRomsNonce] = useState(0);
   const [folderToRemove, setFolderToRemove] = useState<RomFolder | null>(null);
   const [removeOpen, setRemoveOpen] = useState(false);
@@ -391,21 +389,13 @@ export function EmulatorDetail({
 
       {activeTab === "memory-cards" && hasMemoryCards && (
         <>
-          <MemoryCardsSection
-            config={config}
-            onUploaded={() => setCloudNonce((n) => n + 1)}
-          />
-          <CloudSavesSection config={config} refreshKey={cloudNonce} />
+          <MemoryCardsSection config={config} />
         </>
       )}
 
       {activeTab === "saves" && hasEmulatorSaves && (
         <>
-          <LocalEmulatorSavesSection
-            config={config}
-            onUploaded={() => setCloudNonce((nonce) => nonce + 1)}
-          />
-          <CloudSavesSection config={config} refreshKey={cloudNonce} />
+          <LocalEmulatorSavesSection config={config} />
         </>
       )}
 

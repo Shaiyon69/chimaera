@@ -1,4 +1,3 @@
-import type { AuthPage } from "@shared";
 import type {
   SystemPowerAction,
   AppUpdaterEvent,
@@ -18,18 +17,13 @@ import type {
   OpenCheckoutOptions,
   GameStats,
   UserDetails,
-  FriendRequestSync,
-  FriendPresenceSync,
   NotificationSync,
-  GameArtifact,
-  LudusaviBackup,
   UserAchievement,
   ComparedAchievements,
   LibraryGame,
   GameRunning,
   TorBoxUser,
   Theme,
-  Auth,
   ShortcutLocation,
   Ps2MemcardScanInput,
   Ps2MemcardScanProgress,
@@ -52,7 +46,6 @@ import type {
   EmulatorConfig,
   EmulatorConfigMap,
   EmulatorSystem,
-  EmulationBackupProgress,
   EmulatorBinary,
   EmulatorInstallProgress,
   EmulatorInstallResult,
@@ -67,46 +60,27 @@ import type {
   RetroArchInstallOption,
   RetroArchInstallProgress,
   RetroArchInstallResult,
-  EmulationCloudSave,
-  EmulationSaveMetadata,
   EmulationSavePlatform,
   MemcardFormatState,
-  MemcardRestoreResult,
-  MemcardRestoreTarget,
   ArtworkAssetType,
   ArtworkKind,
   ArtworkPage,
   GameArtworkSelection,
   GameLauncherStatusPayload,
-  CloudSaveAutomaticSyncModeChangedEvent,
-  CloudSaveAutomaticSyncEvent,
   CloudSaveConflictResolution,
-  RetroArchLocalBatteryCandidate,
-  RetroArchLegacyBatteryCandidate,
-  CloudSaveOverview,
-  CloudSaveV2FileDetails,
   AchievementSouvenirSyncCleanupResult,
   AchievementSouvenirSyncDetails,
   AchievementSouvenirSyncRetryResult,
   AchievementSouvenirSyncStatus,
   CloudSaveSyncProgressPayload,
-  SyncCloudSaveOnGamePageResult,
   SyncGameCloudSaveResult,
-  SelectCloudSaveCustomPathResult,
-  CloudSaveCustomPathApproval,
   CloudSaveModalSyncResult,
-  SelectCloudSaveCustomPathApprovalResult,
-  ConfirmCloudSaveCustomPathApprovalResult,
-  ConfirmCloudSaveCustomPathRebindApprovalResult,
-  LegacySaveExportProgress,
-  LegacySaveExportResult,
   SteamSyncState,
   SteamSyncFinishedPayload,
   SteamSyncRunStatus,
   SteamConnectErrorCode,
   ExtractionFailure,
 } from "@types";
-import type { AxiosProgressEvent } from "axios";
 
 export interface DriveInfo {
   root: string;
@@ -116,40 +90,33 @@ export interface DriveInfo {
 }
 
 declare global {
-  interface BloodborneSettings {
-    eboot: string;
-    fps: string;
-    res: string;
-    aniso: string;
-    windowMode: string;
-    upscaler: string;
-    preset: string;
-    mods: boolean;
-    featOverlay: boolean;
-    featHud: boolean;
-    featFpsPatch: boolean;
-    featResScaling: boolean;
-    enabledPatches: string[];
+  interface LocalSaveBackup {
+    file: string;
+    label: string;
+    createdAt: string;
+    sizeBytes: number;
+    homeDir: string;
+    winePrefixPath: string | null;
+    hostname: string;
   }
 
-  interface BloodborneModsState {
-    enabled: boolean;
-    mods: { name: string; enabled: boolean }[];
+  interface HydraBackupSection {
+    ok: boolean;
+    count: number;
+    error?: string;
+  }
+
+  interface HydraBackupSummary {
+    dir: string;
+    createdAt: string | null;
+    user: { id: string; displayName: string | null } | null;
+    sections: Record<string, HydraBackupSection>;
+    valid: boolean;
+    problems: number;
   }
 
   interface BloodborneSetup {
-    configured: boolean;
     portInstalled: boolean;
-    settings: BloodborneSettings;
-    upscalerSupport: Record<string, boolean>;
-    choices: {
-      fps: string[];
-      res: string[];
-      windowMode: string[];
-      /** label -> BB_UPSCALER engine id ("" = in-game menu) */
-      upscalers: Record<string, string>;
-      patches: string[];
-    };
   }
 }
 
@@ -175,97 +142,6 @@ declare global {
   };
 
   interface Electron {
-    onCloudSaveAutomaticSyncModeChanged: (
-      callback: (event: CloudSaveAutomaticSyncModeChangedEvent) => void
-    ) => () => void;
-    onCloudSaveAutomaticSync: (
-      callback: (event: CloudSaveAutomaticSyncEvent) => void
-    ) => () => void;
-    getCloudSaveOverview: (
-      objectId: string,
-      shop: GameShop
-    ) => Promise<CloudSaveOverview>;
-    getCloudSaveV2FileDetails: (
-      objectId: string,
-      shop: GameShop
-    ) => Promise<CloudSaveV2FileDetails>;
-    getRetroArchLocalBatteryCandidates: (
-      objectId: string,
-      shop: GameShop
-    ) => Promise<RetroArchLocalBatteryCandidate[]>;
-    selectRetroArchLocalBattery: (
-      objectId: string,
-      shop: GameShop,
-      romPath: string,
-      signature: string
-    ) => Promise<void>;
-    getRetroArchLegacyBatteryCandidates: (
-      objectId: string,
-      shop: GameShop
-    ) => Promise<RetroArchLegacyBatteryCandidate[]>;
-    selectRetroArchLegacyBattery: (
-      objectId: string,
-      shop: GameShop,
-      rawPath: string
-    ) => Promise<void>;
-    deleteGameCloudSaveData: (
-      objectId: string,
-      shop: GameShop
-    ) => Promise<void>;
-    selectCloudSaveCustomPath: (
-      objectId: string,
-      shop: GameShop,
-      kind?: "file" | "dir"
-    ) => Promise<SelectCloudSaveCustomPathResult>;
-    selectEmulatorDestination: (
-      objectId: string,
-      shop: GameShop,
-      rawPath: string,
-      kind: "save" | "state"
-    ) => Promise<{ canceled: boolean }>;
-    removeEmulatorDestination: (
-      objectId: string,
-      shop: GameShop,
-      rawPath: string,
-      kind: "save" | "state"
-    ) => Promise<void>;
-    createCloudSaveCustomPathRebindApproval: (
-      objectId: string,
-      shop: GameShop,
-      rawPath: string
-    ) => Promise<CloudSaveCustomPathApproval>;
-    confirmCloudSaveCustomPathRebindApproval: (
-      approvalId: string,
-      objectId: string,
-      shop: GameShop
-    ) => Promise<ConfirmCloudSaveCustomPathRebindApprovalResult>;
-    getPendingCloudSaveCustomPathApproval: (
-      objectId: string,
-      shop: GameShop
-    ) => Promise<CloudSaveCustomPathApproval | null>;
-    selectCloudSaveCustomPathApproval: (
-      approvalId: string,
-      selectedPath?: string,
-      selectionMode?: "file" | "dir"
-    ) => Promise<SelectCloudSaveCustomPathApprovalResult>;
-    confirmCloudSaveCustomPathApproval: (
-      approvalId: string
-    ) => Promise<ConfirmCloudSaveCustomPathApprovalResult>;
-    dismissCloudSaveCustomPathApproval: (approvalId: string) => Promise<void>;
-    removeCloudSaveCustomPath: (
-      objectId: string,
-      shop: GameShop,
-      rawPath: string
-    ) => Promise<void>;
-    setCloudSaveAutomaticSyncEnabled: (
-      objectId: string,
-      shop: GameShop,
-      enabled: boolean
-    ) => Promise<boolean>;
-    syncCloudSaveOnGamePage: (
-      objectId: string,
-      shop: GameShop
-    ) => Promise<SyncCloudSaveOnGamePageResult>;
     syncGameCloudSave: (
       objectId: string,
       shop: GameShop,
@@ -366,11 +242,6 @@ declare global {
     ) => () => Electron.IpcRenderer;
 
     /* Library */
-    toggleAutomaticCloudSync: (
-      shop: GameShop,
-      objectId: string,
-      automaticCloudSync: boolean
-    ) => Promise<void>;
     setGameHydraPlaytimeEnabled: (
       shop: GameShop,
       objectId: string,
@@ -522,6 +393,12 @@ declare global {
       objectId: string
     ) => Promise<string | null>;
     verifyExecutablePathInUse: (executablePath: string) => Promise<Game>;
+    saveMessappKey: (
+      accessToken: string,
+      privateJwk: string
+    ) => Promise<boolean>;
+    loadMessappKey: (accessToken: string) => Promise<string | null>;
+    clearMessappKey: (accessToken: string) => Promise<void>;
     getOptiscalerGpu: () => Promise<{
       detected: "native" | "desktop" | "igpu";
       effective: "native" | "desktop" | "igpu";
@@ -716,10 +593,6 @@ declare global {
     getRpcs3ConfigRootStatus: () => Promise<
       import("@types").Rpcs3ConfigRootStatus
     >;
-    getRpcs3DiscIdentityStatus: (
-      objectId: string,
-      shop: GameShop
-    ) => Promise<import("@types").Rpcs3DiscIdentityStatus>;
     setRpcs3ConfigRoot: (root: string) => Promise<EmulatorConfig>;
     detectEmulators: () => Promise<EmulatorConfigMap>;
     detectEmulator: (system: EmulatorSystem) => Promise<EmulatorConfig>;
@@ -939,50 +812,13 @@ declare global {
       identifier: string,
       suggestedName: string
     ) => Promise<Ps2ExportResult>;
-    uploadEmulationSave: (
-      platform: EmulationSavePlatform,
-      cardFilePath: string,
-      folderName: string
-    ) => Promise<EmulationCloudSave>;
-    uploadWiiEmulationSave: (
-      dataBinPath: string,
-      objectId: string
-    ) => Promise<EmulationCloudSave>;
-    uploadEmulationSavesForCard: (
-      platform: EmulationSavePlatform,
-      cardFilePath: string
-    ) => Promise<{ uploaded: number; total: number }>;
-    onEmulationBackupProgress: (
-      cb: (payload: EmulationBackupProgress) => void
-    ) => () => Electron.IpcRenderer;
-    getActiveEmulationBackups: () => Promise<EmulationBackupProgress[]>;
-    listEmulationSaves: (
-      platform: EmulationSavePlatform,
-      objectId?: string | null
-    ) => Promise<EmulationCloudSave[]>;
     listLocalEmulationSaves: (
       platform: EmulationSavePlatform
     ) => Promise<Ps2MemoryCardSaveRecord[]>;
-    getMemcardRestoreTargets: (
-      platform: EmulationSavePlatform,
-      metadata?: EmulationSaveMetadata | Record<string, unknown> | null
-    ) => Promise<MemcardRestoreTarget[]>;
     inspectMemcard: (
       platform: EmulationSavePlatform,
       cardFilePath: string
     ) => Promise<MemcardFormatState>;
-    restoreEmulationSave: (
-      platform: EmulationSavePlatform,
-      saveId: string,
-      targetCardFilePath: string,
-      metadata?: EmulationSaveMetadata | Record<string, unknown> | null,
-      sourceFileName?: string
-    ) => Promise<MemcardRestoreResult>;
-    deleteEmulationSave: (saveId: string) => Promise<void>;
-    updateEmulationSaveLabel: (
-      saveId: string,
-      label: string
-    ) => Promise<EmulationCloudSave>;
     onUserPreferencesUpdated: (
       cb: (preferences: UserPreferences | null) => void
     ) => () => Electron.IpcRenderer;
@@ -1043,8 +879,6 @@ declare global {
       cb: (shop: GameShop, objectId: string) => void
     ) => () => Electron.IpcRenderer;
     getBloodborneSetup: () => Promise<BloodborneSetup>;
-    saveBloodborneSetup: (settings: BloodborneSettings) => Promise<void>;
-    selectBloodborneGameDir: () => Promise<string | null>;
     downloadBloodbornePort: () => Promise<void>;
     onBloodbornePortProgress: (
       cb: (progress: {
@@ -1052,11 +886,59 @@ declare global {
         percent: number;
       }) => void
     ) => () => Electron.IpcRenderer;
-    getBloodborneMods: () => Promise<BloodborneModsState>;
-    saveBloodborneMods: (state: BloodborneModsState) => Promise<void>;
-    addBloodborneMod: (kind: "folder" | "archive") => Promise<string | null>;
-    removeBloodborneMod: (name: string) => Promise<void>;
-    openBloodborneModsFolder: () => Promise<void>;
+    openHydraBackupsFolder: () => Promise<void>;
+    importHydraBackup: () => Promise<{
+      games: number;
+      unlocks: number;
+      saveBackups: number;
+    } | null>;
+    getPlaytimeSummary: () => Promise<{
+      totalPlayTimeInMilliseconds: number;
+      gameCount: number;
+      playedGameCount: number;
+      mostPlayed: {
+        shop: GameShop;
+        objectId: string;
+        title: string | null;
+        playTimeInMilliseconds: number;
+      }[];
+    }>;
+    getPlaySessions: (
+      shop: GameShop,
+      objectId: string
+    ) => Promise<
+      {
+        gameKey: string;
+        startedAt: number;
+        endedAt: number;
+        durationMs: number;
+      }[]
+    >;
+    listLocalSaveBackups: (
+      shop: GameShop,
+      objectId: string
+    ) => Promise<LocalSaveBackup[]>;
+    createLocalSaveBackup: (
+      shop: GameShop,
+      objectId: string,
+      label?: string
+    ) => Promise<LocalSaveBackup>;
+    restoreLocalSaveBackup: (
+      shop: GameShop,
+      objectId: string,
+      file: string
+    ) => Promise<void>;
+    deleteLocalSaveBackup: (
+      shop: GameShop,
+      objectId: string,
+      file: string
+    ) => Promise<void>;
+    openLocalSaveBackupsFolder: (
+      shop: GameShop,
+      objectId: string
+    ) => Promise<void>;
+    getSaveBackupsDir: () => Promise<string>;
+    selectSaveBackupsDir: () => Promise<string | null>;
     onBloodborneSetupRequired: (cb: () => void) => () => Electron.IpcRenderer;
     onBloodborneLaunchError: (
       cb: (problems: string[]) => void
@@ -1091,50 +973,6 @@ declare global {
     getNetworkInterfaces: () => Promise<NetworkInterface[]>;
 
     /* Cloud save */
-    uploadSaveGame: (
-      objectId: string,
-      shop: GameShop,
-      downloadOptionTitle: string | null
-    ) => Promise<void>;
-    downloadGameArtifact: (
-      objectId: string,
-      shop: GameShop,
-      gameArtifactId: string
-    ) => Promise<void>;
-    exportGameArtifact: (
-      gameArtifactId: string,
-      suggestedName: string,
-      onProgress?: (progress: LegacySaveExportProgress) => void
-    ) => Promise<LegacySaveExportResult>;
-    cancelGameArtifactExport: () => Promise<boolean>;
-    getGameArtifacts: (
-      objectId: string,
-      shop: GameShop
-    ) => Promise<GameArtifact[]>;
-    getGameBackupPreview: (
-      objectId: string,
-      shop: GameShop
-    ) => Promise<LudusaviBackup | null>;
-    selectGameBackupPath: (
-      shop: GameShop,
-      objectId: string,
-      backupPath: string | null
-    ) => Promise<void>;
-    onBackupDownloadComplete: (
-      objectId: string,
-      shop: GameShop,
-      cb: (success: boolean) => void
-    ) => () => Electron.IpcRenderer;
-    onUploadComplete: (
-      objectId: string,
-      shop: GameShop,
-      cb: () => void
-    ) => () => Electron.IpcRenderer;
-    onBackupDownloadProgress: (
-      objectId: string,
-      shop: GameShop,
-      cb: (progress: AxiosProgressEvent) => void
-    ) => () => Electron.IpcRenderer;
 
     /* Clipboard */
     clipboard: {
@@ -1273,20 +1111,10 @@ declare global {
     restartAndInstallUpdate: () => Promise<void>;
 
     /* Auth */
-    getAuth: () => Promise<Auth | null>;
-    signOut: () => Promise<void>;
-    openAuthWindow: (page: AuthPage) => Promise<void>;
-    minimizeAuthWindow: () => Promise<void>;
-    closeAuthWindow: () => Promise<void>;
-    getSessionHash: () => Promise<string | null>;
-    onSignIn: (cb: () => void) => () => Electron.IpcRenderer;
-    onAccountUpdated: (cb: () => void) => () => Electron.IpcRenderer;
     onSteamConnected: (cb: () => void) => () => Electron.IpcRenderer;
     onSteamConnectError: (
       cb: (code: SteamConnectErrorCode) => void
     ) => () => Electron.IpcRenderer;
-    onSignOut: (cb: () => void) => () => Electron.IpcRenderer;
-
     /* User */
     getComparedUnlockedAchievements: (
       objectId: string,
@@ -1355,17 +1183,10 @@ declare global {
         rotation?: number;
       }
     ) => Promise<{ imagePath: string }>;
-    onSyncFriendRequests: (
-      cb: (friendRequests: FriendRequestSync) => void
-    ) => () => Electron.IpcRenderer;
     onSyncNotificationCount: (
       cb: (notification: NotificationSync) => void
     ) => () => Electron.IpcRenderer;
-    onCloudGiftResolved: (
-      cb: (giftId: string) => void
-    ) => () => Electron.IpcRenderer;
     notifyCloudGiftResolved: (giftId: string) => Promise<void>;
-    syncFriendRequests: (friendRequestCount: number) => Promise<void>;
 
     /* Notifications */
     publishNewRepacksNotification: (newRepacksCount: number) => Promise<void>;
@@ -1452,16 +1273,6 @@ declare global {
     executeSystemPowerAction: (action: SystemPowerAction) => Promise<void>;
 
     /* Friends Window */
-    openFriendsWindow: () => Promise<void>;
-    minimizeFriendsWindow: () => Promise<void>;
-    closeFriendsWindow: () => Promise<void>;
-    openFriendProfileInMainWindow: (userId: string) => Promise<void>;
-    openAddFriendModalInMainWindow: () => Promise<void>;
-    onOpenAddFriendModal: (cb: () => void) => () => Electron.IpcRenderer;
-    onFriendsUpdated: (cb: () => void) => () => Electron.IpcRenderer;
-    onFriendPresence: (
-      cb: (presence: FriendPresenceSync) => void
-    ) => () => Electron.IpcRenderer;
     onProfileUpdated: (cb: () => void) => () => Electron.IpcRenderer;
     onNavigate: (cb: (path: string) => void) => () => Electron.IpcRenderer;
 

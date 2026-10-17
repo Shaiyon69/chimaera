@@ -2,7 +2,7 @@ import type { RetroArchPlatform } from "@types";
 import type { ArchiveEntry } from "../archive-entry.js";
 import { RETROARCH_ARCHIVE_EXTENSIONS } from "../../../shared/retroarch-platform.js";
 import { extensionToPlatform } from "./retroarch-cores.js";
-import { mapWithConcurrency } from "../cloud-save/map-with-concurrency.js";
+import { mapWithConcurrency } from "../map-with-concurrency.js";
 
 const MAX_CONCURRENT_ARCHIVE_INSPECTIONS = 4;
 
