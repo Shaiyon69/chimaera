@@ -1,314 +1,39 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { userProfileContext } from "@renderer/context";
-import {
-  BlockedIcon,
-  CheckCircleFillIcon,
-  CopyIcon,
-  GiftIcon,
-  PencilIcon,
-  PersonAddIcon,
-  SignOutIcon,
-  XCircleFillIcon,
-  XCircleIcon,
-} from "@primer/octicons-react";
 import { buildGameDetailsPath } from "@renderer/helpers";
-import {
-  Avatar,
-  Button,
-  ConfirmationModal,
-  FullscreenMediaModal,
-  Link,
-} from "@renderer/components";
+import { Avatar, FullscreenMediaModal, Link } from "@renderer/components";
 import { useTranslation } from "react-i18next";
-import {
-  useAppSelector,
-  useDate,
-  useToast,
-  useUserDetails,
-} from "@renderer/hooks";
+import { useAppSelector, useDate } from "@renderer/hooks";
 import { addSeconds } from "date-fns";
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { AuthPage } from "@shared";
+
 import { GameVisibilityBadge } from "@renderer/components/game-visibility-badge/game-visibility-badge";
 
-import type { FriendRequestAction } from "@types";
 import { EditProfileModal } from "../edit-profile-modal/edit-profile-modal";
 import Skeleton from "react-loading-skeleton";
-import { UploadBackgroundImageButton } from "../upload-background-image-button/upload-background-image-button";
+import { useBannerUpload } from "../use-banner-upload";
 import "./profile-hero.scss";
-
-type FriendAction =
-  | FriendRequestAction
-  | ("BLOCK" | "UNDO_FRIENDSHIP" | "SEND");
 
 export function ProfileHero() {
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [showFullscreenAvatar, setShowFullscreenAvatar] = useState(false);
-  const [isPerformingAction, setIsPerformingAction] = useState(false);
-  const [showSignOutModal, setShowSignOutModal] = useState(false);
-  const [isCopyButtonHovered, setIsCopyButtonHovered] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
 
-  const { isMe, getUserProfile, userProfile, heroBackground, backgroundImage } =
+  const { isMe, userProfile, heroBackground, backgroundImage } =
     useContext(userProfileContext);
-  const {
-    signOut,
-    updateFriendRequestState,
-    sendFriendRequest,
-    undoFriendship,
-    blockUser,
-    userDetails,
-  } = useUserDetails();
 
   const { gameRunning } = useAppSelector((state) => state.gameRunning);
 
   const { t } = useTranslation("user_profile");
   const { formatDistance } = useDate();
 
-  const { showSuccessToast, showErrorToast } = useToast();
-
-  const navigate = useNavigate();
-
-  const handleSignOut = useCallback(async () => {
-    setIsPerformingAction(true);
-
-    try {
-      await signOut();
-
-      showSuccessToast(t("successfully_signed_out"));
-    } finally {
-      setIsPerformingAction(false);
-      setShowSignOutModal(false);
-    }
-    navigate("/");
-  }, [navigate, signOut, showSuccessToast, t]);
-
-  const handleFriendAction = useCallback(
-    async (userId: string, action: FriendAction) => {
-      if (!userProfile) return;
-
-      if (!userDetails) {
-        window.electron.openAuthWindow(AuthPage.SignIn);
-        return;
-      }
-
-      setIsPerformingAction(true);
-
-      try {
-        if (action === "UNDO_FRIENDSHIP") {
-          await undoFriendship(userId).then(getUserProfile);
-          return;
-        }
-
-        if (action === "BLOCK") {
-          await blockUser(userId).then(() => {
-            showSuccessToast(t("user_blocked_successfully"));
-            navigate(-1);
-          });
-
-          return;
-        }
-
-        if (action === "SEND") {
-          await sendFriendRequest(userProfile.id).then(getUserProfile);
-          return;
-        }
-
-        await updateFriendRequestState(userId, action).then(getUserProfile);
-      } catch (err) {
-        showErrorToast(t("try_again"));
-      } finally {
-        setIsPerformingAction(false);
-      }
-    },
-    [
-      undoFriendship,
-      blockUser,
-      sendFriendRequest,
-      updateFriendRequestState,
-      t,
-      showErrorToast,
-      getUserProfile,
-      navigate,
-      showSuccessToast,
-      userProfile,
-      userDetails,
-    ]
-  );
-
-  const giftAction = useMemo(() => {
-    if (!userProfile || isMe || !userProfile.canReceiveCloudGift) return null;
-
-    return (
-      <Button
-        theme="cloud"
-        onClick={() => {
-          if (!userDetails) {
-            window.electron.openAuthWindow(AuthPage.SignIn);
-            return;
-          }
-
-          window.electron.openCheckout({
-            path: "/gift",
-            recipientId: userProfile.id,
-          });
-        }}
-        disabled={isPerformingAction}
-      >
-        <GiftIcon size={16} className="profile-hero__gift-icon" />
-        {t("gift_cloud")}
-      </Button>
-    );
-  }, [isMe, isPerformingAction, t, userDetails, userProfile]);
-
-  const profileActions = useMemo(() => {
-    if (!userProfile) return null;
-
-    if (isMe) {
-      return (
-        <>
-          <Button
-            theme="outline"
-            onClick={() => setShowEditProfileModal(true)}
-            disabled={isPerformingAction}
-            className="profile-hero__button--outline"
-          >
-            <PencilIcon />
-            {t("edit_profile")}
-          </Button>
-
-          <Button
-            theme="danger"
-            onClick={() => setShowSignOutModal(true)}
-            disabled={isPerformingAction}
-          >
-            <SignOutIcon />
-            {t("sign_out")}
-          </Button>
-        </>
-      );
-    }
-
-    if (userProfile.relation == null) {
-      return (
-        <>
-          <Button
-            theme="outline"
-            onClick={() => handleFriendAction(userProfile.id, "SEND")}
-            disabled={isPerformingAction}
-            className="profile-hero__button--outline"
-          >
-            <PersonAddIcon />
-            {t("add_friend")}
-          </Button>
-
-          <Button
-            theme="danger"
-            onClick={() => handleFriendAction(userProfile.id, "BLOCK")}
-            disabled={isPerformingAction}
-          >
-            <BlockedIcon />
-            {t("block_user")}
-          </Button>
-        </>
-      );
-    }
-
-    if (userProfile.relation.status === "ACCEPTED") {
-      return (
-        <>
-          <Button
-            theme="danger"
-            onClick={() =>
-              handleFriendAction(userProfile.id, "UNDO_FRIENDSHIP")
-            }
-            disabled={isPerformingAction}
-          >
-            <XCircleIcon />
-            {t("undo_friendship")}
-          </Button>
-
-          <Button
-            theme="danger"
-            onClick={() => handleFriendAction(userProfile.id, "BLOCK")}
-            disabled={isPerformingAction}
-          >
-            <BlockedIcon />
-            {t("block_user")}
-          </Button>
-        </>
-      );
-    }
-
-    if (userProfile.relation.BId === userProfile.id) {
-      return (
-        <Button
-          theme="outline"
-          onClick={() =>
-            handleFriendAction(userProfile.relation!.BId, "CANCEL")
-          }
-          disabled={isPerformingAction}
-          className="profile-hero__button--outline"
-        >
-          <XCircleFillIcon /> {t("cancel_request")}
-        </Button>
-      );
-    }
-
-    return (
-      <>
-        <Button
-          theme="outline"
-          onClick={() =>
-            handleFriendAction(userProfile.relation!.AId, "ACCEPTED")
-          }
-          disabled={isPerformingAction}
-          className="profile-hero__button--outline"
-        >
-          <CheckCircleFillIcon /> {t("accept_request")}
-        </Button>
-        <Button
-          theme="danger"
-          onClick={() =>
-            handleFriendAction(userProfile.relation!.AId, "REFUSED")
-          }
-          disabled={isPerformingAction}
-        >
-          <XCircleFillIcon /> {t("ignore_request")}
-        </Button>
-      </>
-    );
-  }, [handleFriendAction, isMe, t, isPerformingAction, userProfile]);
+  const { replaceBanner, modals: bannerModals } = useBannerUpload();
 
   const handleAvatarClick = useCallback(() => {
-    if (userProfile?.profileImageUrl) {
-      setShowFullscreenAvatar(true);
-    } else if (isMe) {
+    if (isMe) {
       setShowEditProfileModal(true);
+    } else if (userProfile?.profileImageUrl) {
+      setShowFullscreenAvatar(true);
     }
   }, [isMe, userProfile?.profileImageUrl]);
-
-  const copyFriendCode = useCallback(() => {
-    if (userProfile?.id) {
-      globalThis.window.electron.clipboard.writeText(userProfile.id);
-      setIsCopied(true);
-
-      const startTime = performance.now();
-      const duration = 1200; // 1.2 seconds
-
-      const animate = (currentTime: number) => {
-        const elapsed = currentTime - startTime;
-        if (elapsed < duration) {
-          requestAnimationFrame(animate);
-        } else {
-          setIsCopied(false);
-        }
-      };
-
-      requestAnimationFrame(animate);
-    }
-  }, [userProfile]);
 
   const currentGame = useMemo(() => {
     if (isMe) {
@@ -331,17 +56,7 @@ export function ProfileHero() {
         onClose={() => setShowEditProfileModal(false)}
       />
 
-      <ConfirmationModal
-        visible={showSignOutModal}
-        title={t("sign_out_modal_title")}
-        descriptionText={t("sign_out_modal_text")}
-        confirmButtonLabel={t("sign_out")}
-        cancelButtonLabel={t("cancel")}
-        confirmButtonTheme="danger"
-        buttonsIsDisabled={isPerformingAction}
-        onConfirm={() => void handleSignOut()}
-        onClose={() => setShowSignOutModal(false)}
-      />
+      {isMe && bannerModals}
 
       <FullscreenMediaModal
         visible={showFullscreenAvatar}
@@ -354,15 +69,20 @@ export function ProfileHero() {
         className="profile-hero__content-box"
         style={{ background: !backgroundImage ? heroBackground : undefined }}
       >
-        {giftAction && (
-          <div className="profile-hero__gift-action">{giftAction}</div>
-        )}
-
         {backgroundImage && (
           <img
             src={backgroundImage}
             alt=""
             className="profile-hero__background-image"
+          />
+        )}
+
+        {isMe && (
+          <button
+            type="button"
+            className="profile-hero__banner-button"
+            onClick={replaceBanner}
+            aria-label={t("change_banner")}
           />
         )}
 
@@ -392,33 +112,6 @@ export function ProfileHero() {
                   <h2 className="profile-hero__display-name">
                     {userProfile?.displayName}
                   </h2>
-
-                  <motion.button
-                    type="button"
-                    className="profile-hero__copy-button"
-                    onClick={copyFriendCode}
-                    title={t("copy_friend_code")}
-                    onMouseEnter={() => setIsCopyButtonHovered(true)}
-                    onMouseLeave={() => setIsCopyButtonHovered(false)}
-                    initial={{ width: 28 }}
-                    animate={{
-                      width: isCopyButtonHovered || isCopied ? 105 : 28,
-                    }}
-                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                  >
-                    <motion.span
-                      className="profile-hero__friend-code"
-                      initial={{ opacity: 0, marginRight: 0 }}
-                      animate={{
-                        opacity: isCopyButtonHovered || isCopied ? 1 : 0,
-                        marginRight: isCopyButtonHovered || isCopied ? 8 : 0,
-                      }}
-                      transition={{ duration: 0.2, ease: "easeInOut" }}
-                    >
-                      {isCopied ? t("copied") : userProfile?.id}
-                    </motion.span>
-                    <CopyIcon size={16} />
-                  </motion.button>
                 </div>
               ) : (
                 <Skeleton width={150} height={28} />
@@ -457,20 +150,7 @@ export function ProfileHero() {
                 </div>
               )}
             </div>
-
-            <UploadBackgroundImageButton />
           </div>
-        </div>
-
-        <div
-          className={`profile-hero__hero-panel ${
-            !backgroundImage ? "profile-hero__hero-panel--transparent" : ""
-          }`}
-          style={{
-            background: !backgroundImage ? heroBackground : undefined,
-          }}
-        >
-          <div className="profile-hero__actions">{profileActions}</div>
         </div>
       </section>
     </>

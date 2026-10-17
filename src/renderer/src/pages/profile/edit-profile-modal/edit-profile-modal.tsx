@@ -1,12 +1,11 @@
 import { useContext, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Trans, useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 
-import { DeviceCameraIcon } from "@primer/octicons-react";
+import { DeviceCameraIcon, TrashIcon } from "@primer/octicons-react";
 import {
   Avatar,
   Button,
-  Link,
   Modal,
   ModalProps,
   TextField,
@@ -20,11 +19,13 @@ import * as yup from "yup";
 import { userProfileContext } from "@renderer/context";
 import { getProfileImageMetadata } from "../profile-image-metadata";
 import { ProfileImageCropModal } from "../profile-image-crop-modal/profile-image-crop-modal";
+import { useBannerUpload } from "../use-banner-upload";
 import "./edit-profile-modal.scss";
 
 interface FormValues {
   profileImageUrl?: string;
   displayName: string;
+  bio: string;
 }
 
 export function EditProfileModal(
@@ -38,6 +39,7 @@ export function EditProfileModal(
       .required(t("required_field"))
       .min(3, t("displayname_min_length"))
       .max(50, t("displayname_max_length")),
+    bio: yup.string().max(1000).default(""),
   });
 
   const {
@@ -56,12 +58,14 @@ export function EditProfileModal(
   );
   const [cropIsAnimated, setCropIsAnimated] = useState(false);
 
-  const { userDetails, fetchUserDetails, hasActiveSubscription } =
-    useUserDetails();
+  const { userDetails, fetchUserDetails } = useUserDetails();
+  const { hasBanner, isUploading, requestRemoveBanner, modals } =
+    useBannerUpload();
 
   useEffect(() => {
     if (userDetails) {
       setValue("displayName", userDetails.displayName);
+      setValue("bio", userDetails.bio ?? "");
     }
   }, [setValue, userDetails]);
 
@@ -95,26 +99,10 @@ export function EditProfileModal(
               const handleProfileImagePath = async (path: string) => {
                 const metadata = await getProfileImageMetadata(path);
 
-                if (metadata.isAnimated && hasActiveSubscription) {
+                if (metadata.isAnimated) {
                   // Crop while preserving animation (handled in main/sharp).
                   setCropIsAnimated(true);
                   setProfileImageToCrop(path);
-                  return;
-                }
-
-                if (metadata.isAnimated && !hasActiveSubscription) {
-                  const { imagePath } = await window.electron
-                    .processProfileImage(path)
-                    .catch(() => {
-                      showErrorToast(t("image_process_failure"));
-                      return { imagePath: null };
-                    });
-
-                  if (imagePath) {
-                    setCropIsAnimated(false);
-                    setProfileImageToCrop(imagePath);
-                  }
-
                   return;
                 }
 
@@ -191,13 +179,24 @@ export function EditProfileModal(
             containerProps={{ style: { width: "100%" } }}
             error={errors.displayName?.message}
           />
+
+          <label className="edit-profile-modal__bio">
+            <span>{t("bio")}</span>
+            <textarea {...register("bio")} maxLength={1000} rows={4} />
+          </label>
         </div>
 
-        <small className="edit-profile-modal__hint">
-          <Trans i18nKey="privacy_hint" ns="user_profile">
-            <Link to="/settings" />
-          </Trans>
-        </small>
+        {hasBanner && (
+          <Button
+            type="button"
+            theme="outline"
+            disabled={isUploading}
+            onClick={requestRemoveBanner}
+          >
+            <TrashIcon />
+            {t("remove_banner")}
+          </Button>
+        )}
 
         <Button
           disabled={isSubmitting}
@@ -207,6 +206,7 @@ export function EditProfileModal(
           {isSubmitting ? t("saving") : t("save")}
         </Button>
       </form>
+      {modals}
     </Modal>
   );
 }
